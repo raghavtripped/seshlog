@@ -1,11 +1,22 @@
 
 import { Session } from "@/types/session";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Users } from "lucide-react";
+import { Calendar, Users, Hash } from "lucide-react";
 
 interface SessionListProps {
   sessions: Session[];
 }
+
+const getQuantityLabel = (sessionType: string, quantity: number) => {
+  const labels = {
+    'Joint': quantity === 1 ? 'joint' : 'joints',
+    'Bong': quantity === 1 ? 'bowl' : 'bowls',
+    'Vape': quantity === 1 ? 'session' : 'sessions',
+    'Edible': quantity === 1 ? 'piece' : 'pieces',
+    'Other': quantity === 1 ? 'item' : 'items'
+  };
+  return `${quantity} ${labels[sessionType as keyof typeof labels] || 'items'}`;
+};
 
 export const SessionList = ({ sessions }: SessionListProps) => {
   if (sessions.length === 0) {
@@ -36,6 +47,11 @@ export const SessionList = ({ sessions }: SessionListProps) => {
     }
   };
 
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString();
+  };
+
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold text-white mb-6">Recent Sessions</h2>
@@ -56,12 +72,16 @@ export const SessionList = ({ sessions }: SessionListProps) => {
               </CardTitle>
               <div className="flex items-center gap-4 text-sm text-gray-400">
                 <div className="flex items-center gap-1">
+                  <Hash className="w-4 h-4" />
+                  <span>{getQuantityLabel(session.sessionType, session.quantity)}</span>
+                </div>
+                <div className="flex items-center gap-1">
                   <Users className="w-4 h-4" />
                   <span>{session.participantCount}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
-                  <span>{formatDate(session.createdAt)}</span>
+                  <span title={formatDateTime(session.sessionDate)}>{formatDate(session.sessionDate)}</span>
                 </div>
               </div>
             </div>

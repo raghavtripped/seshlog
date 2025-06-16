@@ -12,19 +12,38 @@ interface SessionFormProps {
   onCancel: () => void;
 }
 
+const getQuantityLabel = (sessionType: SessionType) => {
+  switch (sessionType) {
+    case 'Joint': return 'Number of Joints';
+    case 'Bong': return 'Number of Bowls';
+    case 'Vape': return 'Number of Sessions';
+    case 'Edible': return 'Number of Pieces';
+    case 'Other': return 'Quantity';
+    default: return 'Quantity';
+  }
+};
+
 export const SessionForm = ({ onSubmit, onCancel }: SessionFormProps) => {
   const [sessionType, setSessionType] = useState<SessionType>('Joint');
+  const [quantity, setQuantity] = useState(1);
   const [participantCount, setParticipantCount] = useState(1);
   const [notes, setNotes] = useState('');
   const [rating, setRating] = useState<number>(5);
+  const [sessionDate, setSessionDate] = useState(() => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
       sessionType,
+      quantity,
       participantCount,
       notes: notes.trim() || undefined,
       rating,
+      sessionDate: new Date(sessionDate).toISOString(),
     });
   };
 
@@ -39,7 +58,7 @@ export const SessionForm = ({ onSubmit, onCancel }: SessionFormProps) => {
             <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-gray-700 border-gray-600">
               <SelectItem value="Joint">Joint</SelectItem>
               <SelectItem value="Bong">Bong</SelectItem>
               <SelectItem value="Vape">Vape</SelectItem>
@@ -47,6 +66,19 @@ export const SessionForm = ({ onSubmit, onCancel }: SessionFormProps) => {
               <SelectItem value="Other">Other</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="quantity" className="text-gray-300">{getQuantityLabel(sessionType)}</Label>
+          <Input
+            id="quantity"
+            type="number"
+            min="1"
+            max="50"
+            value={quantity}
+            onChange={(e) => setQuantity(Number(e.target.value))}
+            className="bg-gray-700 border-gray-600 text-white"
+          />
         </div>
 
         <div className="space-y-2">
@@ -63,6 +95,17 @@ export const SessionForm = ({ onSubmit, onCancel }: SessionFormProps) => {
         </div>
 
         <div className="space-y-2">
+          <Label htmlFor="sessionDate" className="text-gray-300">Date & Time</Label>
+          <Input
+            id="sessionDate"
+            type="datetime-local"
+            value={sessionDate}
+            onChange={(e) => setSessionDate(e.target.value)}
+            className="bg-gray-700 border-gray-600 text-white"
+          />
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="rating" className="text-gray-300">Rating (1-5)</Label>
           <div className="flex gap-2">
             {[1, 2, 3, 4, 5].map((star) => (
@@ -70,13 +113,14 @@ export const SessionForm = ({ onSubmit, onCancel }: SessionFormProps) => {
                 key={star}
                 type="button"
                 onClick={() => setRating(star)}
-                className={`text-2xl transition-colors ${
-                  star <= rating ? 'text-yellow-400' : 'text-gray-600'
+                className={`text-2xl transition-colors hover:scale-110 ${
+                  star <= rating ? 'text-yellow-400' : 'text-gray-600 hover:text-gray-500'
                 }`}
               >
                 ⭐
               </button>
             ))}
+            <span className="ml-2 text-gray-300">{rating}/5</span>
           </div>
         </div>
 

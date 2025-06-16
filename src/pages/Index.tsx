@@ -112,10 +112,7 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Stats */}
-        <SessionStats sessions={sessions} />
-
-        {/* Add Session Button */}
+        {/* Add Session Button - Moved to top */}
         <div className="mb-8">
           <Button
             onClick={() => setShowSessionForm(true)}
@@ -126,10 +123,13 @@ const Index = () => {
           </Button>
         </div>
 
+        {/* Stats - After the button */}
+        <SessionStats sessions={sessions} />
+
         {/* Session Form Modal */}
         {showSessionForm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
               <SessionForm 
                 onSubmit={handleAddSession}
                 onCancel={() => setShowSessionForm(false)}
@@ -138,7 +138,7 @@ const Index = () => {
           </div>
         )}
 
-        {/* Sessions List */}
+        {/* Sessions List - After the stats */}
         <SessionList sessions={sessions} />
       </div>
     </div>
