@@ -8,9 +8,11 @@ import { useNavigate } from 'react-router-dom';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -19,12 +21,33 @@ export const Login = () => {
     setError('');
     
     try {
-      const { error } = await supabase.auth.signInWithOtp({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
-        options: {
-          // This is where the user will be redirected back to after clicking the magic link
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
+        password,
+      });
+
+      if (error) {
+        setError(error.message);
+      } else {
+        // Success - navigation will be handled by useAuth
+        navigate('/');
+      }
+    } catch (err) {
+      setError('An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
       });
 
       if (error) {
@@ -55,14 +78,17 @@ export const Login = () => {
         <div className="flex items-center justify-center gap-3">
           <Sparkles className="w-8 h-8 text-emerald-400" />
           <h1 className="text-3xl font-bold text-center bg-gradient-to-r from-emerald-600 to-blue-600 dark:from-emerald-400 dark:to-blue-400 bg-clip-text text-transparent">
-            Sign In
+            {isSignUp ? 'Create Account' : 'Welcome Back'}
           </h1>
         </div>
         
         {submitted ? (
           <div className="text-center space-y-4">
             <p className="text-green-600 dark:text-green-400 font-medium">
-              Success! Please check your email for the magic link to sign in.
+              {isSignUp 
+                ? "Account created! Please check your email to verify your account."
+                : "Successfully signed in!"
+              }
             </p>
             <Button
               onClick={() => navigate('/')}
@@ -73,7 +99,7 @@ export const Login = () => {
             </Button>
           </div>
         ) : (
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={isSignUp ? handleSignUp : handleLogin} className="space-y-4">
             <div>
               <label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Email address
@@ -88,6 +114,22 @@ export const Login = () => {
                 className="mt-1 bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 focus:border-emerald-500 dark:focus:border-emerald-400"
               />
             </div>
+
+            <div>
+              <label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Password
+              </label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                minLength={6}
+                className="mt-1 bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 focus:border-emerald-500 dark:focus:border-emerald-400"
+              />
+            </div>
             
             <Button 
               type="submit" 
@@ -97,12 +139,28 @@ export const Login = () => {
               {loading ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Sending...
+                  {isSignUp ? 'Creating Account...' : 'Signing In...'}
                 </div>
               ) : (
-                'Send Magic Link'
+                isSignUp ? 'Create Account' : 'Sign In'
               )}
             </Button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setError('');
+                }}
+                className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 text-sm font-medium"
+              >
+                {isSignUp 
+                  ? 'Already have an account? Sign in' 
+                  : "Don't have an account? Sign up"
+                }
+              </button>
+            </div>
             
             {error && (
               <p className="text-red-500 dark:text-red-400 text-sm text-center">{error}</p>

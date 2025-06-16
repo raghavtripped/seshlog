@@ -63,20 +63,21 @@ This project is built with:
 
 ## Authentication
 
-This application now uses Supabase for secure authentication via Magic Links. Here's how it works:
+This application uses Supabase for secure email/password authentication. Here's how it works:
 
 ### Authentication Flow
 1. **Landing Page**: Users see a welcome screen with a "Get Started" button
-2. **Login Page**: Users enter their email address to receive a magic link
-3. **Magic Link**: Supabase sends a secure link to the user's email
-4. **Authentication**: Clicking the link authenticates the user and redirects to the dashboard
+2. **Login Page**: Users can sign in with existing credentials or create a new account
+3. **Email/Password**: Simple, secure authentication with password requirements
+4. **Email Verification**: New accounts receive verification emails (optional)
 5. **Dashboard**: Authenticated users can manage their sessions
 
 ### Security Features
-- **No passwords required**: Magic links provide secure, passwordless authentication
+- **Email/Password Authentication**: Traditional, secure login system
 - **Server-side session management**: Sessions are managed securely by Supabase
 - **Automatic session persistence**: Users stay logged in across browser sessions
 - **Secure data isolation**: Each user can only access their own session data
+- **Password requirements**: Minimum 6 characters for security
 
 ### Key Components
 - `useAuth`: Custom hook managing authentication state

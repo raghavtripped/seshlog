@@ -11,7 +11,7 @@ export const AuthCallback = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Handle the auth callback by exchanging the code for a session
+        // Handle email confirmation callback
         const hashFragment = window.location.hash;
         const urlParams = new URLSearchParams(hashFragment.slice(1));
         const accessToken = urlParams.get('access_token');
@@ -25,30 +25,18 @@ export const AuthCallback = () => {
           
           if (error) {
             console.error('Auth callback error:', error);
-            setError('Authentication failed. Please try again.');
+            setError('Email confirmation failed. Please try again.');
             setTimeout(() => navigate('/login'), 3000);
           } else if (data.session) {
-            // Successfully authenticated, redirect to home
+            // Successfully confirmed email and authenticated
             navigate('/');
           } else {
-            setError('No session created. Please try again.');
+            setError('Email confirmation failed. Please try again.');
             setTimeout(() => navigate('/login'), 3000);
           }
         } else {
-          // No tokens in URL, check if already authenticated
-          const { data: { session }, error } = await supabase.auth.getSession();
-          
-          if (error) {
-            console.error('Auth session error:', error);
-            setError('Authentication failed. Please try again.');
-            setTimeout(() => navigate('/login'), 3000);
-          } else if (session) {
-            // Already authenticated, redirect to home
-            navigate('/');
-          } else {
-            setError('No authentication data found. Please try again.');
-            setTimeout(() => navigate('/login'), 3000);
-          }
+          setError('Invalid confirmation link. Please try again.');
+          setTimeout(() => navigate('/login'), 3000);
         }
       } catch (err) {
         console.error('Unexpected error during auth callback:', err);

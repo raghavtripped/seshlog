@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Session } from '@/types/session';
+import { Session, SessionType } from '@/types/session';
 
 export const useSessions = (userId: string | null, initialSessions?: Session[]) => {
   const [sessions, setSessions] = useState<Session[]>(initialSessions || []);
@@ -22,14 +22,15 @@ export const useSessions = (userId: string | null, initialSessions?: Session[]) 
 
       const formattedSessions: Session[] = data.map(session => ({
         id: session.id,
-        sessionType: session.session_type as any,
+        user_id: session.user_id,
+        session_type: session.session_type as SessionType,
         quantity: Number(session.quantity),
-        participantCount: session.participant_count,
+        participant_count: session.participant_count,
         notes: session.notes,
         rating: session.rating,
-        sessionDate: session.session_date,
-        createdAt: session.created_at,
-        individualConsumption: Number(session.quantity) / session.participant_count
+        session_date: session.session_date,
+        created_at: session.created_at,
+        updated_at: session.updated_at
       }));
 
       setSessions(formattedSessions);
@@ -40,7 +41,7 @@ export const useSessions = (userId: string | null, initialSessions?: Session[]) 
     }
   };
 
-  const addSession = async (newSession: Omit<Session, 'id' | 'createdAt'>) => {
+  const addSession = async (newSession: Omit<Session, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => {
     if (!userId) return;
 
     try {
@@ -48,12 +49,12 @@ export const useSessions = (userId: string | null, initialSessions?: Session[]) 
         .from('sessions')
         .insert({
           user_id: userId,
-          session_type: newSession.sessionType,
+          session_type: newSession.session_type,
           quantity: newSession.quantity,
-          participant_count: newSession.participantCount,
+          participant_count: newSession.participant_count,
           notes: newSession.notes,
           rating: newSession.rating,
-          session_date: newSession.sessionDate
+          session_date: newSession.session_date
         })
         .select()
         .single();
@@ -62,14 +63,15 @@ export const useSessions = (userId: string | null, initialSessions?: Session[]) 
 
       const formattedSession: Session = {
         id: data.id,
-        sessionType: data.session_type as any,
+        user_id: data.user_id,
+        session_type: data.session_type as SessionType,
         quantity: Number(data.quantity),
-        participantCount: data.participant_count,
+        participant_count: data.participant_count,
         notes: data.notes,
         rating: data.rating,
-        sessionDate: data.session_date,
-        createdAt: data.created_at,
-        individualConsumption: Number(data.quantity) / data.participant_count
+        session_date: data.session_date,
+        created_at: data.created_at,
+        updated_at: data.updated_at
       };
 
       setSessions(prev => [formattedSession, ...prev]);
@@ -85,12 +87,12 @@ export const useSessions = (userId: string | null, initialSessions?: Session[]) 
       const { error } = await supabase
         .from('sessions')
         .update({
-          session_type: updates.sessionType,
+          session_type: updates.session_type,
           quantity: updates.quantity,
-          participant_count: updates.participantCount,
+          participant_count: updates.participant_count,
           notes: updates.notes,
           rating: updates.rating,
-          session_date: updates.sessionDate
+          session_date: updates.session_date
         })
         .eq('id', sessionId)
         .eq('user_id', userId);
@@ -101,10 +103,7 @@ export const useSessions = (userId: string | null, initialSessions?: Session[]) 
         session.id === sessionId 
           ? { 
               ...session, 
-              ...updates, 
-              individualConsumption: updates.quantity && updates.participantCount 
-                ? updates.quantity / updates.participantCount 
-                : session.individualConsumption 
+              ...updates
             }
           : session
       ));

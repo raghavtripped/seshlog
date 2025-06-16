@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Session } from "@/types/session";
+import { Session, SessionType } from "@/types/session";
 import { AppDashboard } from "@/components/AppDashboard";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Sparkles } from "lucide-react";
@@ -33,14 +33,15 @@ const Index = () => {
 
         const formattedSessions: Session[] = data.map(session => ({
           id: session.id,
-          sessionType: session.session_type as any,
+          user_id: session.user_id,
+          session_type: session.session_type as SessionType,
           quantity: Number(session.quantity),
-          participantCount: session.participant_count,
+          participant_count: session.participant_count,
           notes: session.notes,
           rating: session.rating,
-          sessionDate: session.session_date,
-          createdAt: session.created_at,
-          individualConsumption: Number(session.quantity) / session.participant_count
+          session_date: session.session_date,
+          created_at: session.created_at,
+          updated_at: session.updated_at
         }));
 
         setSessions(formattedSessions);
