@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session } from '@/types/session';
 
-export const useSessions = (userId: string | null) => {
-  const [sessions, setSessions] = useState<Session[]>([]);
+export const useSessions = (userId: string | null, initialSessions?: Session[]) => {
+  const [sessions, setSessions] = useState<Session[]>(initialSessions || []);
   const [loading, setLoading] = useState(false);
 
   const fetchSessions = async () => {

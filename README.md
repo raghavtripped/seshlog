@@ -59,6 +59,36 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- Supabase (Authentication & Database)
+
+## Authentication
+
+This application now uses Supabase for secure authentication via Magic Links. Here's how it works:
+
+### Authentication Flow
+1. **Landing Page**: Users see a welcome screen with a "Get Started" button
+2. **Login Page**: Users enter their email address to receive a magic link
+3. **Magic Link**: Supabase sends a secure link to the user's email
+4. **Authentication**: Clicking the link authenticates the user and redirects to the dashboard
+5. **Dashboard**: Authenticated users can manage their sessions
+
+### Security Features
+- **No passwords required**: Magic links provide secure, passwordless authentication
+- **Server-side session management**: Sessions are managed securely by Supabase
+- **Automatic session persistence**: Users stay logged in across browser sessions
+- **Secure data isolation**: Each user can only access their own session data
+
+### Key Components
+- `useAuth`: Custom hook managing authentication state
+- `AuthProvider`: Context provider for authentication throughout the app
+- `Login`: Dedicated login page for magic link authentication
+- `AuthCallback`: Handles the magic link callback and session setup
+- `AppDashboard`: Protected dashboard component for authenticated users
+
+### Database Integration
+- User sessions are stored in Supabase with proper user isolation
+- All CRUD operations are authenticated and user-scoped
+- Real-time updates and data synchronization
 
 ## How can I deploy this project?
 

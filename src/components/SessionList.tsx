@@ -1,3 +1,4 @@
+// /src/components/SessionList.tsx
 
 import { useState } from "react";
 import { Session } from "@/types/session";
@@ -37,22 +38,23 @@ const getIndividualLabel = (sessionType: string, individual: number) => {
 export const SessionList = ({ sessions, onEdit, onDelete }: SessionListProps) => {
   const [sortBy, setSortBy] = useState<string>('date-desc');
 
+  // **FIXED: Using snake_case for all sorting logic**
   const sortedSessions = [...sessions].sort((a, b) => {
     switch (sortBy) {
       case 'date-desc':
-        return new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime();
+        return new Date(b.session_date).getTime() - new Date(a.session_date).getTime();
       case 'date-asc':
-        return new Date(a.sessionDate).getTime() - new Date(b.sessionDate).getTime();
+        return new Date(a.session_date).getTime() - new Date(b.session_date).getTime();
       case 'rating-desc':
         return (b.rating || 0) - (a.rating || 0);
       case 'rating-asc':
         return (a.rating || 0) - (b.rating || 0);
       case 'individual-desc':
-        return (b.individualConsumption || 0) - (a.individualConsumption || 0);
+        return (b.quantity / b.participant_count) - (a.quantity / a.participant_count);
       case 'individual-asc':
-        return (a.individualConsumption || 0) - (b.individualConsumption || 0);
+        return (a.quantity / a.participant_count) - (b.quantity / b.participant_count);
       case 'type':
-        return a.sessionType.localeCompare(b.sessionType);
+        return a.session_type.localeCompare(b.session_type);
       default:
         return 0;
     }
@@ -70,25 +72,14 @@ export const SessionList = ({ sessions, onEdit, onDelete }: SessionListProps) =>
     );
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
-    if (diffInHours < 1) {
-      return 'Just now';
-    } else if (diffInHours < 24) {
-      return `${diffInHours}h ago`;
-    } else if (diffInHours < 48) {
-      return 'Yesterday';
-    } else {
-      return date.toLocaleDateString();
-    }
-  };
-
   const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString();
+    return new Date(dateString).toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    });
   };
 
   return (
@@ -124,7 +115,8 @@ export const SessionList = ({ sessions, onEdit, onDelete }: SessionListProps) =>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <CardTitle className="text-base sm:text-lg text-gray-900 dark:text-white flex items-center gap-3">
                 <span className="bg-gradient-to-r from-emerald-600 to-blue-600 dark:from-emerald-400 dark:to-blue-400 bg-clip-text text-transparent font-bold">
-                  {session.sessionType}
+                  {/* **FIXED** */}
+                  {session.session_type}
                 </span>
                 {session.rating && (
                   <div className="flex">
@@ -138,16 +130,19 @@ export const SessionList = ({ sessions, onEdit, onDelete }: SessionListProps) =>
                 <div className="flex items-center gap-3 sm:gap-5 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                   <div className="flex items-center gap-1.5 hover:text-gray-800 dark:hover:text-gray-300 transition-colors">
                     <Hash className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">{getQuantityLabel(session.sessionType, session.quantity)}</span>
+                    {/* **FIXED** */}
+                    <span className="hidden sm:inline">{getQuantityLabel(session.session_type, session.quantity)}</span>
                     <span className="sm:hidden">{session.quantity}</span>
                   </div>
                   <div className="flex items-center gap-1.5 hover:text-gray-800 dark:hover:text-gray-300 transition-colors">
                     <Users className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span>{session.participantCount}</span>
+                    {/* **FIXED** */}
+                    <span>{session.participant_count}</span>
                   </div>
                   <div className="flex items-center gap-1.5 hover:text-gray-800 dark:hover:text-gray-300 transition-colors">
                     <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span title={formatDateTime(session.sessionDate)}>{formatDate(session.sessionDate)}</span>
+                    {/* **FIXED** */}
+                    <span title={new Date(session.session_date).toString()}>{formatDateTime(session.session_date)}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
@@ -173,13 +168,13 @@ export const SessionList = ({ sessions, onEdit, onDelete }: SessionListProps) =>
           </CardHeader>
           
           <CardContent className="pt-0 space-y-3">
-            {/* Individual Consumption */}
             <div className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900/20 dark:to-blue-900/20 border border-emerald-200/60 dark:border-emerald-700/20 rounded-xl p-3">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span className="text-emerald-700 dark:text-emerald-400 font-medium text-sm">Individual consumption:</span>
                 <span className="text-gray-900 dark:text-white font-semibold text-sm">
-                  {getIndividualLabel(session.sessionType, session.individualConsumption || 0)}
+                  {/* **FIXED** */}
+                  {getIndividualLabel(session.session_type, session.quantity / session.participant_count)}
                 </span>
               </div>
             </div>

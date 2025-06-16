@@ -1,5 +1,6 @@
+// /src/components/SessionForm.tsx
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Session, SessionType } from "@/types/session";
 
 interface SessionFormProps {
-  onSubmit: (session: Omit<Session, 'id' | 'createdAt'>) => void;
+  // **FIXED: Corrected the Omit type to match the Session interface**
+  onSubmit: (session: Omit<Session, 'id' | 'createdAt' | 'updated_at' | 'user_id' | 'created_at'>) => void;
   onCancel: () => void;
   initialSession?: Session;
 }
@@ -36,14 +38,16 @@ const getIndividualLabel = (sessionType: SessionType) => {
 };
 
 export const SessionForm = ({ onSubmit, onCancel, initialSession }: SessionFormProps) => {
-  const [sessionType, setSessionType] = useState<SessionType>(initialSession?.sessionType || 'Joint');
+  // **FIXED: Using snake_case to access properties from initialSession**
+  const [sessionType, setSessionType] = useState<SessionType>(initialSession?.session_type || 'Joint');
   const [quantity, setQuantity] = useState(initialSession?.quantity || 1);
-  const [participantCount, setParticipantCount] = useState(initialSession?.participantCount || 1);
+  const [participantCount, setParticipantCount] = useState(initialSession?.participant_count || 1);
   const [notes, setNotes] = useState(initialSession?.notes || '');
-  const [rating, setRating] = useState<number>(initialSession?.rating || 5);
+  const [rating, setRating] = useState<number>(initialSession?.rating || 3);
   const [sessionDate, setSessionDate] = useState(() => {
-    if (initialSession?.sessionDate) {
-      const date = new Date(initialSession.sessionDate);
+    // **FIXED: Using snake_case to access property from initialSession**
+    if (initialSession?.session_date) {
+      const date = new Date(initialSession.session_date);
       date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
       return date.toISOString().slice(0, 16);
     }
@@ -57,13 +61,13 @@ export const SessionForm = ({ onSubmit, onCancel, initialSession }: SessionFormP
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
-      sessionType,
+      // **FIXED: Using snake_case for the submitted object keys**
+      session_type: sessionType,
       quantity,
-      participantCount,
-      notes: notes.trim() || undefined,
+      participant_count: participantCount,
+      notes: notes.trim() || null,
       rating,
-      sessionDate: new Date(sessionDate).toISOString(),
-      individualConsumption,
+      session_date: new Date(sessionDate).toISOString(),
     });
   };
 
@@ -113,7 +117,8 @@ export const SessionForm = ({ onSubmit, onCancel, initialSession }: SessionFormP
               <Input
                 id="quantity"
                 type="number"
-                min="1"
+                min="0.1"
+                step="0.1"
                 max="50"
                 value={quantity}
                 onChange={(e) => setQuantity(Number(e.target.value))}
@@ -135,7 +140,6 @@ export const SessionForm = ({ onSubmit, onCancel, initialSession }: SessionFormP
             </div>
           </div>
 
-          {/* Individual Consumption Display */}
           <div className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900/30 dark:to-blue-900/30 border border-emerald-200/60 dark:border-emerald-700/30 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
