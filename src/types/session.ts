@@ -10,4 +10,5 @@ export interface Session {
   rating?: number; // 1-5 stars
   sessionDate: string; // ISO date string
   createdAt: string;
+  individualConsumption?: number; // calculated field: quantity / participantCount
 }
