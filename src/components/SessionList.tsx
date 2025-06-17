@@ -265,10 +265,6 @@ export const SessionList = ({ sessions, loading, error, category }: SessionListP
                   const mlPerServing = getMlFromServingSize(session.liquor_serving_size);
                   consumptionValue = session.quantity * mlPerServing;
                   consumptionUnit = unit;
-                } else if (category === 'weed') {
-                  const perUnit = session.session_type === 'Joint' ? 2 : session.session_type === 'Bong' ? 1 : 1;
-                  consumptionValue = (session.quantity * perUnit) / session.participant_count;
-                  consumptionUnit = unit;
                 } else {
                   consumptionValue = session.quantity / session.participant_count;
                   consumptionUnit = unit;

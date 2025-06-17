@@ -205,12 +205,8 @@ export const SessionForm = ({
       const mlPerServing = liquorServingSize === 'Custom' ? customServingSize : (selectedSize?.ml || 0);
       const totalMl = quantity * mlPerServing;
       return { value: totalMl, label: getIndividualLabel(sessionType, category) };
-    } else if (category === 'weed') {
-      // Joint = 2g, Bong = 1g, others = 1g
-      const perUnit = sessionType === 'Joint' ? 2 : sessionType === 'Bong' ? 1 : 1;
-      const individualConsumption = (quantity * perUnit) / participantCount;
-      return { value: individualConsumption, label: getIndividualLabel(sessionType, category) };
     } else {
+      // For weed and all other categories, just use quantity / participantCount
       const individualConsumption = quantity / participantCount;
       return { value: individualConsumption, label: getIndividualLabel(sessionType, category) };
     }

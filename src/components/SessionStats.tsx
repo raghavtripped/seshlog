@@ -101,10 +101,8 @@ export const SessionStats = ({ sessions = [], category }: SessionStatsProps) => 
     if (category === 'liquor') {
       const mlPerServing = getMlFromServingSize(session.liquor_serving_size);
       return sum + (session.quantity * mlPerServing);
-    } else if (category === 'weed') {
-      const perUnit = session.session_type === 'Joint' ? 2 : session.session_type === 'Bong' ? 1 : 1;
-      return sum + ((session.quantity * perUnit) / session.participant_count);
     } else {
+      // For weed and all other categories, just use quantity / participant_count
       return sum + (session.quantity / session.participant_count);
     }
   }, 0);
@@ -122,10 +120,8 @@ export const SessionStats = ({ sessions = [], category }: SessionStatsProps) => 
     if (category === 'liquor') {
       const mlPerServing = getMlFromServingSize(session.liquor_serving_size);
       acc[type].totalIndividualConsumption += (session.quantity * mlPerServing);
-    } else if (category === 'weed') {
-      const perUnit = session.session_type === 'Joint' ? 2 : session.session_type === 'Bong' ? 1 : 1;
-      acc[type].totalIndividualConsumption += ((session.quantity * perUnit) / session.participant_count);
     } else {
+      // For weed and all other categories, just use quantity / participant_count
       acc[type].totalIndividualConsumption += (session.quantity / session.participant_count);
     }
     return acc;
