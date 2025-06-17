@@ -148,7 +148,7 @@ const getCategoryUnit = (category: Category) => {
 
 export const SessionList = ({ sessions, loading, error, category }: SessionListProps) => {
   const [editingSession, setEditingSession] = useState<Session | null>(null);
-  const [isExpanded, setIsExpanded] = useState(!useIsMobile());
+  const [isExpanded, setIsExpanded] = useState(false);
   const { deleteSession } = useSessions(category);
   const isMobile = useIsMobile();
 
