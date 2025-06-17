@@ -5,6 +5,7 @@ import type { User } from '@supabase/supabase-js';
 import { Session } from "@/types/session";
 import { useSessions } from "@/hooks/useSessions";
 import { DateRange } from "react-day-picker";
+import { useNavigate } from "react-router-dom";
 
 // Import your UI components
 import { SessionForm } from "@/components/SessionForm";
@@ -27,6 +28,7 @@ export function AppDashboard({ user, initialSessions }: AppDashboardProps) {
   const [sortBy, setSortBy] = useState('date-desc');
   const [periodFilter, setPeriodFilter] = useState<string>('all_time');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const navigate = useNavigate();
 
   const { sessions, addSession, updateSession, deleteSession } = useSessions(user.id, initialSessions);
 
@@ -145,13 +147,15 @@ export function AppDashboard({ user, initialSessions }: AppDashboardProps) {
               <UserIcon className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="text-xs sm:text-sm font-medium">{user.email}</span>
             </div>
-            {/* **FIXED: Use form action for Next.js server-side signout** */}
-            <form action="/auth/signout" method="post">
-              <Button type="submit" variant="ghost" size="sm" className="text-red-500 hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 rounded-xl">
-                <LogOut className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">Logout</span>
-              </Button>
-            </form>
+            <Button 
+              onClick={() => navigate('/signout')}
+              variant="ghost" 
+              size="sm" 
+              className="text-red-500 hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 rounded-xl"
+            >
+              <LogOut className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Logout</span>
+            </Button>
           </div>
         </header>
 
