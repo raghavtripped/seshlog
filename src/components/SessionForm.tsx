@@ -217,7 +217,7 @@ export const SessionForm = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    let sessionData: any = {
+    const sessionData: any = {
       session_type: sessionType,
       quantity,
       notes: notes.trim() || null,
