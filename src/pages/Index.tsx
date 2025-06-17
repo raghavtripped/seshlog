@@ -30,7 +30,7 @@ const Index = () => {
     }
   }, [authLoading, user, navigate]);
 
-  const { sessions, loading, error } = useSessions('weed');
+  const { sessions, loading, error, fetchSessions } = useSessions('weed');
 
   // Filter and sort sessions
   const filteredAndSortedSessions = useMemo(() => {
@@ -69,6 +69,14 @@ const Index = () => {
     return sorted;
   }, [sessions, selectedType, dateRange, sortBy]);
 
+  const handleSessionAdded = () => {
+    fetchSessions();
+  };
+
+  const handleSessionUpdated = () => {
+    fetchSessions();
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-gray-900 dark:via-green-900/20 dark:to-emerald-900/20 flex items-center justify-center">
@@ -106,7 +114,13 @@ const Index = () => {
             </DialogTrigger>
             <DialogContent size={isMobile ? 'lg' : 'md'} mobile={isMobile} className="p-0 bg-transparent border-none shadow-none">
               <div className="bg-background rounded-lg p-4 sm:p-8 max-h-[80vh] overflow-y-auto">
-                <SessionForm category="weed" />
+                <SessionForm 
+                  category="weed" 
+                  showForm={showSessionForm}
+                  setShowForm={setShowSessionForm}
+                  onSessionAdded={handleSessionAdded}
+                  onSessionUpdated={handleSessionUpdated}
+                />
               </div>
             </DialogContent>
           </Dialog>
@@ -129,6 +143,7 @@ const Index = () => {
           loading={loading} 
           error={error}
           category="weed"
+          onSessionUpdated={handleSessionUpdated}
         />
       </div>
     </AppDashboard>

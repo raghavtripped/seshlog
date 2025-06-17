@@ -99,11 +99,12 @@ export const SessionStats = ({ sessions = [], category }: SessionStatsProps) => 
   // Calculate total individual consumption
   const totalIndividualConsumption = sessions.reduce((sum, session) => {
     if (category === 'liquor') {
-      // For liquor, calculate total ml consumed
       const mlPerServing = getMlFromServingSize(session.liquor_serving_size);
       return sum + (session.quantity * mlPerServing);
+    } else if (category === 'weed') {
+      const perUnit = session.session_type === 'Joint' ? 2 : session.session_type === 'Bong' ? 1 : 1;
+      return sum + ((session.quantity * perUnit) / session.participant_count);
     } else {
-      // For other categories, use individual consumption (quantity / participants)
       return sum + (session.quantity / session.participant_count);
     }
   }, 0);
@@ -114,21 +115,19 @@ export const SessionStats = ({ sessions = [], category }: SessionStatsProps) => 
     if (!acc[type]) {
       acc[type] = { 
         count: 0, 
-        totalIndividualConsumption: 0  // This will be the sum of individual consumption for this type
+        totalIndividualConsumption: 0
       };
     }
-    
     acc[type].count += 1;
-    
     if (category === 'liquor') {
-      // For liquor: total ml consumed in this session
       const mlPerServing = getMlFromServingSize(session.liquor_serving_size);
       acc[type].totalIndividualConsumption += (session.quantity * mlPerServing);
+    } else if (category === 'weed') {
+      const perUnit = session.session_type === 'Joint' ? 2 : session.session_type === 'Bong' ? 1 : 1;
+      acc[type].totalIndividualConsumption += ((session.quantity * perUnit) / session.participant_count);
     } else {
-      // For other categories: individual consumption (quantity / participants)
       acc[type].totalIndividualConsumption += (session.quantity / session.participant_count);
     }
-    
     return acc;
   }, {} as Record<string, { count: number; totalIndividualConsumption: number }>);
 

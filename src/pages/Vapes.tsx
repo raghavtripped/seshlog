@@ -30,7 +30,7 @@ const Vapes = () => {
     }
   }, [authLoading, user, navigate]);
 
-  const { sessions, loading, error } = useSessions('vapes');
+  const { sessions, loading, error, fetchSessions } = useSessions('vapes');
 
   // Filter and sort sessions
   const filteredAndSortedSessions = useMemo(() => {
@@ -77,6 +77,14 @@ const Vapes = () => {
     return sorted;
   }, [sessions, selectedType, dateRange, sortBy]);
 
+  const handleSessionAdded = () => {
+    fetchSessions();
+  };
+
+  const handleSessionUpdated = () => {
+    fetchSessions();
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-cyan-900/20 dark:to-blue-900/20 flex items-center justify-center">
@@ -103,7 +111,7 @@ const Vapes = () => {
           <Dialog open={showSessionForm} onOpenChange={setShowSessionForm}>
             <DialogTrigger asChild>
               <Button
-                className="flex-1 text-lg font-semibold py-5 rounded-xl shadow-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:opacity-90 transition-all duration-200"
+                className={`flex-1 text-lg font-semibold py-5 rounded-xl shadow-lg bg-gradient-to-r ${getCategoryGradient('vapes')} text-white hover:opacity-90 transition-all duration-200`}
                 size={isMobile ? 'lg' : 'lg'}
                 style={{ minWidth: 0 }}
                 onClick={() => setShowSessionForm(true)}
@@ -114,7 +122,13 @@ const Vapes = () => {
             </DialogTrigger>
             <DialogContent size={isMobile ? 'lg' : 'md'} mobile={isMobile} className="p-0 bg-transparent border-none shadow-none">
               <div className="bg-background rounded-lg p-4 sm:p-8 max-h-[80vh] overflow-y-auto">
-                <SessionForm category="vapes" />
+                <SessionForm 
+                  category="vapes" 
+                  showForm={showSessionForm}
+                  setShowForm={setShowSessionForm}
+                  onSessionAdded={handleSessionAdded}
+                  onSessionUpdated={handleSessionUpdated}
+                />
               </div>
             </DialogContent>
           </Dialog>
@@ -137,6 +151,7 @@ const Vapes = () => {
           loading={loading} 
           error={error}
           category="vapes"
+          onSessionUpdated={handleSessionUpdated}
         />
       </div>
     </AppDashboard>

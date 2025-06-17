@@ -113,7 +113,7 @@ export const FilterControls = ({
 
   // Render only the form, no card, no collapse
   return (
-    <form className="space-y-6 w-full max-w-xl mx-auto">
+    <form className="space-y-6 w-full max-w-xl mx-auto" onSubmit={(e) => e.preventDefault()}>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Filter Section */}
         <div className="space-y-4">

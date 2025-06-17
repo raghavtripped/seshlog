@@ -1,6 +1,6 @@
 // /src/components/SessionForm.tsx
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 interface SessionFormProps {
   category: Category;
   initialSession?: Session;
+  showForm: boolean;
+  setShowForm: (show: boolean) => void;
+  onSessionAdded?: () => void;
+  onSessionUpdated?: () => void;
 }
 
 // Liquor serving sizes
@@ -143,9 +147,15 @@ const getCategoryGradient = (category: Category) => {
   }
 };
 
-export const SessionForm = ({ category, initialSession }: SessionFormProps) => {
+export const SessionForm = ({ 
+  category, 
+  initialSession, 
+  showForm, 
+  setShowForm,
+  onSessionAdded,
+  onSessionUpdated 
+}: SessionFormProps) => {
   const { addSession, updateSession } = useSessions(category);
-  const [showForm, setShowForm] = useState(false);
   const isMobile = useIsMobile();
   
   const sessionTypes = getSessionTypesForCategory(category);
@@ -172,6 +182,22 @@ export const SessionForm = ({ category, initialSession }: SessionFormProps) => {
     return now.toISOString().slice(0, 16);
   });
 
+  // Reset form when initialSession changes
+  useEffect(() => {
+    if (initialSession) {
+      setSessionType(initialSession.session_type);
+      setQuantity(initialSession.quantity);
+      setParticipantCount(initialSession.participant_count);
+      setLiquorServingSize(initialSession.liquor_serving_size || '330ml (Beer Bottle)');
+      setCustomServingSize(0);
+      setNotes(initialSession.notes || '');
+      setRating(initialSession.rating || 3);
+      const date = new Date(initialSession.session_date);
+      date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+      setSessionDate(date.toISOString().slice(0, 16));
+    }
+  }, [initialSession]);
+
   // Calculate consumption based on category
   const getConsumptionDisplay = () => {
     if (category === 'liquor') {
@@ -179,6 +205,11 @@ export const SessionForm = ({ category, initialSession }: SessionFormProps) => {
       const mlPerServing = liquorServingSize === 'Custom' ? customServingSize : (selectedSize?.ml || 0);
       const totalMl = quantity * mlPerServing;
       return { value: totalMl, label: getIndividualLabel(sessionType, category) };
+    } else if (category === 'weed') {
+      // Joint = 2g, Bong = 1g, others = 1g
+      const perUnit = sessionType === 'Joint' ? 2 : sessionType === 'Bong' ? 1 : 1;
+      const individualConsumption = (quantity * perUnit) / participantCount;
+      return { value: individualConsumption, label: getIndividualLabel(sessionType, category) };
     } else {
       const individualConsumption = quantity / participantCount;
       return { value: individualConsumption, label: getIndividualLabel(sessionType, category) };
@@ -199,25 +230,24 @@ export const SessionForm = ({ category, initialSession }: SessionFormProps) => {
     };
 
     if (category === 'liquor') {
-      // For liquor, we store the serving size info and set participant_count to 1
       sessionData.liquor_serving_size = liquorServingSize;
       sessionData.participant_count = 1;
       
-      // If custom serving size, store it in notes for reference
       if (liquorServingSize === 'Custom') {
         const customNote = `Custom serving size: ${customServingSize}ml`;
         sessionData.notes = sessionData.notes ? `${sessionData.notes}\n${customNote}` : customNote;
       }
     } else {
-      // For other categories, use participant count
       sessionData.participant_count = participantCount;
     }
 
     try {
       if (initialSession) {
         await updateSession(initialSession.id, sessionData);
+        onSessionUpdated?.();
       } else {
         await addSession(sessionData);
+        onSessionAdded?.();
       }
       
       // Reset form if adding new session
@@ -257,44 +287,88 @@ export const SessionForm = ({ category, initialSession }: SessionFormProps) => {
     }
   };
 
-  // Mobile-optimized quantity controls
-  const QuantityControl = ({ value, onChange, min = 0.1, max = 50, step = 0.1, label }: {
+  // Updated QuantityControl for mobile: natural numbers + custom
+  const QuantityControl = ({ value, onChange, min = 1, max = 50, step = 1, label }: {
     value: number;
     onChange: (value: number) => void;
     min?: number;
     max?: number;
     step?: number;
     label: string;
-  }) => (
-    <div className="space-y-2">
-      <Label className="form-text text-gray-700 dark:text-gray-300">{label}</Label>
-      {isMobile ? (
-        <div className="flex items-center gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => onChange(Math.max(min, value - step))}
-            disabled={value <= min}
-            className="w-10 h-10 p-0 rounded-full"
-          >
-            <Minus className="w-4 h-4" />
-          </Button>
-          <div className="flex-1 text-center">
-            <div className="text-lg font-semibold text-gray-800 dark:text-gray-200">{value}</div>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => onChange(Math.min(max, value + step))}
-            disabled={value >= max}
-            className="w-10 h-10 p-0 rounded-full"
-          >
-            <Plus className="w-4 h-4" />
-          </Button>
+  }) => {
+    const [customMode, setCustomMode] = useState(false);
+    const [customValue, setCustomValue] = useState(value);
+
+    useEffect(() => {
+      if (!customMode) setCustomValue(value);
+    }, [value, customMode]);
+
+    if (isMobile) {
+      return (
+        <div className="space-y-2">
+          <Label className="form-text text-gray-700 dark:text-gray-300">{label}</Label>
+          {customMode ? (
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={min}
+                max={max}
+                value={customValue}
+                onChange={e => setCustomValue(Number(e.target.value))}
+                onBlur={() => {
+                  if (customValue >= min && customValue <= max) {
+                    onChange(customValue);
+                  }
+                }}
+                className="w-20 bg-white/80 dark:bg-gray-800/80 border-slate-200 dark:border-gray-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl transition-all duration-200"
+              />
+              <Button type="button" size="sm" variant="outline" onClick={() => { setCustomMode(false); onChange(customValue); }}>
+                Set
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => onChange(Math.max(min, value - step))}
+                disabled={value <= min}
+                className="w-10 h-10 p-0 rounded-full"
+              >
+                <Minus className="w-4 h-4" />
+              </Button>
+              <div className="flex-1 text-center">
+                <div className="text-lg font-semibold text-gray-800 dark:text-gray-200">{value}</div>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => onChange(Math.min(max, value + step))}
+                disabled={value >= max}
+                className="w-10 h-10 p-0 rounded-full"
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="ml-2 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600"
+                onClick={() => setCustomMode(true)}
+              >
+                Custom
+              </Button>
+            </div>
+          )}
         </div>
-      ) : (
+      );
+    }
+    // Desktop/laptop view unchanged
+    return (
+      <div className="space-y-2">
+        <Label className="form-text text-gray-700 dark:text-gray-300">{label}</Label>
         <Input
           type="number"
           min={min}
@@ -304,9 +378,9 @@ export const SessionForm = ({ category, initialSession }: SessionFormProps) => {
           onChange={(e) => onChange(Number(e.target.value))}
           className="w-full bg-white/80 dark:bg-gray-800/80 border-slate-200 dark:border-gray-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl transition-all duration-200"
         />
-      )}
-    </div>
-  );
+      </div>
+    );
+  };
 
   function SessionFormContent() {
     return (
@@ -367,9 +441,9 @@ export const SessionForm = ({ category, initialSession }: SessionFormProps) => {
               <QuantityControl
                 value={quantity}
                 onChange={setQuantity}
-                min={0.1}
+                min={1}
                 max={50}
-                step={0.1}
+                step={1}
                 label={getQuantityLabel(sessionType, category)}
               />
 

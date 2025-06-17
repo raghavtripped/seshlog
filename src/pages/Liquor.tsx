@@ -30,7 +30,7 @@ const Liquor = () => {
     }
   }, [authLoading, user, navigate]);
 
-  const { sessions, loading, error } = useSessions('liquor');
+  const { sessions, loading, error, fetchSessions } = useSessions('liquor');
 
   // Filter and sort sessions
   const filteredAndSortedSessions = useMemo(() => {
@@ -77,6 +77,14 @@ const Liquor = () => {
     return sorted;
   }, [sessions, selectedType, dateRange, sortBy]);
 
+  const handleSessionAdded = () => {
+    fetchSessions();
+  };
+
+  const handleSessionUpdated = () => {
+    fetchSessions();
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-gray-900 dark:via-amber-900/20 dark:to-orange-900/20 flex items-center justify-center">
@@ -103,7 +111,7 @@ const Liquor = () => {
           <Dialog open={showSessionForm} onOpenChange={setShowSessionForm}>
             <DialogTrigger asChild>
               <Button
-                className="flex-1 text-lg font-semibold py-5 rounded-xl shadow-lg bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:opacity-90 transition-all duration-200"
+                className={`flex-1 text-lg font-semibold py-5 rounded-xl shadow-lg bg-gradient-to-r ${getCategoryGradient('liquor')} text-white hover:opacity-90 transition-all duration-200`}
                 size={isMobile ? 'lg' : 'lg'}
                 style={{ minWidth: 0 }}
                 onClick={() => setShowSessionForm(true)}
@@ -114,7 +122,13 @@ const Liquor = () => {
             </DialogTrigger>
             <DialogContent size={isMobile ? 'lg' : 'md'} mobile={isMobile} className="p-0 bg-transparent border-none shadow-none">
               <div className="bg-background rounded-lg p-4 sm:p-8 max-h-[80vh] overflow-y-auto">
-                <SessionForm category="liquor" />
+                <SessionForm 
+                  category="liquor" 
+                  showForm={showSessionForm}
+                  setShowForm={setShowSessionForm}
+                  onSessionAdded={handleSessionAdded}
+                  onSessionUpdated={handleSessionUpdated}
+                />
               </div>
             </DialogContent>
           </Dialog>
@@ -137,6 +151,7 @@ const Liquor = () => {
           loading={loading} 
           error={error}
           category="liquor"
+          onSessionUpdated={handleSessionUpdated}
         />
       </div>
     </AppDashboard>
