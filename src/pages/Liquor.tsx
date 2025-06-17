@@ -9,6 +9,9 @@ import { FilterControls } from '@/components/FilterControls';
 import { useAuth } from '@/hooks/useAuth';
 import { useSessions } from '@/hooks/useSessions';
 import { LiquorSessionType } from '@/types/session';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 const Liquor = () => {
   const navigate = useNavigate();
@@ -16,6 +19,7 @@ const Liquor = () => {
   const [selectedType, setSelectedType] = useState<LiquorSessionType | 'All'>('All');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [sortBy, setSortBy] = useState('date-desc');
+  const [showSessionForm, setShowSessionForm] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -92,23 +96,33 @@ const Liquor = () => {
       onBackToCategories={() => navigate('/categories')}
     >
       <div className="space-y-8">
+        {/* Top Action Row */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-2">
+          <Dialog open={showSessionForm} onOpenChange={setShowSessionForm}>
+            <DialogTrigger asChild>
+              <Button className="w-full sm:w-auto flex items-center gap-2" onClick={() => setShowSessionForm(true)}>
+                <Plus className="w-5 h-5" />
+                Log New Session
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg w-full p-0 bg-transparent border-none shadow-none">
+              <SessionForm category="liquor" />
+            </DialogContent>
+          </Dialog>
+          <div className="w-full sm:w-auto">
+            <FilterControls
+              selectedType={selectedType}
+              setSelectedType={setSelectedType}
+              dateRange={dateRange}
+              setDateRange={setDateRange}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              category="liquor"
+            />
+          </div>
+        </div>
         {/* Stats Section */}
         <SessionStats sessions={filteredAndSortedSessions} category="liquor" />
-        
-        {/* Add New Session */}
-        <SessionForm category="liquor" />
-        
-        {/* Filter Controls */}
-        <FilterControls
-          selectedType={selectedType}
-          setSelectedType={setSelectedType}
-          dateRange={dateRange}
-          setDateRange={setDateRange}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          category="liquor"
-        />
-        
         {/* Sessions List */}
         <SessionList 
           sessions={filteredAndSortedSessions} 

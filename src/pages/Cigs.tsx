@@ -9,6 +9,9 @@ import { FilterControls } from '@/components/FilterControls';
 import { useAuth } from '@/hooks/useAuth';
 import { useSessions } from '@/hooks/useSessions';
 import { CigSessionType } from '@/types/session';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 const Cigs = () => {
   const navigate = useNavigate();
@@ -16,6 +19,7 @@ const Cigs = () => {
   const [selectedType, setSelectedType] = useState<CigSessionType | 'All'>('All');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [sortBy, setSortBy] = useState('date-desc');
+  const [showSessionForm, setShowSessionForm] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -73,7 +77,7 @@ const Cigs = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50 dark:from-gray-900 dark:via-gray-800 dark:to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50 dark:from-gray-900 dark:via-slate-900/20 dark:to-zinc-900/20 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="brand-logo mx-auto float">
             <span className="brand-emoji">🚬</span>
@@ -92,23 +96,33 @@ const Cigs = () => {
       onBackToCategories={() => navigate('/categories')}
     >
       <div className="space-y-8">
+        {/* Top Action Row */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-2">
+          <Dialog open={showSessionForm} onOpenChange={setShowSessionForm}>
+            <DialogTrigger asChild>
+              <Button className="w-full sm:w-auto flex items-center gap-2" onClick={() => setShowSessionForm(true)}>
+                <Plus className="w-5 h-5" />
+                Log New Session
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg w-full p-0 bg-transparent border-none shadow-none">
+              <SessionForm category="cigs" />
+            </DialogContent>
+          </Dialog>
+          <div className="w-full sm:w-auto">
+            <FilterControls
+              selectedType={selectedType}
+              setSelectedType={setSelectedType}
+              dateRange={dateRange}
+              setDateRange={setDateRange}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              category="cigs"
+            />
+          </div>
+        </div>
         {/* Stats Section */}
         <SessionStats sessions={filteredAndSortedSessions} category="cigs" />
-        
-        {/* Add New Session */}
-        <SessionForm category="cigs" />
-        
-        {/* Filter Controls */}
-        <FilterControls
-          selectedType={selectedType}
-          setSelectedType={setSelectedType}
-          dateRange={dateRange}
-          setDateRange={setDateRange}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          category="cigs"
-        />
-        
         {/* Sessions List */}
         <SessionList 
           sessions={filteredAndSortedSessions} 

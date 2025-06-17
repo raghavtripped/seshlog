@@ -501,34 +501,5 @@ export const SessionForm = ({ category, initialSession }: SessionFormProps) => {
     );
   }
 
-  // Mobile collapsed view
-  if (isMobile && !showForm && !initialSession) {
-    return (
-      <div className="glass-card-secondary p-4 space-y-4">
-        <button
-          onClick={() => setShowForm(true)}
-          className={`w-full flex items-center justify-center gap-3 p-4 bg-gradient-to-r ${getCategoryGradient(category)} hover:opacity-90 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl`}
-        >
-          <Plus className="w-5 h-5" />
-          <span>Log New Session</span>
-        </button>
-      </div>
-    );
-  }
-
-  if (!showForm && !initialSession) {
-    return (
-      <div className="glass-card-secondary p-6 text-center">
-        <button
-          onClick={() => setShowForm(true)}
-          className={`inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r ${getCategoryGradient(category)} hover:opacity-90 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl`}
-        >
-          <Plus className="w-5 h-5" />
-          <span>Log New Session</span>
-        </button>
-      </div>
-    );
-  }
-
   return <SessionFormContent />;
 };
