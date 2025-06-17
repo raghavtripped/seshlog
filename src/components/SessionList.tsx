@@ -126,7 +126,7 @@ const getCategoryEmoji = (category: Category) => {
   }
 };
 
-const getCategoryGradient = (category: Category) => {
+export const getCategoryGradient = (category: Category) => {
   switch (category) {
     case 'weed': return 'from-green-500 to-emerald-600';
     case 'cigs': return 'from-gray-500 to-slate-600';
