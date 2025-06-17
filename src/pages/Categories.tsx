@@ -29,7 +29,7 @@ export const Categories = () => {
   const handleCategorySelect = (categoryId: string) => {
     switch (categoryId) {
       case 'weed':
-        navigate('/');
+        navigate('/weed');
         break;
       case 'cigs':
         navigate('/cigs');
