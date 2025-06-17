@@ -13,6 +13,7 @@ import Cigs from "./pages/Cigs";
 import Vapes from "./pages/Vapes";
 import Liquor from "./pages/Liquor";
 import NotFound from "./pages/NotFound";
+import Weed from "./pages/Weed";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
               <Route path="/cigs" element={<Cigs />} />
               <Route path="/vapes" element={<Vapes />} />
               <Route path="/liquor" element={<Liquor />} />
+              <Route path="/weed" element={<Weed />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
