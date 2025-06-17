@@ -12,6 +12,7 @@ interface SessionListProps {
   loading: boolean;
   error: string | null;
   category: Category;
+  onSessionDeleted?: () => void;
 }
 
 const getSessionTypeEmoji = (sessionType: string, category: Category) => {
@@ -146,7 +147,7 @@ const getCategoryUnit = (category: Category) => {
   }
 };
 
-export const SessionList = ({ sessions, loading, error, category }: SessionListProps) => {
+export const SessionList = ({ sessions, loading, error, category, onSessionDeleted }: SessionListProps) => {
   const [editingSession, setEditingSession] = useState<Session | null>(null);
   const isMobile = useIsMobile();
   // Collapsed by default on both desktop and mobile
@@ -161,6 +162,7 @@ export const SessionList = ({ sessions, loading, error, category }: SessionListP
     if (window.confirm('Are you sure you want to delete this session?')) {
       try {
         await deleteSession(sessionId);
+        onSessionDeleted?.();
       } catch (error) {
         console.error('Error deleting session:', error);
       }

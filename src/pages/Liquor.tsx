@@ -153,6 +153,7 @@ const Liquor = () => {
           error={error}
           category="liquor"
           onSessionUpdated={handleSessionUpdated}
+          onSessionDeleted={fetchSessions}
         />
       </div>
     </AppDashboard>

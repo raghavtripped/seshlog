@@ -153,6 +153,7 @@ const Cigs = () => {
           error={error}
           category="cigs"
           onSessionUpdated={handleSessionUpdated}
+          onSessionDeleted={fetchSessions}
         />
       </div>
     </AppDashboard>
