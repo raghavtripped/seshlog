@@ -148,9 +148,10 @@ const getCategoryUnit = (category: Category) => {
 
 export const SessionList = ({ sessions, loading, error, category }: SessionListProps) => {
   const [editingSession, setEditingSession] = useState<Session | null>(null);
+  const isMobile = useIsMobile();
+  // Collapsed by default on both desktop and mobile
   const [isExpanded, setIsExpanded] = useState(false);
   const { deleteSession } = useSessions(category);
-  const isMobile = useIsMobile();
 
   const handleEdit = (session: Session) => {
     setEditingSession(session);
@@ -223,7 +224,7 @@ export const SessionList = ({ sessions, loading, error, category }: SessionListP
     <div className={`glass-card-secondary ${isMobile ? 'p-4' : 'p-6'} space-y-4 sm:space-y-6`}>
       <div 
         className="flex items-center justify-between cursor-pointer"
-        onClick={() => isMobile && setIsExpanded(!isExpanded)}
+        onClick={() => setIsExpanded((prev) => !prev)}
       >
         <div className="flex items-center gap-3">
           <div className={`${isMobile ? 'w-10 h-10' : 'w-12 h-12'} bg-gradient-to-r ${gradient} rounded-full flex items-center justify-center shadow-lg`}>
@@ -236,11 +237,9 @@ export const SessionList = ({ sessions, loading, error, category }: SessionListP
             </p>
           </div>
         </div>
-        {isMobile && (
-          <Button variant="ghost" size="sm" className="p-1">
-            {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-          </Button>
-        )}
+        <Button variant="ghost" size="sm" className="p-1">
+          {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+        </Button>
       </div>
       
       {isExpanded && (
