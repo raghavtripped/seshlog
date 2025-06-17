@@ -33,7 +33,6 @@ export const FilterControls = ({
   category,
 }: FilterControlsProps) => {
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
   const isMobile = useIsMobile();
 
   const getSessionTypesForCategory = (category: Category) => {
@@ -112,84 +111,12 @@ export const FilterControls = ({
 
   const hasActiveFilters = selectedType !== 'All' || dateRange !== undefined || sortBy !== 'date-desc';
 
-  // Mobile collapsed view
-  if (isMobile && !isExpanded) {
-    return (
-      <div className="glass-card-secondary p-4 space-y-4">
-        <button
-          onClick={() => setIsExpanded(true)}
-          className="w-full flex items-center justify-between p-3 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-white/70 dark:hover:bg-gray-800/70 transition-all duration-200"
-        >
-          <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 bg-gradient-to-r ${gradient} rounded-full flex items-center justify-center`}>
-              <Filter className="w-4 h-4 text-white" />
-            </div>
-            <div className="text-left">
-              <h3 className="font-medium text-gray-800 dark:text-gray-200">Filters & Sort</h3>
-              {hasActiveFilters && (
-                <p className="text-xs text-gray-600 dark:text-gray-400">Active filters applied</p>
-              )}
-            </div>
-          </div>
-          <ChevronDown className="w-5 h-5 text-gray-500" />
-        </button>
-        
-        {/* Quick active filters summary */}
-        {hasActiveFilters && (
-          <div className="flex flex-wrap gap-2">
-            {selectedType !== 'All' && (
-              <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs rounded-full">
-                {sessionTypes.find(t => t.value === selectedType)?.label}
-              </span>
-            )}
-            {dateRange && (
-              <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 text-xs rounded-full">
-                📅 {formatDateRange(dateRange)}
-              </span>
-            )}
-            {sortBy !== 'date-desc' && (
-              <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 text-xs rounded-full">
-                📊 Sorted
-              </span>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  }
-
+  // Render only the form, no card, no collapse
   return (
-    <div className="glass-card-secondary p-4 sm:p-6 space-y-6">
-      {/* Mobile header with collapse button */}
-      {isMobile && (
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 bg-gradient-to-r ${gradient} rounded-full flex items-center justify-center`}>
-              <Filter className="w-4 h-4 text-white" />
-            </div>
-            <h3 className="font-medium text-gray-800 dark:text-gray-200">Filters & Sort</h3>
-          </div>
-          <button
-            onClick={() => setIsExpanded(false)}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-          >
-            <ChevronUp className="w-5 h-5 text-gray-500" />
-          </button>
-        </div>
-      )}
-
+    <form className="space-y-6 w-full max-w-xl mx-auto">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Filter Section */}
         <div className="space-y-4">
-          {!isMobile && (
-            <div className="flex items-center gap-2">
-              <div className={`w-8 h-8 bg-gradient-to-r ${gradient} rounded-full flex items-center justify-center`}>
-                <Filter className="w-4 h-4 text-white" />
-              </div>
-              <h3 className="heading-md text-gray-800 dark:text-gray-200">Filter</h3>
-            </div>
-          )}
-          
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -280,15 +207,6 @@ export const FilterControls = ({
 
         {/* Sort Section */}
         <div className="space-y-4">
-          {!isMobile && (
-            <div className="flex items-center gap-2">
-              <div className={`w-8 h-8 bg-gradient-to-r ${gradient} rounded-full flex items-center justify-center`}>
-                <ArrowUpDown className="w-4 h-4 text-white" />
-              </div>
-              <h3 className="heading-md text-gray-800 dark:text-gray-200">Sort</h3>
-            </div>
-          )}
-          
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               📊 Sort By
@@ -360,6 +278,6 @@ export const FilterControls = ({
           </div>
         </div>
       </div>
-    </div>
+    </form>
   );
 };

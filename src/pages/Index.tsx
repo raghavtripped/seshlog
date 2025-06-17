@@ -5,13 +5,14 @@ import { AppDashboard } from '@/components/AppDashboard';
 import { SessionForm } from '@/components/SessionForm';
 import { SessionList } from '@/components/SessionList';
 import { SessionStats } from '@/components/SessionStats';
-import { FilterControls } from '@/components/FilterControls';
 import { useAuth } from '@/hooks/useAuth';
 import { useSessions } from '@/hooks/useSessions';
 import { WeedSessionType } from '@/types/session';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { FilterSortDialog } from '@/components/FilterSortDialog';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const Index = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [sortBy, setSortBy] = useState('date-desc');
   const [showSessionForm, setShowSessionForm] = useState(false);
+  const isMobile = useIsMobile();
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -89,29 +91,35 @@ const Index = () => {
     >
       <div className="space-y-8">
         {/* Top Action Row */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-2">
+        <div className={`flex ${isMobile ? 'flex-col gap-4' : 'flex-row gap-6'} items-center justify-center w-full max-w-4xl mx-auto`}>
           <Dialog open={showSessionForm} onOpenChange={setShowSessionForm}>
             <DialogTrigger asChild>
-              <Button className="w-full sm:w-auto flex items-center gap-2" onClick={() => setShowSessionForm(true)}>
-                <Plus className="w-5 h-5" />
+              <Button
+                className="flex-1 text-lg font-semibold py-5 rounded-xl shadow-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 transition-all duration-200"
+                size={isMobile ? 'lg' : 'lg'}
+                style={{ minWidth: 0 }}
+                onClick={() => setShowSessionForm(true)}
+              >
+                <Plus className="w-6 h-6" />
                 Log New Session
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg w-full p-0 bg-transparent border-none shadow-none">
-              <SessionForm category="weed" />
+            <DialogContent size={isMobile ? 'lg' : 'md'} mobile={isMobile} className="p-0 bg-transparent border-none shadow-none">
+              <div className="bg-background rounded-lg p-4 sm:p-8 max-h-[80vh] overflow-y-auto">
+                <SessionForm category="weed" />
+              </div>
             </DialogContent>
           </Dialog>
-          <div className="w-full sm:w-auto">
-            <FilterControls
-              selectedType={selectedType}
-              setSelectedType={setSelectedType}
-              dateRange={dateRange}
-              setDateRange={setDateRange}
-              sortBy={sortBy}
-              setSortBy={setSortBy}
-              category="weed"
-            />
-          </div>
+          <FilterSortDialog
+            selectedType={selectedType}
+            setSelectedType={setSelectedType}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            category="weed"
+            buttonWidth="flex-1"
+          />
         </div>
         {/* Stats Section */}
         <SessionStats sessions={filteredAndSortedSessions} category="weed" />
