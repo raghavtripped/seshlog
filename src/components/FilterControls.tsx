@@ -2,8 +2,9 @@
 
 import * as React from 'react';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, Filter, SortDesc, ArrowUpDown } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
+import { useState } from "react";
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -20,15 +21,27 @@ interface FilterControlsProps {
   setDateRange: (dateRange: DateRange | undefined) => void;
 }
 
-export function FilterControls({
+export const FilterControls = ({
   sortBy,
   setSortBy,
   periodFilter,
   setPeriodFilter,
   dateRange,
-  setDateRange
-}: FilterControlsProps) {
-  
+  setDateRange,
+}: FilterControlsProps) => {
+  const [calendarOpen, setCalendarOpen] = useState(false);
+
+  const formatDateRange = (range: DateRange | undefined) => {
+    if (!range?.from) return "Pick a date range";
+    if (!range.to) return format(range.from, "PPP");
+    return `${format(range.from, "PPP")} - ${format(range.to, "PPP")}`;
+  };
+
+  const clearDateRange = () => {
+    setDateRange(undefined);
+    setCalendarOpen(false);
+  };
+
   const handlePeriodChange = (value: string) => {
     // When a preset is chosen, clear the custom date range
     setDateRange(undefined);
@@ -49,81 +62,106 @@ export function FilterControls({
   }
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
-      <div className="flex items-center gap-2 flex-wrap justify-center">
-        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Filter by:</span>
-        {/* Custom Date Range Picker */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              id="date"
-              variant={"outline"}
-              className={cn(
-                "w-[260px] justify-start text-left font-normal bg-white/80 dark:bg-gray-800/80 border-gray-200 dark:border-gray-700",
-                !dateRange && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {dateRange?.from ? (
-                dateRange.to ? (
-                  <>
-                    {format(dateRange.from, "LLL dd, y")} -{" "}
-                    {format(dateRange.to, "LLL dd, y")}
-                  </>
-                ) : (
-                  format(dateRange.from, "LLL dd, y")
-                )
-              ) : (
-                <span>Pick a date range</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              initialFocus
-              mode="range"
-              defaultMonth={dateRange?.from}
-              selected={dateRange}
-              onSelect={handleDateRangeChange}
-              numberOfMonths={2}
-            />
-          </PopoverContent>
-        </Popover>
-        
-        {/* Preset Period Dropdown */}
-        <Select value={periodFilter} onValueChange={handlePeriodChange}>
-          <SelectTrigger className="w-40 bg-white/80 dark:bg-gray-800/80 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="today">Today</SelectItem>
-            <SelectItem value="week">This Week</SelectItem>
-            <SelectItem value="month">This Month</SelectItem>
-            <SelectItem value="year">This Year</SelectItem>
-            <SelectItem value="past_year">Past Year</SelectItem>
-            <SelectItem value="all_time">All Time</SelectItem>
-            {periodFilter === 'custom' && <SelectItem value="custom" disabled>Custom Range</SelectItem>}
-          </SelectContent>
-        </Select>
-      </div>
+    <div className="glass-card-secondary p-6 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Filter Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+              <Filter className="w-4 h-4 text-white" />
+            </div>
+            <h3 className="heading-md text-gray-800 dark:text-gray-200">Filter</h3>
+          </div>
+          
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                📅 Date Range
+              </label>
+              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal bg-white/80 dark:bg-gray-800/80 border-slate-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <span className="truncate">{formatDateRange(dateRange)}</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 glass-card-secondary border-slate-200 dark:border-gray-700" align="start">
+                  <Calendar
+                    mode="range"
+                    defaultMonth={dateRange?.from}
+                    selected={dateRange}
+                    onSelect={handleDateRangeChange}
+                    numberOfMonths={2}
+                    className="rounded-md"
+                  />
+                  <div className="p-3 border-t border-slate-200 dark:border-gray-700">
+                    <Button
+                      onClick={clearDateRange}
+                      variant="outline"
+                      size="sm"
+                      className="w-full text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                    >
+                      Clear Date Range
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
 
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Sort by:</span>
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-44 bg-white/80 dark:bg-gray-800/80 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="date-desc">Newest First</SelectItem>
-            <SelectItem value="date-asc">Oldest First</SelectItem>
-            <SelectItem value="rating-desc">Highest Rated</SelectItem>
-            <SelectItem value="rating-asc">Lowest Rated</SelectItem>
-            <SelectItem value="individual-desc">Most Individual</SelectItem>
-            <SelectItem value="individual-asc">Least Individual</SelectItem>
-            <SelectItem value="type">By Type</SelectItem>
-          </SelectContent>
-        </Select>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                🌟 Quick Filters
+              </label>
+              <Select value={periodFilter} onValueChange={handlePeriodChange}>
+                <SelectTrigger className="w-full bg-white/80 dark:bg-gray-800/80 border-slate-200 dark:border-gray-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl transition-all duration-200">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="glass-card-secondary border-slate-200 dark:border-gray-700 rounded-xl">
+                  <SelectItem value="all_time" className="hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">🌟 All Time</SelectItem>
+                  <SelectItem value="today" className="hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">📅 Today</SelectItem>
+                  <SelectItem value="week" className="hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">📅 This Week</SelectItem>
+                  <SelectItem value="month" className="hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">📅 This Month</SelectItem>
+                  <SelectItem value="year" className="hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">📅 This Year</SelectItem>
+                  <SelectItem value="past_year" className="hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">📅 Past Year</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        {/* Sort Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
+              <ArrowUpDown className="w-4 h-4 text-white" />
+            </div>
+            <h3 className="heading-md text-gray-800 dark:text-gray-200">Sort</h3>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              📊 Sort By
+            </label>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-full bg-white/80 dark:bg-gray-800/80 border-slate-200 dark:border-gray-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl transition-all duration-200">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="glass-card-secondary border-slate-200 dark:border-gray-700 rounded-xl">
+                <SelectItem value="date-desc" className="hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors">🕒 Newest First</SelectItem>
+                <SelectItem value="date-asc" className="hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors">🕒 Oldest First</SelectItem>
+                <SelectItem value="rating-desc" className="hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors">⭐ Highest Rated</SelectItem>
+                <SelectItem value="rating-asc" className="hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors">⭐ Lowest Rated</SelectItem>
+                <SelectItem value="individual-desc" className="hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors">🎯 Most Individual</SelectItem>
+                <SelectItem value="individual-asc" className="hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors">🎯 Least Individual</SelectItem>
+                <SelectItem value="type" className="hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors">🔤 By Type</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
     </div>
   );
-}
+};

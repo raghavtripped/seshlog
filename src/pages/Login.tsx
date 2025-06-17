@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -39,7 +38,6 @@ export const Login = () => {
       if (error) {
         setError(error.message);
       } else {
-        // Success - navigation will be handled by useAuth
         navigate('/');
       }
     } catch (err) {
@@ -75,25 +73,31 @@ export const Login = () => {
   // Show loading while checking authentication
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Sparkles className="w-12 h-12 text-emerald-500 mx-auto animate-pulse" />
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-            Loading...
-          </h1>
-          <div className="w-8 h-8 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto"></div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 flex items-center justify-center p-4">
+        <div className="w-full max-w-md mx-auto space-y-8">
+          <div className="text-center space-y-4">
+            <div className="brand-logo mx-auto float">
+              <span className="brand-emoji">📝</span>
+            </div>
+            <h1 className="heading-lg text-gray-800 dark:text-gray-200">Loading...</h1>
+          </div>
+          
+          <div className="progress-bar">
+            <div className="progress-fill"></div>
+          </div>
+          
+          <div className="loading-dots justify-center">
+            <div className="loading-dot"></div>
+            <div className="loading-dot"></div>
+            <div className="loading-dot"></div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-blue-500/5 dark:from-emerald-400/10 dark:to-blue-400/10"></div>
-      <div className="absolute top-20 left-20 w-32 h-32 bg-emerald-500/10 dark:bg-emerald-400/20 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-20 right-20 w-40 h-40 bg-blue-500/10 dark:bg-blue-400/20 rounded-full blur-3xl"></div>
-      
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 flex items-center justify-center p-4">
       {/* Theme Toggle */}
       <div className="absolute top-4 right-4">
         <ThemeToggle />
@@ -101,135 +105,174 @@ export const Login = () => {
 
       {!showLoginForm ? (
         // Landing Page Content
-        <div className="text-center space-y-6 sm:space-y-8 max-w-md relative z-10">
-          <div className="space-y-4 sm:space-y-6">
-            <div className="flex items-center justify-center gap-3 mb-4 sm:mb-6">
-              <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-500" />
-              <h1 className="text-4xl sm:text-6xl font-bold bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 dark:from-emerald-400 dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-                Session Log
-              </h1>
+        <div className="w-full max-w-md mx-auto">
+          <div className="text-center mb-8 space-y-4">
+            <div className="brand-logo mx-auto float">
+              <span className="brand-emoji">📝</span>
             </div>
-            <p className="text-xl sm:text-2xl text-gray-800 dark:text-gray-200 font-medium">Your personal session tracker</p>
-            <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg leading-relaxed">
-              Track your sessions with privacy, style, and detailed insights
-            </p>
+            <h1 className="heading-xl gradient-text">Sesh Log</h1>
+            <p className="text-gray-600 dark:text-gray-400 body-base">Track your sessions with style and insights</p>
           </div>
           
-          <Button 
-            onClick={() => setShowLoginForm(true)}
-            className="bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white px-8 sm:px-10 py-3 sm:py-4 rounded-2xl font-semibold text-base sm:text-lg transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
-          >
-            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-            Get Started
-          </Button>
+          <div className="glass-card p-8 text-center space-y-6">
+            <div className="space-y-4">
+              <h2 className="heading-md text-gray-800 dark:text-gray-200">Welcome to Sesh Log</h2>
+              <p className="text-gray-600 dark:text-gray-400 body-sm leading-relaxed">
+                Your personal session tracker with privacy, style, and detailed insights. 
+                Keep track of all your sessions in one beautiful, secure place.
+              </p>
+            </div>
+            
+            <Button 
+              onClick={() => setShowLoginForm(true)}
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl border-0"
+            >
+              <span className="brand-emoji mr-2">✨</span>
+              Get Started
+            </Button>
+          </div>
         </div>
       ) : (
         // Login Form Content
-        <div className="w-full max-w-md p-8 space-y-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/60 dark:border-gray-700/50 relative z-10">
-          <div className="flex items-center justify-center gap-3">
-            <Sparkles className="w-8 h-8 text-emerald-400" />
-            <h1 className="text-3xl font-bold text-center bg-gradient-to-r from-emerald-600 to-blue-600 dark:from-emerald-400 dark:to-blue-400 bg-clip-text text-transparent">
-              {isSignUp ? 'Create Account' : 'Welcome Back'}
-            </h1>
+        <div className="w-full max-w-md mx-auto">
+          {/* Logo */}
+          <div className="text-center mb-8 space-y-4">
+            <div className="brand-logo mx-auto float">
+              <span className="brand-emoji">📝</span>
+            </div>
+            <h1 className="heading-xl gradient-text">Sesh Log</h1>
+            <p className="text-gray-600 dark:text-gray-400 body-base">Your session tracking companion</p>
           </div>
           
-          {submitted ? (
-            <div className="text-center space-y-4">
-              <p className="text-green-600 dark:text-green-400 font-medium">
+          {/* Form Card */}
+          <div className="glass-card p-8">
+            <div className="text-center mb-6">
+              <h2 className="heading-md text-gray-800 dark:text-gray-200 mb-2">
+                {isSignUp ? 'Create Account' : 'Welcome Back'}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 body-sm">
                 {isSignUp 
-                  ? "Account created! Please check your email to verify your account."
-                  : "Successfully signed in!"
+                  ? 'Join Sesh Log to start tracking your sessions' 
+                  : 'Sign in to continue to your dashboard'
                 }
               </p>
-              <Button
-                onClick={() => navigate('/')}
-                variant="outline"
-                className="w-full"
-              >
-                Back to Home
-              </Button>
             </div>
-          ) : (
-            <form onSubmit={isSignUp ? handleSignUp : handleLogin} className="space-y-4" autoComplete="off">
-              <div>
-                <label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Email address
-                </label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  required
-                  autoComplete="off"
-                  className="mt-1 bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 focus:border-emerald-500 dark:focus:border-emerald-400"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Password
-                </label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  minLength={6}
-                  autoComplete="new-password"
-                  className="mt-1 bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 focus:border-emerald-500 dark:focus:border-emerald-400"
-                />
-              </div>
-              
-              <Button 
-                type="submit" 
-                disabled={loading} 
-                className="w-full bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white font-semibold py-3 transition-all duration-300"
-              >
-                {loading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    {isSignUp ? 'Creating Account...' : 'Signing In...'}
-                  </div>
-                ) : (
-                  isSignUp ? 'Create Account' : 'Sign In'
-                )}
-              </Button>
-
-              <div className="text-center">
-                <button
-                  type="button"
+            
+            {submitted ? (
+              <div className="text-center space-y-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl">✅</span>
+                </div>
+                <h3 className="heading-md text-gray-800 dark:text-gray-200">Check Your Email</h3>
+                <p className="text-gray-600 dark:text-gray-400 body-sm">
+                  We've sent you a verification link. Please check your email to complete your registration.
+                </p>
+                <Button
                   onClick={() => {
-                    setIsSignUp(!isSignUp);
-                    setError('');
+                    setSubmitted(false);
+                    setIsSignUp(false);
+                    setShowLoginForm(false);
                   }}
-                  className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 text-sm font-medium"
+                  variant="outline"
+                  className="w-full"
                 >
-                  {isSignUp 
-                    ? 'Already have an account? Sign in' 
-                    : "Don't have an account? Sign up"
-                  }
-                </button>
+                  Back to Home
+                </Button>
               </div>
-              
-              {error && (
-                <p className="text-red-500 dark:text-red-400 text-sm text-center">{error}</p>
-              )}
-            </form>
-          )}
-          
-          <div className="text-center">
-            <Button
-              onClick={() => setShowLoginForm(false)}
-              variant="ghost"
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
-            >
-              ← Back to Home
-            </Button>
+            ) : (
+              <form onSubmit={isSignUp ? handleSignUp : handleLogin} className="space-y-6">
+                {error && (
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-center">
+                    <p className="text-red-600 dark:text-red-400 body-sm font-medium">{error}</p>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="email" className="block text-gray-700 dark:text-gray-300 form-text mb-2">
+                      Email address
+                    </label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="your@email.com"
+                      required
+                      className="w-full bg-white/80 dark:bg-gray-800/80 border-slate-200 dark:border-gray-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl transition-all duration-200"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="password" className="block text-gray-700 dark:text-gray-300 form-text mb-2">
+                      Password
+                    </label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      minLength={6}
+                      className="w-full bg-white/80 dark:bg-gray-800/80 border-slate-200 dark:border-gray-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl transition-all duration-200"
+                    />
+                  </div>
+                </div>
+                
+                <Button 
+                  type="submit" 
+                  disabled={loading} 
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border-0"
+                >
+                  {loading ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      {isSignUp ? 'Creating Account...' : 'Signing In...'}
+                    </div>
+                  ) : (
+                    <>
+                      <span className="brand-emoji mr-2">🚀</span>
+                      {isSignUp ? 'Create Account' : 'Sign In'}
+                    </>
+                  )}
+                </Button>
+
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsSignUp(!isSignUp);
+                      setError('');
+                    }}
+                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 body-sm font-medium transition-colors duration-200"
+                  >
+                    {isSignUp 
+                      ? 'Already have an account? Sign in' 
+                      : "Don't have an account? Sign up"
+                    }
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
+
+          {/* Back to Landing */}
+          {showLoginForm && !submitted && (
+            <div className="text-center mt-6">
+              <button
+                onClick={() => {
+                  setShowLoginForm(false);
+                  setError('');
+                  setEmail('');
+                  setPassword('');
+                }}
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 body-sm transition-colors duration-200"
+              >
+                ← Back to Home
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

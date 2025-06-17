@@ -1,5 +1,4 @@
 import { Session } from "@/types/session";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Users, Hash, TrendingUp, Edit, Trash2 } from "lucide-react";
 
@@ -8,6 +7,17 @@ interface SessionListProps {
   onEdit: (session: Session) => void;
   onDelete: (sessionId: string) => void;
 }
+
+const getSessionTypeEmoji = (sessionType: string) => {
+  const emojis = {
+    'Joint': '🌿',
+    'Bong': '💨',
+    'Vape': '💨',
+    'Edible': '🍪',
+    'Other': '🔄'
+  };
+  return emojis[sessionType as keyof typeof emojis] || '📝';
+};
 
 const getQuantityLabel = (sessionType: string, quantity: number) => {
   const labels = {
@@ -35,11 +45,16 @@ export const SessionList = ({ sessions, onEdit, onDelete }: SessionListProps) =>
 
   if (sessions.length === 0) {
     return (
-      <div className="text-center py-12 sm:py-16">
-        <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-3xl p-8 sm:p-12 border border-gray-200/50 dark:border-gray-700/30">
-          <div className="text-4xl sm:text-6xl mb-4 sm:mb-6 opacity-60">🌿</div>
-          <h3 className="text-xl sm:text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-2 sm:mb-3">No sessions match your filters</h3>
-          <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Try adjusting the date range or sort options.</p>
+      <div className="text-center py-16">
+        <div className="glass-card p-12 max-w-md mx-auto">
+          <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span className="text-3xl">🌿</span>
+          </div>
+          <h3 className="heading-md text-gray-800 dark:text-gray-200">No sessions found</h3>
+          <p className="body-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+            No sessions match your current filters. Try adjusting the date range or sort options, 
+            or log your first session to get started!
+          </p>
         </div>
       </div>
     );
@@ -55,70 +70,108 @@ export const SessionList = ({ sessions, onEdit, onDelete }: SessionListProps) =>
     });
   };
 
+  const getRatingColor = (rating: number) => {
+    if (rating >= 4) return 'text-green-600 dark:text-green-400';
+    if (rating >= 3) return 'text-blue-600 dark:text-blue-400';
+    if (rating >= 2) return 'text-amber-600 dark:text-amber-400';
+    return 'text-red-600 dark:text-red-400';
+  };
+
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4">
       {sessions.map((session) => (
-        <Card key={session.id} className="bg-white/80 dark:bg-gray-800/80 border-gray-200/60 dark:border-gray-700/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.01] group rounded-2xl">
-          <CardHeader className="pb-3 sm:pb-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <CardTitle className="text-base sm:text-lg text-gray-900 dark:text-white flex items-center gap-3">
-                <span className="bg-gradient-to-r from-emerald-600 to-blue-600 dark:from-emerald-400 dark:to-blue-400 bg-clip-text text-transparent font-bold">
-                  {session.session_type}
-                </span>
+        <div key={session.id} className="glass-card-secondary hover-lift hover-shadow transition-smooth group">
+          <div className="p-6">
+            {/* Header */}
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xl">{getSessionTypeEmoji(session.session_type)}</span>
+                </div>
+                <div>
+                  <h3 className="heading-md gradient-text">{session.session_type}</h3>
+                  <p className="body-xs text-gray-500 dark:text-gray-400">{formatDateTime(session.session_date)}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
                 {session.rating && (
-                  <div className="flex">
-                    {Array.from({ length: session.rating }, (_, i) => (
-                      <span key={i} className="text-amber-400 text-sm drop-shadow-sm">⭐</span>
-                    ))}
+                  <div className={`glass-card-secondary px-3 py-1 rounded-full ${getRatingColor(session.rating)}`}>
+                    <span className="body-sm font-semibold">{session.rating}/5</span>
                   </div>
                 )}
-              </CardTitle>
-              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-5">
-                <div className="flex items-center gap-3 sm:gap-5 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                  <div className="flex items-center gap-1.5 hover:text-gray-800 dark:hover:text-gray-300 transition-colors">
-                    <Hash className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">{getQuantityLabel(session.session_type, session.quantity)}</span>
-                    <span className="sm:hidden">{session.quantity}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 hover:text-gray-800 dark:hover:text-gray-300 transition-colors">
-                    <Users className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span>{session.participant_count}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 hover:text-gray-800 dark:hover:text-gray-300 transition-colors">
-                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span title={new Date(session.session_date).toString()}>{formatDateTime(session.session_date)}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button variant="ghost" size="sm" onClick={() => onEdit(session)} className="h-8 w-8 p-0 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400">
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => onDelete(session.id)} className="h-8 w-8 p-0 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 dark:text-red-400">
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => onEdit(session)} 
+                  className="h-8 w-8 p-0 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full transition-smooth"
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => onDelete(session.id)} 
+                  className="h-8 w-8 p-0 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 dark:text-red-400 rounded-full transition-smooth"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
               </div>
             </div>
-          </CardHeader>
-          
-          <CardContent className="pt-0 space-y-3">
-            <div className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900/20 dark:to-blue-900/20 border border-emerald-200/60 dark:border-emerald-700/20 rounded-xl p-3">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <span className="text-emerald-700 dark:text-emerald-400 font-medium text-sm">Individual consumption:</span>
-                <span className="text-gray-900 dark:text-white font-semibold text-sm">
-                  {getIndividualLabel(session.session_type, session.quantity / session.participant_count)}
-                </span>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-3 gap-4 mb-4">
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Hash className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                  <span className="body-xs text-gray-500 dark:text-gray-400">Quantity</span>
+                </div>
+                <p className="body-sm font-medium text-gray-700 dark:text-gray-300">{session.quantity}</p>
               </div>
+              
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Users className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                  <span className="body-xs text-gray-500 dark:text-gray-400">People</span>
+                </div>
+                <p className="body-sm font-medium text-gray-700 dark:text-gray-300">{session.participant_count}</p>
+              </div>
+              
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <TrendingUp className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                  <span className="body-xs text-gray-500 dark:text-gray-400">Per Person</span>
+                </div>
+                <p className="body-sm font-medium text-gray-700 dark:text-gray-300">
+                  {(session.quantity / session.participant_count).toFixed(2)}
+                </p>
+              </div>
+            </div>
+
+            {/* Individual Consumption Highlight */}
+            <div className="glass-card p-4 border border-blue-200/50 dark:border-blue-800/50 mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-6 h-6 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs">🎯</span>
+                </div>
+                <span className="body-sm font-medium text-gray-700 dark:text-gray-300">Individual Consumption</span>
+              </div>
+              <p className="body-sm text-blue-600 dark:text-blue-400 font-semibold">
+                {getIndividualLabel(session.session_type, session.quantity / session.participant_count)}
+              </p>
             </div>
             
+            {/* Notes */}
             {session.notes && (
-              <div className="bg-gray-50 dark:bg-gray-700/30 border border-gray-200/60 dark:border-gray-600/30 rounded-xl p-3">
-                <p className="text-gray-700 dark:text-gray-300 italic leading-relaxed text-sm">"{session.notes}"</p>
+              <div className="glass-card-secondary p-4 border-l-4 border-indigo-500 dark:border-indigo-400">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="body-xs font-medium text-gray-600 dark:text-gray-400">Notes</span>
+                </div>
+                <p className="body-sm text-gray-700 dark:text-gray-300 italic leading-relaxed">"{session.notes}"</p>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ))}
     </div>
   );

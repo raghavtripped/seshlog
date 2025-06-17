@@ -14,7 +14,7 @@ import { SessionList } from "@/components/SessionList";
 import { SessionStats } from "@/components/SessionStats";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { FilterControls } from "@/components/FilterControls";
-import { Plus, User as UserIcon, LogOut, Sparkles } from "lucide-react";
+import { Plus, User as UserIcon, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface AppDashboardProps {
@@ -141,46 +141,59 @@ export function AppDashboard({ user, initialSessions }: AppDashboardProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 relative">
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-blue-500/5 dark:from-emerald-400/5 dark:to-blue-400/5"></div>
-      
-      <div className="container mx-auto px-4 py-6 sm:py-8 max-w-5xl relative z-10">
-        <header className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-10 gap-4">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-500" />
-            <h1 className="text-3xl sm:text-5xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 dark:from-emerald-400 dark:to-blue-400 bg-clip-text text-transparent">
-              Session Log
-            </h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20">
+      <div className="container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
+        {/* Header */}
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+          <div className="flex items-center gap-4">
+            <div className="brand-logo bounce-subtle">
+              <span className="brand-emoji">📝</span>
+            </div>
+            <div>
+              <h1 className="heading-xl gradient-text">Sesh Log</h1>
+              <p className="text-gray-600 dark:text-gray-400 body-sm">Your personal session tracker</p>
+            </div>
           </div>
-          <div className="flex items-center gap-3 sm:gap-4">
+          
+          <div className="flex items-center gap-3">
             <ThemeToggle />
-            <div className="flex items-center gap-2 sm:gap-3 text-gray-700 dark:text-gray-300 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl px-3 sm:px-4 py-2 border border-gray-200/50 dark:border-gray-700/50">
-              <UserIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="text-xs sm:text-sm font-medium">{user.email}</span>
+            <div className="glass-card-secondary px-4 py-2 flex items-center gap-2">
+              <UserIcon className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+              <span className="text-gray-700 dark:text-gray-300 body-sm font-medium truncate max-w-[120px]">
+                {user.email}
+              </span>
             </div>
             <Button 
               onClick={handleSignOut}
               variant="ghost" 
               size="sm" 
-              className="text-red-500 hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 rounded-xl"
+              className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 rounded-xl"
             >
-              <LogOut className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <LogOut className="w-4 h-4 mr-2" />
               <span className="hidden sm:inline">Logout</span>
             </Button>
           </div>
         </header>
 
-        <div className="mb-6 sm:mb-10">
-          <Button onClick={() => setShowSessionForm(true)} className="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white font-semibold py-3 sm:py-4 px-6 sm:px-8 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-            <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3" />
+        {/* Add Session Button */}
+        <div className="mb-8">
+          <Button 
+            onClick={() => setShowSessionForm(true)} 
+            className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border-0"
+          >
+            <Plus className="w-5 h-5 mr-3" />
             Log New Session
           </Button>
         </div>
 
-        <SessionStats allSessions={sessions} periodSessions={periodSessions} />
+        {/* Stats Section */}
+        <div className="mb-8">
+          <SessionStats allSessions={sessions} periodSessions={periodSessions} />
+        </div>
 
+        {/* Session Form Modal */}
         {showSessionForm && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
               <SessionForm 
                 onSubmit={editingSession ? handleEditSession : handleAddSession}
@@ -191,21 +204,26 @@ export function AppDashboard({ user, initialSessions }: AppDashboardProps) {
           </div>
         )}
         
-        <div className="mt-8 space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="w-1 h-8 bg-gradient-to-b from-emerald-500 to-blue-600 rounded-full"></div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Session History</h2>
+        {/* Session History */}
+        <div className="glass-card p-6 sm:p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
+            <h2 className="heading-md text-gray-800 dark:text-gray-200">Session History</h2>
           </div>
-          <FilterControls
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-            periodFilter={periodFilter}
-            setPeriodFilter={setPeriodFilter}
-            dateRange={dateRange}
-            setDateRange={setDateRange}
-          />
-          <SessionList 
-            sessions={filteredAndSortedSessions} 
+          
+          <div className="mb-6">
+            <FilterControls
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              periodFilter={periodFilter}
+              setPeriodFilter={setPeriodFilter}
+              dateRange={dateRange}
+              setDateRange={setDateRange}
+            />
+          </div>
+
+          <SessionList
+            sessions={filteredAndSortedSessions}
             onEdit={openEditForm}
             onDelete={handleDeleteSession}
           />

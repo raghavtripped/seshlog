@@ -72,48 +72,58 @@ export const SessionForm = ({ onSubmit, onCancel, initialSession }: SessionFormP
   };
 
   return (
-    <div className="backdrop-blur-sm bg-white/95 dark:bg-gray-900/95 border border-gray-200/50 dark:border-gray-700/50 rounded-3xl shadow-2xl overflow-hidden">
+    <div className="glass-card max-w-2xl mx-auto">
       <div className="p-6 sm:p-8">
+        {/* Header */}
         <div className="flex items-center gap-3 mb-6 sm:mb-8">
-          <div className="w-1 h-6 sm:h-8 bg-gradient-to-b from-emerald-500 to-blue-600 rounded-full"></div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-            {initialSession ? 'Edit Session' : 'Log New Session'}
-          </h2>
+          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+            <span className="text-white text-xl">📝</span>
+          </div>
+          <div>
+            <h2 className="heading-lg text-gray-800 dark:text-gray-200">
+              {initialSession ? 'Edit Session' : 'Log New Session'}
+            </h2>
+            <p className="body-sm text-gray-600 dark:text-gray-400">
+              {initialSession ? 'Update your session details' : 'Record your session details'}
+            </p>
+          </div>
         </div>
         
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Session Type and Date */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="type" className="text-gray-800 dark:text-gray-200 font-medium">Session Type</Label>
+              <Label htmlFor="type" className="form-text text-gray-700 dark:text-gray-300">Session Type</Label>
               <Select value={sessionType} onValueChange={(value: SessionType) => setSessionType(value)}>
-                <SelectTrigger className="bg-white/80 dark:bg-gray-800/80 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800/90 transition-all rounded-xl">
+                <SelectTrigger className="w-full bg-white/80 dark:bg-gray-800/80 border-slate-200 dark:border-gray-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl transition-all duration-200">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 backdrop-blur-md rounded-xl">
-                  <SelectItem value="Joint" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">🌿 Joint</SelectItem>
-                  <SelectItem value="Bong" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">💨 Bong</SelectItem>
-                  <SelectItem value="Vape" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">💨 Vape</SelectItem>
-                  <SelectItem value="Edible" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">🍪 Edible</SelectItem>
-                  <SelectItem value="Other" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">🔄 Other</SelectItem>
+                <SelectContent className="glass-card-secondary border-slate-200 dark:border-gray-700 rounded-xl">
+                  <SelectItem value="Joint" className="hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">🌿 Joint</SelectItem>
+                  <SelectItem value="Bong" className="hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">💨 Bong</SelectItem>
+                  <SelectItem value="Vape" className="hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">💨 Vape</SelectItem>
+                  <SelectItem value="Edible" className="hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">🍪 Edible</SelectItem>
+                  <SelectItem value="Other" className="hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">🔄 Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="sessionDate" className="text-gray-800 dark:text-gray-200 font-medium">Date & Time</Label>
+              <Label htmlFor="sessionDate" className="form-text text-gray-700 dark:text-gray-300">Date & Time</Label>
               <Input
                 id="sessionDate"
                 type="datetime-local"
                 value={sessionDate}
                 onChange={(e) => setSessionDate(e.target.value)}
-                className="bg-white/80 dark:bg-gray-800/80 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800/90 transition-all focus:border-emerald-400 dark:focus:border-emerald-400 rounded-xl"
+                className="w-full bg-white/80 dark:bg-gray-800/80 border-slate-200 dark:border-gray-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl transition-all duration-200"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+          {/* Quantity and Participants */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="quantity" className="text-gray-800 dark:text-gray-200 font-medium">{getQuantityLabel(sessionType)}</Label>
+              <Label htmlFor="quantity" className="form-text text-gray-700 dark:text-gray-300">{getQuantityLabel(sessionType)}</Label>
               <Input
                 id="quantity"
                 type="number"
@@ -122,12 +132,12 @@ export const SessionForm = ({ onSubmit, onCancel, initialSession }: SessionFormP
                 max="50"
                 value={quantity}
                 onChange={(e) => setQuantity(Number(e.target.value))}
-                className="bg-white/80 dark:bg-gray-800/80 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800/90 transition-all focus:border-emerald-400 dark:focus:border-emerald-400 rounded-xl"
+                className="w-full bg-white/80 dark:bg-gray-800/80 border-slate-200 dark:border-gray-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl transition-all duration-200"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="participants" className="text-gray-800 dark:text-gray-200 font-medium">Number of Participants</Label>
+              <Label htmlFor="participants" className="form-text text-gray-700 dark:text-gray-300">Number of Participants</Label>
               <Input
                 id="participants"
                 type="number"
@@ -135,67 +145,82 @@ export const SessionForm = ({ onSubmit, onCancel, initialSession }: SessionFormP
                 max="20"
                 value={participantCount}
                 onChange={(e) => setParticipantCount(Number(e.target.value))}
-                className="bg-white/80 dark:bg-gray-800/80 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800/90 transition-all focus:border-emerald-400 dark:focus:border-emerald-400 rounded-xl"
+                className="w-full bg-white/80 dark:bg-gray-800/80 border-slate-200 dark:border-gray-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl transition-all duration-200"
               />
             </div>
           </div>
 
-          <div className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900/30 dark:to-blue-900/30 border border-emerald-200/60 dark:border-emerald-700/30 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-              <Label className="text-emerald-700 dark:text-emerald-400 font-medium text-sm">Individual Consumption</Label>
+          {/* Individual Consumption Highlight */}
+          <div className="glass-card-secondary p-6 border border-blue-200/50 dark:border-blue-800/50">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm">🎯</span>
+              </div>
+              <div>
+                <h3 className="form-text text-gray-700 dark:text-gray-300">Individual Consumption</h3>
+                <p className="body-xs text-gray-500 dark:text-gray-400">Your personal share</p>
+              </div>
             </div>
-            <p className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+            <p className="heading-md gradient-text">
               {individualConsumption.toFixed(2)} {getIndividualLabel(sessionType)}
             </p>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="rating" className="text-gray-800 dark:text-gray-200 font-medium">Rating</Label>
-            <div className="flex items-center gap-3">
+          {/* Rating */}
+          <div className="space-y-3">
+            <Label className="form-text text-gray-700 dark:text-gray-300">How was this session?</Label>
+            <div className="flex items-center gap-4">
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}
                     type="button"
                     onClick={() => setRating(star)}
-                    className={`text-xl sm:text-2xl transition-all duration-200 transform hover:scale-110 ${
+                    className={`w-10 h-10 rounded-full transition-all duration-200 transform hover:scale-110 flex items-center justify-center text-lg font-semibold ${
                       star <= rating 
-                        ? 'text-amber-400 drop-shadow-lg' 
-                        : 'text-gray-300 dark:text-gray-600 hover:text-gray-400 dark:hover:text-gray-500'
+                        ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-lg' 
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 hover:bg-gray-300 dark:hover:bg-gray-600'
                     }`}
                   >
                     ⭐
                   </button>
                 ))}
               </div>
-              <span className="text-gray-700 dark:text-gray-300 font-medium">{rating}/5</span>
+              <div className="glass-card-secondary px-3 py-2 rounded-lg">
+                <span className="body-sm font-medium text-gray-700 dark:text-gray-300">{rating}/5</span>
+              </div>
             </div>
+            <p className="body-xs text-gray-500 dark:text-gray-400">Rate from 1 (poor) to 5 (excellent)</p>
           </div>
 
+          {/* Notes */}
           <div className="space-y-2">
-            <Label htmlFor="notes" className="text-gray-800 dark:text-gray-200 font-medium">Notes <span className="text-gray-500 dark:text-gray-400 text-sm">(optional)</span></Label>
+            <Label htmlFor="notes" className="form-text text-gray-700 dark:text-gray-300">
+              Notes <span className="text-gray-500 dark:text-gray-400 body-xs">(optional)</span>
+            </Label>
             <Textarea
               id="notes"
-              placeholder="How was the session? Any special details..."
+              placeholder="How was the session? Any special details, effects, or thoughts to remember..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="bg-white/80 dark:bg-gray-800/80 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 min-h-[80px] sm:min-h-[100px] backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800/90 transition-all focus:border-emerald-400 dark:focus:border-emerald-400 resize-none rounded-xl"
+              className="w-full bg-white/80 dark:bg-gray-800/80 border-slate-200 dark:border-gray-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl transition-all duration-200 min-h-[100px] resize-none"
             />
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 pt-4 sm:pt-6">
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
             <Button
               type="submit"
-              className="flex-1 bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white font-semibold py-3 transition-all duration-200 transform hover:scale-[1.02] shadow-lg rounded-xl"
+              className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border-0"
             >
+              <span className="mr-2">💾</span>
               {initialSession ? 'Update Session' : 'Log Session'}
             </Button>
             <Button
               type="button"
               onClick={onCancel}
               variant="outline"
-              className="flex-1 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50 py-3 backdrop-blur-sm transition-all duration-200 rounded-xl"
+              className="flex-1 border-slate-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 py-3 rounded-xl transition-all duration-200"
             >
               Cancel
             </Button>

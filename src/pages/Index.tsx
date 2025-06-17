@@ -3,7 +3,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Session, SessionType } from "@/types/session";
 import { AppDashboard } from "@/components/AppDashboard";
-import { Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Index = () => {
@@ -63,13 +62,25 @@ const Index = () => {
   // Show loading spinner while auth is loading
   if (loading || (user && sessionsLoading)) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Sparkles className="w-12 h-12 text-emerald-500 mx-auto animate-pulse" />
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-            Loading...
-          </h1>
-          <div className="w-8 h-8 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto"></div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 flex items-center justify-center p-4">
+        <div className="w-full max-w-md mx-auto space-y-8">
+          <div className="text-center space-y-4">
+            <div className="brand-logo mx-auto float">
+              <span className="brand-emoji">📝</span>
+            </div>
+            <h1 className="heading-lg text-gray-800 dark:text-gray-200">Loading your sessions...</h1>
+            <p className="text-gray-600 dark:text-gray-400 body-sm">Preparing your dashboard</p>
+          </div>
+          
+          <div className="progress-bar">
+            <div className="progress-fill"></div>
+          </div>
+          
+          <div className="loading-dots justify-center">
+            <div className="loading-dot"></div>
+            <div className="loading-dot"></div>
+            <div className="loading-dot"></div>
+          </div>
         </div>
       </div>
     );
