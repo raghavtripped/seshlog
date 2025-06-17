@@ -59,9 +59,9 @@ export function AppDashboard({
 
   return (
     <div className={`min-h-screen bg-gradient-to-br ${getCategoryGradient(category)}`}>
-      <div className={`container mx-auto ${isMobile ? 'px-3 py-4' : 'px-4 py-6 sm:py-8'} max-w-6xl`}>
+      <div className={`container mx-auto ${isMobile ? 'px-3 py-2' : 'px-4 py-6 sm:py-8'} max-w-6xl`}>
         {/* Header */}
-        <header className={`flex ${isMobile ? 'flex-col gap-4' : 'flex-col sm:flex-row sm:items-center'} justify-between ${isMobile ? 'mb-6' : 'mb-8'} gap-4`}>
+        <header className={`flex ${isMobile ? 'flex-col gap-2' : 'flex-col sm:flex-row sm:items-center'} justify-between ${isMobile ? 'mb-3' : 'mb-8'} gap-4`}>
           <div className="flex items-center gap-3 sm:gap-4">
             {onBackToCategories && (
               <Button
@@ -73,11 +73,11 @@ export function AppDashboard({
                 <ArrowLeft className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
               </Button>
             )}
-            <div className={`brand-logo bounce-subtle ${isMobile ? 'w-12 h-12' : ''}`}>
-              <span className={`brand-emoji ${isMobile ? 'text-xl' : ''}`}>{emoji}</span>
+            <div className={`brand-logo bounce-subtle ${isMobile ? 'w-10 h-10' : ''}`}>
+              <span className={`brand-emoji ${isMobile ? 'text-lg' : ''}`}>{emoji}</span>
             </div>
             <div>
-              <h1 className={`${isMobile ? 'text-xl font-bold' : 'heading-xl'} gradient-text`}>{title}</h1>
+              <h1 className={`${isMobile ? 'text-lg font-bold' : 'heading-xl'} gradient-text`}>{title}</h1>
               <p className={`text-gray-600 dark:text-gray-400 ${isMobile ? 'text-xs' : 'body-sm'}`}>Track your sessions with insights</p>
             </div>
           </div>
@@ -105,8 +105,31 @@ export function AppDashboard({
         </header>
 
         {/* Main Content */}
-        <main className={`space-y-${isMobile ? '6' : '8'}`}>
-          {children}
+        <main className={`space-y-${isMobile ? '3' : '8'}`}>
+          {/* Action Buttons */}
+          <div className={`flex flex-col ${isMobile ? 'gap-2' : 'gap-4'} ${isMobile ? 'mb-3' : 'mb-6'}`}>
+            <div className="flex items-center justify-between">
+              <Button
+                className="flex items-center gap-2"
+                size={isMobile ? "sm" : "default"}
+              >
+                <Plus className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
+                <span>Log New Session</span>
+              </Button>
+              <Button
+                variant="outline"
+                size={isMobile ? "sm" : "default"}
+                className="flex items-center gap-2"
+              >
+                <span>Filters & Sort</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Collapsible Content */}
+          <div className="space-y-3">
+            {children}
+          </div>
         </main>
       </div>
     </div>

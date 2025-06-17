@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Session, Category } from "@/types/session";
 import { Button } from "@/components/ui/button";
-import { Calendar, Users, Hash, TrendingUp, Edit, Trash2, Beaker, Star, MessageSquare } from "lucide-react";
+import { Calendar, Users, Hash, TrendingUp, Edit, Trash2, Beaker, Star, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
 import { format } from 'date-fns';
 import { useSessions } from '@/hooks/useSessions';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -148,6 +148,7 @@ const getCategoryUnit = (category: Category) => {
 
 export const SessionList = ({ sessions, loading, error, category }: SessionListProps) => {
   const [editingSession, setEditingSession] = useState<Session | null>(null);
+  const [isExpanded, setIsExpanded] = useState(!useIsMobile());
   const { deleteSession } = useSessions(category);
   const isMobile = useIsMobile();
 
@@ -220,202 +221,216 @@ export const SessionList = ({ sessions, loading, error, category }: SessionListP
 
   return (
     <div className={`glass-card-secondary ${isMobile ? 'p-4' : 'p-6'} space-y-4 sm:space-y-6`}>
-      <div className="flex items-center gap-3">
-        <div className={`${isMobile ? 'w-10 h-10' : 'w-12 h-12'} bg-gradient-to-r ${gradient} rounded-full flex items-center justify-center shadow-lg`}>
-          <span className={`${isMobile ? 'text-lg' : 'text-xl'}`}>📋</span>
+      <div 
+        className="flex items-center justify-between cursor-pointer"
+        onClick={() => isMobile && setIsExpanded(!isExpanded)}
+      >
+        <div className="flex items-center gap-3">
+          <div className={`${isMobile ? 'w-10 h-10' : 'w-12 h-12'} bg-gradient-to-r ${gradient} rounded-full flex items-center justify-center shadow-lg`}>
+            <span className={`${isMobile ? 'text-lg' : 'text-xl'}`}>📋</span>
+          </div>
+          <div>
+            <h3 className={`${isMobile ? 'text-base font-semibold' : 'heading-md'} text-gray-800 dark:text-gray-200`}>Recent Sessions</h3>
+            <p className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>
+              {sessions.length} session{sessions.length !== 1 ? 's' : ''} found
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className={`${isMobile ? 'text-base font-semibold' : 'heading-md'} text-gray-800 dark:text-gray-200`}>Recent Sessions</h3>
-          <p className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>
-            {sessions.length} session{sessions.length !== 1 ? 's' : ''} found
-          </p>
-        </div>
+        {isMobile && (
+          <Button variant="ghost" size="sm" className="p-1">
+            {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          </Button>
+        )}
       </div>
       
-      {sessions.length === 0 ? (
-        <div className={`text-center ${isMobile ? 'py-8' : 'py-12'}`}>
-          <span className={`${isMobile ? 'text-4xl' : 'text-6xl'} mb-4 block opacity-50`}>{categoryEmoji}</span>
-          <h4 className={`${isMobile ? 'text-base font-medium' : 'heading-md'} text-gray-700 dark:text-gray-300 mb-2`}>No sessions yet</h4>
-          <p className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-500 dark:text-gray-400`}>
-            Start tracking by logging your first session above
-          </p>
-        </div>
-      ) : (
-        <div className={`space-y-${isMobile ? '3' : '4'}`}>
-          {sessions.map((session) => {
-            const sessionEmoji = getSessionTypeEmoji(session.session_type, category);
-            
-            // Calculate consumption based on category
-            let consumptionValue: number;
-            let consumptionUnit: string;
-            
-            if (category === 'liquor') {
-              const mlPerServing = getMlFromServingSize(session.liquor_serving_size);
-              consumptionValue = session.quantity * mlPerServing;
-              consumptionUnit = unit;
-            } else {
-              consumptionValue = session.quantity / session.participant_count;
-              consumptionUnit = unit;
-            }
+      {isExpanded && (
+        <>
+          {sessions.length === 0 ? (
+            <div className={`text-center ${isMobile ? 'py-8' : 'py-12'}`}>
+              <span className={`${isMobile ? 'text-4xl' : 'text-6xl'} mb-4 block opacity-50`}>{categoryEmoji}</span>
+              <h4 className={`${isMobile ? 'text-base font-medium' : 'heading-md'} text-gray-700 dark:text-gray-300 mb-2`}>No sessions yet</h4>
+              <p className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-500 dark:text-gray-400`}>
+                Start tracking by logging your first session above
+              </p>
+            </div>
+          ) : (
+            <div className={`space-y-${isMobile ? '3' : '4'}`}>
+              {sessions.map((session) => {
+                const sessionEmoji = getSessionTypeEmoji(session.session_type, category);
+                
+                // Calculate consumption based on category
+                let consumptionValue: number;
+                let consumptionUnit: string;
+                
+                if (category === 'liquor') {
+                  const mlPerServing = getMlFromServingSize(session.liquor_serving_size);
+                  consumptionValue = session.quantity * mlPerServing;
+                  consumptionUnit = unit;
+                } else {
+                  consumptionValue = session.quantity / session.participant_count;
+                  consumptionUnit = unit;
+                }
 
-            return (
-              <div key={session.id} className={`glass-card ${isMobile ? 'p-3' : 'p-4 sm:p-6'} hover:shadow-lg transition-all duration-200`}>
-                {/* Header */}
-                <div className={`flex items-start justify-between ${isMobile ? 'mb-3' : 'mb-4'}`}>
-                  <div className="flex items-center gap-3">
-                    <span className={`${isMobile ? 'text-xl' : 'text-2xl'}`}>{sessionEmoji}</span>
-                    <div>
-                      <h4 className={`${isMobile ? 'text-sm font-medium' : 'font-semibold'} text-gray-800 dark:text-gray-200`}>
-                        {session.session_type}
-                      </h4>
-                      <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                        <Calendar className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
-                        <span className={`${isMobile ? 'text-xs' : 'body-sm'}`}>
-                          {format(new Date(session.session_date), isMobile ? 'MMM d, HH:mm' : 'MMM d, yyyy • HH:mm')}
-                        </span>
+                return (
+                  <div key={session.id} className={`glass-card ${isMobile ? 'p-3' : 'p-4 sm:p-6'} hover:shadow-lg transition-all duration-200`}>
+                    {/* Header */}
+                    <div className={`flex items-start justify-between ${isMobile ? 'mb-3' : 'mb-4'}`}>
+                      <div className="flex items-center gap-3">
+                        <span className={`${isMobile ? 'text-xl' : 'text-2xl'}`}>{sessionEmoji}</span>
+                        <div>
+                          <h4 className={`${isMobile ? 'text-sm font-medium' : 'font-semibold'} text-gray-800 dark:text-gray-200`}>
+                            {session.session_type}
+                          </h4>
+                          <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                            <Calendar className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
+                            <span className={`${isMobile ? 'text-xs' : 'body-sm'}`}>
+                              {format(new Date(session.session_date), isMobile ? 'MMM d, HH:mm' : 'MMM d, yyyy • HH:mm')}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                  
-                  {/* Action Buttons */}
-                  <div className={`flex gap-${isMobile ? '1' : '2'}`}>
-                    <Button
-                      onClick={() => handleEdit(session)}
-                      variant="ghost"
-                      size={isMobile ? "sm" : "sm"}
-                      className={`${isMobile ? 'w-8 h-8 p-0' : 'w-8 h-8 p-0'} hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300`}
-                    >
-                      <Edit className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
-                    </Button>
-                    <Button
-                      onClick={() => handleDelete(session.id)}
-                      variant="ghost"
-                      size={isMobile ? "sm" : "sm"}
-                      className={`${isMobile ? 'w-8 h-8 p-0' : 'w-8 h-8 p-0'} hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300`}
-                    >
-                      <Trash2 className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Stats Grid */}
-                {category === 'liquor' ? (
-                  <div className={`grid grid-cols-3 gap-${isMobile ? '2' : '4'} mb-${isMobile ? '3' : '4'}`}>
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-1">
-                        <Hash className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-gray-500 dark:text-gray-400`} />
-                        <span className={`${isMobile ? 'text-xs' : 'body-xs'} text-gray-500 dark:text-gray-400`}>Servings</span>
-                      </div>
-                      <p className={`${isMobile ? 'text-sm font-medium' : 'body-sm font-medium'} text-gray-700 dark:text-gray-300`}>{session.quantity}</p>
-                    </div>
-                    
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-1">
-                        <TrendingUp className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-gray-500 dark:text-gray-400`} />
-                        <span className={`${isMobile ? 'text-xs' : 'body-xs'} text-gray-500 dark:text-gray-400`}>Size</span>
-                      </div>
-                      <p className={`${isMobile ? 'text-sm font-medium' : 'body-sm font-medium'} text-gray-700 dark:text-gray-300`}>
-                        {getMlFromServingSize(session.liquor_serving_size)}ml
-                      </p>
-                    </div>
-                    
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-1">
-                        <TrendingUp className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-gray-500 dark:text-gray-400`} />
-                        <span className={`${isMobile ? 'text-xs' : 'body-xs'} text-gray-500 dark:text-gray-400`}>Total</span>
-                      </div>
-                      <p className={`${isMobile ? 'text-sm font-medium' : 'body-sm font-medium'} text-gray-700 dark:text-gray-300`}>
-                        {consumptionValue.toFixed(0)} {consumptionUnit}
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className={`grid grid-cols-3 gap-${isMobile ? '2' : '4'} mb-${isMobile ? '3' : '4'}`}>
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-1">
-                        <Hash className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-gray-500 dark:text-gray-400`} />
-                        <span className={`${isMobile ? 'text-xs' : 'body-xs'} text-gray-500 dark:text-gray-400`}>Quantity</span>
-                      </div>
-                      <p className={`${isMobile ? 'text-sm font-medium' : 'body-sm font-medium'} text-gray-700 dark:text-gray-300`}>{session.quantity}</p>
-                    </div>
-                    
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-1">
-                        <Users className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-gray-500 dark:text-gray-400`} />
-                        <span className={`${isMobile ? 'text-xs' : 'body-xs'} text-gray-500 dark:text-gray-400`}>People</span>
-                      </div>
-                      <p className={`${isMobile ? 'text-sm font-medium' : 'body-sm font-medium'} text-gray-700 dark:text-gray-300`}>{session.participant_count}</p>
-                    </div>
-                    
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-1">
-                        <TrendingUp className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-gray-500 dark:text-gray-400`} />
-                        <span className={`${isMobile ? 'text-xs' : 'body-xs'} text-gray-500 dark:text-gray-400`}>Per Person</span>
-                      </div>
-                      <p className={`${isMobile ? 'text-sm font-medium' : 'body-sm font-medium'} text-gray-700 dark:text-gray-300`}>
-                        {consumptionValue.toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Consumption Highlight */}
-                <div className={`glass-card-secondary ${isMobile ? 'p-3' : 'p-4'} border border-blue-200/50 dark:border-blue-800/50 mb-${isMobile ? '3' : '4'}`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className={`${isMobile ? 'text-lg' : 'text-xl'}`}>🎯</span>
-                      <span className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>
-                        {category === 'liquor' ? 'Total Consumed' : 'Individual Consumption'}
-                      </span>
-                    </div>
-                    <span className={`${isMobile ? 'text-sm font-semibold' : 'font-semibold'} gradient-text`}>
-                      {consumptionValue.toFixed(2)} {consumptionUnit}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Rating and Notes */}
-                <div className={`space-y-${isMobile ? '2' : '3'}`}>
-                  {/* Rating */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1">
-                      <Star className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-amber-500`} />
-                      <span className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>Rating:</span>
-                    </div>
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <span 
-                          key={star} 
-                          className={`${isMobile ? 'text-sm' : 'text-base'} ${
-                            star <= (session.rating || 0) ? 'text-amber-500' : 'text-gray-300 dark:text-gray-600'
-                          }`}
+                      
+                      {/* Action Buttons */}
+                      <div className={`flex gap-${isMobile ? '1' : '2'}`}>
+                        <Button
+                          onClick={() => handleEdit(session)}
+                          variant="ghost"
+                          size={isMobile ? "sm" : "sm"}
+                          className={`${isMobile ? 'w-8 h-8 p-0' : 'w-8 h-8 p-0'} hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300`}
                         >
-                          ⭐
-                        </span>
-                      ))}
-                    </div>
-                    <span className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-500 dark:text-gray-400`}>
-                      ({session.rating || 0}/5)
-                    </span>
-                  </div>
-
-                  {/* Notes */}
-                  {session.notes && (
-                    <div className="flex items-start gap-2">
-                      <MessageSquare className={`${isMobile ? 'w-3 h-3 mt-0.5' : 'w-4 h-4 mt-0.5'} text-gray-500 dark:text-gray-400 flex-shrink-0`} />
-                      <div>
-                        <span className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400 block mb-1`}>Notes:</span>
-                        <p className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-700 dark:text-gray-300 leading-relaxed`}>
-                          {session.notes}
-                        </p>
+                          <Edit className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
+                        </Button>
+                        <Button
+                          onClick={() => handleDelete(session.id)}
+                          variant="ghost"
+                          size={isMobile ? "sm" : "sm"}
+                          className={`${isMobile ? 'w-8 h-8 p-0' : 'w-8 h-8 p-0'} hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300`}
+                        >
+                          <Trash2 className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
+                        </Button>
                       </div>
                     </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+
+                    {/* Stats Grid */}
+                    {category === 'liquor' ? (
+                      <div className={`grid grid-cols-3 gap-${isMobile ? '2' : '4'} mb-${isMobile ? '3' : '4'}`}>
+                        <div className="text-center">
+                          <div className="flex items-center justify-center gap-1 mb-1">
+                            <Hash className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-gray-500 dark:text-gray-400`} />
+                            <span className={`${isMobile ? 'text-xs' : 'body-xs'} text-gray-500 dark:text-gray-400`}>Servings</span>
+                          </div>
+                          <p className={`${isMobile ? 'text-sm font-medium' : 'body-sm font-medium'} text-gray-700 dark:text-gray-300`}>{session.quantity}</p>
+                        </div>
+                        
+                        <div className="text-center">
+                          <div className="flex items-center justify-center gap-1 mb-1">
+                            <TrendingUp className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-gray-500 dark:text-gray-400`} />
+                            <span className={`${isMobile ? 'text-xs' : 'body-xs'} text-gray-500 dark:text-gray-400`}>Size</span>
+                          </div>
+                          <p className={`${isMobile ? 'text-sm font-medium' : 'body-sm font-medium'} text-gray-700 dark:text-gray-300`}>
+                            {getMlFromServingSize(session.liquor_serving_size)}ml
+                          </p>
+                        </div>
+                        
+                        <div className="text-center">
+                          <div className="flex items-center justify-center gap-1 mb-1">
+                            <TrendingUp className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-gray-500 dark:text-gray-400`} />
+                            <span className={`${isMobile ? 'text-xs' : 'body-xs'} text-gray-500 dark:text-gray-400`}>Total</span>
+                          </div>
+                          <p className={`${isMobile ? 'text-sm font-medium' : 'body-sm font-medium'} text-gray-700 dark:text-gray-300`}>
+                            {consumptionValue.toFixed(0)} {consumptionUnit}
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className={`grid grid-cols-3 gap-${isMobile ? '2' : '4'} mb-${isMobile ? '3' : '4'}`}>
+                        <div className="text-center">
+                          <div className="flex items-center justify-center gap-1 mb-1">
+                            <Hash className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-gray-500 dark:text-gray-400`} />
+                            <span className={`${isMobile ? 'text-xs' : 'body-xs'} text-gray-500 dark:text-gray-400`}>Quantity</span>
+                          </div>
+                          <p className={`${isMobile ? 'text-sm font-medium' : 'body-sm font-medium'} text-gray-700 dark:text-gray-300`}>{session.quantity}</p>
+                        </div>
+                        
+                        <div className="text-center">
+                          <div className="flex items-center justify-center gap-1 mb-1">
+                            <Users className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-gray-500 dark:text-gray-400`} />
+                            <span className={`${isMobile ? 'text-xs' : 'body-xs'} text-gray-500 dark:text-gray-400`}>People</span>
+                          </div>
+                          <p className={`${isMobile ? 'text-sm font-medium' : 'body-sm font-medium'} text-gray-700 dark:text-gray-300`}>{session.participant_count}</p>
+                        </div>
+                        
+                        <div className="text-center">
+                          <div className="flex items-center justify-center gap-1 mb-1">
+                            <TrendingUp className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-gray-500 dark:text-gray-400`} />
+                            <span className={`${isMobile ? 'text-xs' : 'body-xs'} text-gray-500 dark:text-gray-400`}>Per Person</span>
+                          </div>
+                          <p className={`${isMobile ? 'text-sm font-medium' : 'body-sm font-medium'} text-gray-700 dark:text-gray-300`}>
+                            {consumptionValue.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Consumption Highlight */}
+                    <div className={`glass-card-secondary ${isMobile ? 'p-3' : 'p-4'} border border-blue-200/50 dark:border-blue-800/50 mb-${isMobile ? '3' : '4'}`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className={`${isMobile ? 'text-lg' : 'text-xl'}`}>🎯</span>
+                          <span className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>
+                            {category === 'liquor' ? 'Total Consumed' : 'Individual Consumption'}
+                          </span>
+                        </div>
+                        <span className={`${isMobile ? 'text-sm font-semibold' : 'font-semibold'} gradient-text`}>
+                          {consumptionValue.toFixed(2)} {consumptionUnit}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Rating and Notes */}
+                    <div className={`space-y-${isMobile ? '2' : '3'}`}>
+                      {/* Rating */}
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1">
+                          <Star className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-amber-500`} />
+                          <span className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>Rating:</span>
+                        </div>
+                        <div className="flex gap-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <span 
+                              key={star} 
+                              className={`${isMobile ? 'text-sm' : 'text-base'} ${
+                                star <= (session.rating || 0) ? 'text-amber-500' : 'text-gray-300 dark:text-gray-600'
+                              }`}
+                            >
+                              ⭐
+                            </span>
+                          ))}
+                        </div>
+                        <span className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-500 dark:text-gray-400`}>
+                          ({session.rating || 0}/5)
+                        </span>
+                      </div>
+
+                      {/* Notes */}
+                      {session.notes && (
+                        <div className="flex items-start gap-2">
+                          <MessageSquare className={`${isMobile ? 'w-3 h-3 mt-0.5' : 'w-4 h-4 mt-0.5'} text-gray-500 dark:text-gray-400 flex-shrink-0`} />
+                          <div>
+                            <span className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400 block mb-1`}>Notes:</span>
+                            <p className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-700 dark:text-gray-300 leading-relaxed`}>
+                              {session.notes}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

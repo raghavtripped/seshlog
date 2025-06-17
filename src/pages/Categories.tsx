@@ -94,11 +94,11 @@ export const Categories = () => {
       {/* Header */}
       <header className={`${isMobile ? 'p-4' : 'p-6'} flex items-center justify-between`}>
         <div className="flex items-center gap-3">
-          <div className="brand-logo bounce-subtle">
-            <span className="brand-emoji">📊</span>
+          <div className={`brand-logo bounce-subtle ${isMobile ? 'w-8 h-8' : ''}`}>
+            <span className={`brand-emoji ${isMobile ? 'text-lg' : ''}`}>📊</span>
           </div>
           <div>
-            <h1 className={`${isMobile ? 'text-lg font-bold' : 'heading-lg'} gradient-text`}>Session Scribe</h1>
+            <h1 className={`${isMobile ? 'text-base font-bold' : 'heading-lg'} gradient-text`}>Session Scribe</h1>
             <p className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>Track your sessions</p>
           </div>
         </div>
