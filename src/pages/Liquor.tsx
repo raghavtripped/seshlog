@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { FilterSortDialog } from '@/components/FilterSortDialog';
+import { getCategoryGradient } from '../components/SessionForm';
 
 const Liquor = () => {
   const navigate = useNavigate();
