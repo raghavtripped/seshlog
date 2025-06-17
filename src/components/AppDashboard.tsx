@@ -6,6 +6,7 @@ import { Session } from "@/types/session";
 import { useSessions } from "@/hooks/useSessions";
 import { DateRange } from "react-day-picker";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 // Import your UI components
 import { SessionForm } from "@/components/SessionForm";
@@ -29,6 +30,7 @@ export function AppDashboard({ user, initialSessions }: AppDashboardProps) {
   const [periodFilter, setPeriodFilter] = useState<string>('all_time');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   const { sessions, addSession, updateSession, deleteSession } = useSessions(user.id, initialSessions);
 
@@ -129,6 +131,15 @@ export function AppDashboard({ user, initialSessions }: AppDashboardProps) {
     setShowSessionForm(false);
   };
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/login');
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 relative">
       <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-blue-500/5 dark:from-emerald-400/5 dark:to-blue-400/5"></div>
@@ -148,7 +159,7 @@ export function AppDashboard({ user, initialSessions }: AppDashboardProps) {
               <span className="text-xs sm:text-sm font-medium">{user.email}</span>
             </div>
             <Button 
-              onClick={() => navigate('/signout')}
+              onClick={handleSignOut}
               variant="ghost" 
               size="sm" 
               className="text-red-500 hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 rounded-xl"

@@ -8,7 +8,6 @@ import { ThemeProvider } from "@/hooks/useTheme";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import { Login } from "./pages/Login";
-import { SignOut } from "./pages/SignOut";
 import { AuthCallback } from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 
@@ -25,7 +24,6 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/signout" element={<SignOut />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
