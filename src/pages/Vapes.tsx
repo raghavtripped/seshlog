@@ -8,12 +8,12 @@ import { SessionStats } from '@/components/SessionStats';
 import { FilterControls } from '@/components/FilterControls';
 import { useAuth } from '@/hooks/useAuth';
 import { useSessions } from '@/hooks/useSessions';
-import { WeedSessionType } from '@/types/session';
+import { VapeSessionType } from '@/types/session';
 
-const Index = () => {
+const Vapes = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const [selectedType, setSelectedType] = useState<WeedSessionType | 'All'>('All');
+  const [selectedType, setSelectedType] = useState<VapeSessionType | 'All'>('All');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [sortBy, setSortBy] = useState('date-desc');
 
@@ -24,7 +24,7 @@ const Index = () => {
     }
   }, [authLoading, user, navigate]);
 
-  const { sessions, loading, error } = useSessions('weed');
+  const { sessions, loading, error } = useSessions('vapes');
 
   // Filter and sort sessions
   const filteredAndSortedSessions = useMemo(() => {
@@ -73,10 +73,10 @@ const Index = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-gray-900 dark:via-green-900/20 dark:to-emerald-900/20 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-cyan-900/20 dark:to-blue-900/20 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="brand-logo mx-auto float">
-            <span className="brand-emoji">🌿</span>
+            <span className="brand-emoji">💨</span>
           </div>
           <h1 className="heading-lg text-gray-800 dark:text-gray-200">Loading...</h1>
         </div>
@@ -86,17 +86,17 @@ const Index = () => {
 
   return (
     <AppDashboard 
-      title="Weed Tracker"
-      emoji="🌿"
-      category="weed"
+      title="Vape Tracker"
+      emoji="💨"
+      category="vapes"
       onBackToCategories={() => navigate('/categories')}
     >
       <div className="space-y-8">
         {/* Stats Section */}
-        <SessionStats sessions={filteredAndSortedSessions} category="weed" />
+        <SessionStats sessions={filteredAndSortedSessions} category="vapes" />
         
         {/* Add New Session */}
-        <SessionForm category="weed" />
+        <SessionForm category="vapes" />
         
         {/* Filter Controls */}
         <FilterControls
@@ -106,7 +106,7 @@ const Index = () => {
           setDateRange={setDateRange}
           sortBy={sortBy}
           setSortBy={setSortBy}
-          category="weed"
+          category="vapes"
         />
         
         {/* Sessions List */}
@@ -114,11 +114,11 @@ const Index = () => {
           sessions={filteredAndSortedSessions} 
           loading={loading} 
           error={error}
-          category="weed"
+          category="vapes"
         />
       </div>
     </AppDashboard>
   );
 };
 
-export default Index;
+export default Vapes; 

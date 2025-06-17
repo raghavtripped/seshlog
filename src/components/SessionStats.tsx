@@ -1,138 +1,262 @@
 import { useMemo } from 'react';
-import { Session } from "@/types/session";
+import { Session, Category } from "@/types/session";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SessionStatsProps {
-  allSessions: Session[];
-  periodSessions: Session[];
+  sessions: Session[];
+  category: Category;
 }
 
-export const SessionStats = ({ allSessions, periodSessions }: SessionStatsProps) => {
+export const SessionStats = ({ sessions = [], category }: SessionStatsProps) => {
+  const isMobile = useIsMobile();
 
-  const foreverStats = useMemo(() => {
-    const totalSessions = allSessions.length;
-    const totalIndividualConsumption = allSessions.reduce((sum, s) => sum + (s.quantity / s.participant_count), 0);
-    const sessionsWithRating = allSessions.filter(s => s.rating);
-    const averageRating = sessionsWithRating.length > 0 
-      ? (sessionsWithRating.reduce((sum, s) => sum + (s.rating || 0), 0) / sessionsWithRating.length).toFixed(1)
-      : '0';
-    return { totalSessions, totalIndividualConsumption, averageRating };
-  }, [allSessions]);
-
-  const filteredStats = useMemo(() => {
-    const sessionsInPeriod = periodSessions.length;
-    
-    // Calculate top consumed types in the period
-    const typeConsumption = periodSessions.reduce((acc, session) => {
-      const individual = session.quantity / session.participant_count;
-      acc[session.session_type] = (acc[session.session_type] || 0) + individual;
-      return acc;
-    }, {} as Record<string, number>);
-
-    // Get top 2 types sorted by consumption
-    const topTypes = Object.entries(typeConsumption)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 2);
-
-    return { sessionsInPeriod, topTypes };
-  }, [periodSessions]);
-
-  const getTypeEmoji = (sessionType: string) => {
-    const emojis = {
-      'Joint': '🌿',
-      'Bong': '💨',
-      'Vape': '💨',
-      'Edible': '🍪',
-      'Other': '🔄'
-    };
-    return emojis[sessionType as keyof typeof emojis] || '📝';
+  const getCategoryEmoji = (category: Category) => {
+    switch (category) {
+      case 'weed': return '🌿';
+      case 'cigs': return '🚬';
+      case 'vapes': return '💨';
+      case 'liquor': return '🥃';
+      default: return '📊';
+    }
   };
 
+  const getCategoryGradient = (category: Category) => {
+    switch (category) {
+      case 'weed': return 'from-green-500 to-emerald-600';
+      case 'cigs': return 'from-gray-500 to-slate-600';
+      case 'vapes': return 'from-cyan-500 to-blue-600';
+      case 'liquor': return 'from-amber-500 to-orange-600';
+      default: return 'from-blue-500 to-purple-600';
+    }
+  };
+
+  const getCategoryUnit = (category: Category) => {
+    switch (category) {
+      case 'weed': return 'g';
+      case 'cigs': return 'cigs';
+      case 'vapes': return 'puffs';
+      case 'liquor': return 'ml';
+      default: return 'units';
+    }
+  };
+
+  const getCategoryName = (category: Category) => {
+    switch (category) {
+      case 'weed': return 'Weed';
+      case 'cigs': return 'Cigarettes';
+      case 'vapes': return 'Vapes';
+      case 'liquor': return 'Liquor';
+      default: return 'Sessions';
+    }
+  };
+
+  const getSessionTypeEmoji = (sessionType: string, category: Category) => {
+    switch (category) {
+      case 'weed':
+        switch (sessionType) {
+          case 'Joint': return '🌿';
+          case 'Bong': return '💨';
+          case 'Vape': return '💨';
+          case 'Edible': return '🍪';
+          default: return '🔄';
+        }
+      case 'cigs':
+        switch (sessionType) {
+          case 'Regular': return '🚬';
+          case 'Light': return '🚬';
+          case 'Menthol': return '🌿';
+          case 'E-Cigarette': return '💨';
+          default: return '🔄';
+        }
+      case 'vapes':
+        switch (sessionType) {
+          case 'Disposable': return '💨';
+          case 'Pod': return '🔋';
+          case 'Mod': return '🔧';
+          case 'Pen': return '✏️';
+          default: return '🔄';
+        }
+      case 'liquor':
+        switch (sessionType) {
+          case 'Beer': return '🍺';
+          case 'Wine': return '🍷';
+          case 'Spirits': return '🥃';
+          case 'Cocktail': return '🍸';
+          default: return '🔄';
+        }
+      default:
+        return '📊';
+    }
+  };
+
+  // Helper function to get ml per serving for liquor
+  const getMlFromServingSize = (servingSize?: string): number => {
+    if (!servingSize) return 0;
+    const match = servingSize.match(/(\d+)ml/);
+    return match ? parseInt(match[1]) : 0;
+  };
+
+  // Calculate total individual consumption
+  const totalIndividualConsumption = sessions.reduce((sum, session) => {
+    if (category === 'liquor') {
+      // For liquor, calculate total ml consumed
+      const mlPerServing = getMlFromServingSize(session.liquor_serving_size);
+      return sum + (session.quantity * mlPerServing);
+    } else {
+      // For other categories, use individual consumption (quantity / participants)
+      return sum + (session.quantity / session.participant_count);
+    }
+  }, 0);
+
+  // Calculate top session types with corrected logic
+  const sessionTypeCounts = sessions.reduce((acc, session) => {
+    const type = session.session_type;
+    if (!acc[type]) {
+      acc[type] = { 
+        count: 0, 
+        totalIndividualConsumption: 0  // This will be the sum of individual consumption for this type
+      };
+    }
+    
+    acc[type].count += 1;
+    
+    if (category === 'liquor') {
+      // For liquor: total ml consumed in this session
+      const mlPerServing = getMlFromServingSize(session.liquor_serving_size);
+      acc[type].totalIndividualConsumption += (session.quantity * mlPerServing);
+    } else {
+      // For other categories: individual consumption (quantity / participants)
+      acc[type].totalIndividualConsumption += (session.quantity / session.participant_count);
+    }
+    
+    return acc;
+  }, {} as Record<string, { count: number; totalIndividualConsumption: number }>);
+
+  const topSessionTypes = Object.entries(sessionTypeCounts)
+    .map(([type, data]) => ({
+      type,
+      count: data.count,
+      totalConsumption: data.totalIndividualConsumption, // Total consumption for this type
+      avgPerSession: data.totalIndividualConsumption / data.count, // Average consumption per session
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 2);
+
+  const categoryEmoji = getCategoryEmoji(category);
+  const gradient = getCategoryGradient(category);
+  const unit = getCategoryUnit(category);
+  const categoryName = getCategoryName(category);
+
   return (
-    <div className="space-y-6">
-      {/* Main Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-        <div className="glass-card p-6 hover-lift transition-smooth">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="form-text text-gray-600 dark:text-gray-400">Total Sessions</h3>
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-lg">📊</span>
+    <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'lg:grid-cols-2 gap-6'}`}>
+      {/* Combined Sessions & Consumption Card */}
+      <div className={`glass-card ${isMobile ? 'p-4' : 'p-6'} space-y-4 sm:space-y-6`}>
+        {/* Sessions Section */}
+        <div className="space-y-3 sm:space-y-4">
+          <div className="flex items-center gap-3">
+            <div className={`${isMobile ? 'w-10 h-10' : 'w-12 h-12'} bg-gradient-to-r ${gradient} rounded-full flex items-center justify-center shadow-lg`}>
+              <span className={`${isMobile ? 'text-lg' : 'text-xl'}`}>📅</span>
+            </div>
+            <div>
+              <h3 className={`${isMobile ? 'text-base font-semibold' : 'heading-md'} text-gray-800 dark:text-gray-200`}>Sessions (Period)</h3>
+              <p className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>Current filter</p>
             </div>
           </div>
-          <div className="heading-lg gradient-text">
-            {foreverStats.totalSessions}
+          
+          <div className="text-center">
+            <div className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-gray-800 dark:text-gray-200 mb-1`}>
+              {sessions.length}
+            </div>
+            <p className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>
+              {categoryName} sessions tracked
+            </p>
           </div>
-          <p className="body-xs text-gray-500 dark:text-gray-400 mt-1">All time</p>
         </div>
 
-        <div className="glass-card p-6 hover-lift transition-smooth">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="form-text text-gray-600 dark:text-gray-400">Total Individual</h3>
-            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-lg">👤</span>
-            </div>
-          </div>
-          <div className="heading-lg text-purple-600 dark:text-purple-400">
-            {foreverStats.totalIndividualConsumption.toFixed(2)}
-          </div>
-          <p className="body-xs text-gray-500 dark:text-gray-400 mt-1">Personal consumption</p>
-        </div>
+        {/* Divider */}
+        <div className="border-t border-gray-200 dark:border-gray-700"></div>
 
-        <div className="glass-card p-6 hover-lift transition-smooth">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="form-text text-gray-600 dark:text-gray-400">Average Rating</h3>
-            <div className="w-10 h-10 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-lg">⭐</span>
+        {/* Total Consumption Section */}
+        <div className="space-y-3 sm:space-y-4">
+          <div className="flex items-center gap-3">
+            <div className={`${isMobile ? 'w-10 h-10' : 'w-12 h-12'} bg-gradient-to-r ${gradient} rounded-full flex items-center justify-center shadow-lg`}>
+              <span className={`${isMobile ? 'text-lg' : 'text-xl'}`}>👤</span>
+            </div>
+            <div>
+              <h3 className={`${isMobile ? 'text-base font-semibold' : 'heading-md'} text-gray-800 dark:text-gray-200`}>
+                {category === 'liquor' ? 'Total Consumption (Period)' : 'Total Individual Consumption (Period)'}
+              </h3>
+              <p className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>
+                {category === 'liquor' ? 'Total amount consumed' : 'Your personal total'}
+              </p>
             </div>
           </div>
-          <div className="heading-lg text-amber-600 dark:text-amber-400">
-            {foreverStats.averageRating}
+          
+          <div className="text-center">
+            <div className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-gray-800 dark:text-gray-200 mb-1`}>
+              {totalIndividualConsumption.toFixed(2)}
+            </div>
+            <p className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>
+              {category === 'liquor' ? `${unit} total consumed` : `${unit} consumed individually`}
+            </p>
           </div>
-          <p className="body-xs text-gray-500 dark:text-gray-400 mt-1">Out of 5</p>
         </div>
       </div>
-      
-      {/* Period Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-        <div className="glass-card-secondary p-6 hover-lift transition-smooth">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="form-text text-gray-600 dark:text-gray-400">Sessions (Period)</h3>
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm">📅</span>
-            </div>
-          </div>
-          <div className="heading-md text-blue-600 dark:text-blue-400">
-            {filteredStats.sessionsInPeriod}
-          </div>
-          <p className="body-xs text-gray-500 dark:text-gray-400 mt-1">Current filter</p>
-        </div>
 
-        <div className="glass-card-secondary p-6 hover-lift transition-smooth">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="form-text text-gray-600 dark:text-gray-400">Top Types (Period)</h3>
-            <div className="w-8 h-8 bg-gradient-to-r from-pink-400 to-rose-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm">🏆</span>
-            </div>
+      {/* Top Types Card */}
+      <div className={`glass-card ${isMobile ? 'p-4' : 'p-6'} space-y-3 sm:space-y-4`}>
+        <div className="flex items-center gap-3">
+          <div className={`${isMobile ? 'w-10 h-10' : 'w-12 h-12'} bg-gradient-to-r ${gradient} rounded-full flex items-center justify-center shadow-lg`}>
+            <span className={`${isMobile ? 'text-lg' : 'text-xl'}`}>🏆</span>
           </div>
-          <div className="space-y-2">
-            {filteredStats.topTypes.length > 0 ? (
-              filteredStats.topTypes.map(([type, consumption], index) => (
-                <div key={type} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">{getTypeEmoji(type)}</span>
-                    <span className="body-sm font-medium text-gray-700 dark:text-gray-300">
-                      {type}
+          <div>
+            <h3 className={`${isMobile ? 'text-base font-semibold' : 'heading-md'} text-gray-800 dark:text-gray-200`}>Top Types (Period)</h3>
+            <p className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>Most used types</p>
+          </div>
+        </div>
+        
+        <div className="space-y-3 sm:space-y-4">
+          {topSessionTypes.length > 0 ? (
+            topSessionTypes.map((typeData, index) => (
+              <div key={typeData.type} className={`glass-card-secondary ${isMobile ? 'p-3' : 'p-4'} rounded-lg`}>
+                <div className="flex items-center gap-3 mb-2 sm:mb-3">
+                  <span className={`${isMobile ? 'text-xl' : 'text-2xl'}`}>
+                    {getSessionTypeEmoji(typeData.type, category)}
+                  </span>
+                  <div className="flex-1">
+                    <p className={`${isMobile ? 'text-sm' : 'font-medium'} text-gray-800 dark:text-gray-200 mb-1`}>
+                      {typeData.type}
+                    </p>
+                    <p className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>
+                      {typeData.count} session{typeData.count !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className={`space-y-1 sm:space-y-2 ${isMobile ? 'ml-8' : 'ml-11'}`}>
+                  <div className="flex justify-between items-center">
+                    <span className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>Total:</span>
+                    <span className={`${isMobile ? 'text-xs font-medium' : 'body-sm font-semibold'} text-gray-800 dark:text-gray-200`}>
+                      {typeData.totalConsumption.toFixed(1)} {unit}
                     </span>
                   </div>
-                  <span className="body-sm text-pink-600 dark:text-pink-400 font-semibold">
-                    {consumption.toFixed(1)}
-                  </span>
+                  <div className="flex justify-between items-center">
+                    <span className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>Average:</span>
+                    <span className={`${isMobile ? 'text-xs font-medium' : 'body-sm font-semibold'} text-gray-800 dark:text-gray-200`}>
+                      {typeData.avgPerSession.toFixed(1)} {unit}
+                    </span>
+                  </div>
                 </div>
-              ))
-            ) : (
-              <p className="body-sm text-gray-500 dark:text-gray-400">No data</p>
-            )}
-          </div>
-          <p className="body-xs text-gray-500 dark:text-gray-400 mt-2">Individual consumption</p>
+              </div>
+            ))
+          ) : (
+            <div className={`text-center ${isMobile ? 'py-6' : 'py-8'}`}>
+              <span className={`${isMobile ? 'text-3xl' : 'text-4xl'} mb-2 sm:mb-3 block opacity-50`}>{categoryEmoji}</span>
+              <p className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>
+                No sessions found for current filter
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

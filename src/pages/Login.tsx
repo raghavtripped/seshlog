@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 export const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,10 +18,23 @@ export const Login = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 
-  // Redirect to dashboard if already authenticated
+  // Load saved credentials on component mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('seshlog_email');
+    const savedPassword = localStorage.getItem('seshlog_password');
+    const savedRememberMe = localStorage.getItem('seshlog_remember') === 'true';
+    
+    if (savedEmail && savedPassword && savedRememberMe) {
+      setEmail(savedEmail);
+      setPassword(savedPassword);
+      setRememberMe(true);
+    }
+  }, []);
+
+  // Redirect to categories page if already authenticated
   useEffect(() => {
     if (!authLoading && user) {
-      navigate('/');
+      navigate('/categories');
     }
   }, [authLoading, user, navigate]);
 
@@ -38,7 +52,18 @@ export const Login = () => {
       if (error) {
         setError(error.message);
       } else {
-        navigate('/');
+        // Save credentials if remember me is checked
+        if (rememberMe) {
+          localStorage.setItem('seshlog_email', email);
+          localStorage.setItem('seshlog_password', password);
+          localStorage.setItem('seshlog_remember', 'true');
+        } else {
+          // Clear saved credentials if remember me is unchecked
+          localStorage.removeItem('seshlog_email');
+          localStorage.removeItem('seshlog_password');
+          localStorage.removeItem('seshlog_remember');
+        }
+        navigate('/categories');
       }
     } catch (err) {
       setError('An unexpected error occurred');
@@ -219,6 +244,21 @@ export const Login = () => {
                     />
                   </div>
                 </div>
+
+                {!isSignUp && (
+                  <div className="flex items-center space-x-2">
+                    <input
+                      id="remember-me"
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="w-4 h-4 text-indigo-600 bg-white/80 dark:bg-gray-800/80 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500 focus:ring-2"
+                    />
+                    <label htmlFor="remember-me" className="text-gray-700 dark:text-gray-300 form-text">
+                      Remember me
+                    </label>
+                  </div>
+                )}
                 
                 <Button 
                   type="submit" 

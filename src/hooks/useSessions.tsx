@@ -2,12 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Session, SessionType } from '@/types/session';
+import { Session, SessionType, Category } from '@/types/session';
+import { useAuth } from '@/hooks/useAuth';
 
 // Database session type (what we get from Supabase)
 interface DatabaseSession {
   id: string;
   user_id: string;
+  category: string;
   session_type: string;
   quantity: number;
   participant_count: number;
@@ -21,22 +23,26 @@ interface DatabaseSession {
 // Helper function to transform database response to properly typed Session
 const transformDatabaseSession = (dbSession: DatabaseSession): Session => ({
   ...dbSession,
+  category: dbSession.category as Category,
   session_type: dbSession.session_type as SessionType,
 });
 
-export const useSessions = (userId: string | null, initialSessions: Session[] = []) => {
-  const [sessions, setSessions] = useState<Session[]>(initialSessions);
+export const useSessions = (category: Category) => {
+  const { user } = useAuth();
+  const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // **FIXED: Removed 'supabase' from dependency array to satisfy ESLint**
   const fetchSessions = useCallback(async () => {
-    if (!userId) return;
+    if (!user) return;
     setLoading(true);
+    setError(null);
     try {
       const { data, error } = await supabase
         .from('sessions')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', user.id)
+        .eq('category', category)
         .order('session_date', { ascending: false });
 
       if (error) {
@@ -45,18 +51,24 @@ export const useSessions = (userId: string | null, initialSessions: Session[] = 
       setSessions((data || []).map(transformDatabaseSession));
     } catch (error) {
       console.error('Error fetching sessions:', error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch sessions');
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [user, category]);
 
-  const addSession = async (newSessionData: Omit<Session, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => {
-    if (!userId) return;
+  const addSession = async (newSessionData: Omit<Session, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'category'>) => {
+    if (!user) return;
     setLoading(true);
+    setError(null);
     try {
       const { data, error } = await supabase
         .from('sessions')
-        .insert({ ...newSessionData, user_id: userId })
+        .insert({ 
+          ...newSessionData, 
+          user_id: user.id,
+          category: category
+        })
         .select()
         .single();
 
@@ -68,13 +80,15 @@ export const useSessions = (userId: string | null, initialSessions: Session[] = 
       }
     } catch (error) {
       console.error('Error adding session:', error);
+      setError(error instanceof Error ? error.message : 'Failed to add session');
     } finally {
       setLoading(false);
     }
   };
 
-  const updateSession = async (sessionId: string, updatedData: Partial<Omit<Session, 'id' | 'created_at' | 'updated_at' | 'user_id'>>) => {
+  const updateSession = async (sessionId: string, updatedData: Partial<Omit<Session, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'category'>>) => {
     setLoading(true);
+    setError(null);
     try {
       const { data, error } = await supabase
         .from('sessions')
@@ -93,6 +107,7 @@ export const useSessions = (userId: string | null, initialSessions: Session[] = 
       }
     } catch (error) {
       console.error('Error updating session:', error);
+      setError(error instanceof Error ? error.message : 'Failed to update session');
     } finally {
       setLoading(false);
     }
@@ -100,6 +115,7 @@ export const useSessions = (userId: string | null, initialSessions: Session[] = 
 
   const deleteSession = async (sessionId: string) => {
     setLoading(true);
+    setError(null);
     try {
       const { error } = await supabase
         .from('sessions')
@@ -112,14 +128,15 @@ export const useSessions = (userId: string | null, initialSessions: Session[] = 
       setSessions(prevSessions => prevSessions.filter(s => s.id !== sessionId));
     } catch (error) {
       console.error('Error deleting session:', error);
+      setError(error instanceof Error ? error.message : 'Failed to delete session');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    setSessions(initialSessions);
-  }, [initialSessions]);
+    fetchSessions();
+  }, [fetchSessions]);
 
-  return { sessions, loading, addSession, updateSession, deleteSession, fetchSessions };
+  return { sessions, loading, error, addSession, updateSession, deleteSession, fetchSessions };
 };

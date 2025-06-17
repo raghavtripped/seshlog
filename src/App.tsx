@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +8,10 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import { Login } from "./pages/Login";
 import { AuthCallback } from "./pages/AuthCallback";
+import { Categories } from "./pages/Categories";
+import Cigs from "./pages/Cigs";
+import Vapes from "./pages/Vapes";
+import Liquor from "./pages/Liquor";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +27,10 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/categories" element={<Categories />} />
+              <Route path="/cigs" element={<Cigs />} />
+              <Route path="/vapes" element={<Vapes />} />
+              <Route path="/liquor" element={<Liquor />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
