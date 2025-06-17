@@ -106,26 +106,6 @@ export function AppDashboard({
 
         {/* Main Content */}
         <main className={`space-y-${isMobile ? '3' : '8'}`}>
-          {/* Action Buttons */}
-          <div className={`flex flex-col ${isMobile ? 'gap-2' : 'gap-4'} ${isMobile ? 'mb-3' : 'mb-6'}`}>
-            <div className="flex items-center justify-between">
-              <Button
-                className="flex items-center gap-2"
-                size={isMobile ? "sm" : "default"}
-              >
-                <Plus className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
-                <span>Log New Session</span>
-              </Button>
-              <Button
-                variant="outline"
-                size={isMobile ? "sm" : "default"}
-                className="flex items-center gap-2"
-              >
-                <span>Filters & Sort</span>
-              </Button>
-            </div>
-          </div>
-
           {/* Collapsible Content */}
           <div className="space-y-3">
             {children}
