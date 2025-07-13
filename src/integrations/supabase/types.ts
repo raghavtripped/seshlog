@@ -1,3 +1,5 @@
+///Users/raghavtripathi/Projects 2.0/session-scribe-log/src/integrations/supabase/types.ts
+
 export type Json =
   | string
   | number
@@ -11,8 +13,10 @@ export type Database = {
     Tables: {
       sessions: {
         Row: {
+          category: string
           created_at: string
           id: string
+          liquor_serving_size: string | null
           notes: string | null
           participant_count: number
           quantity: number
@@ -23,8 +27,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          category: string
           created_at?: string
           id?: string
+          liquor_serving_size?: string | null
           notes?: string | null
           participant_count?: number
           quantity?: number
@@ -35,8 +41,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          category?: string
           created_at?: string
           id?: string
+          liquor_serving_size?: string | null
           notes?: string | null
           participant_count?: number
           quantity?: number
