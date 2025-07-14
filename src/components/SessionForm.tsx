@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Session, SessionType, Category, WeedSessionType, CigSessionType, VapeSessionType, LiquorSessionType, LiquorServingSize } from "@/types/session";
 import { Plus, Minus, Star } from "lucide-react";
 import { useSessions } from "@/hooks/useSessions";
+import { useToast } from "@/hooks/use-toast";
 
 // --- Props Interface ---
 interface SessionFormProps {
@@ -66,6 +67,7 @@ const SessionFormComponent = ({
   onSessionUpdated 
 }: SessionFormProps) => {
   const { addSession, updateSession, isSubmitting } = useSessions(category);
+  const { toast } = useToast();
 
   // Memoize constants to prevent re-calculation on every render
   const sessionTypes = useMemo(() => getSessionTypesForCategory(category), [category]);
@@ -94,10 +96,22 @@ const SessionFormComponent = ({
     setFormState(getDefaultState());
   }, [initialSession, getDefaultState]);
 
-  const handleInputChange = (field: keyof typeof formState, value: any) => {
-    setFormState(prevState => ({ ...prevState, [field]: value }));
+  // New: handle string/standard input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormState(prevState => ({ ...prevState, [name]: value }));
+  };
+
+  // New: handle direct number changes (for QuantityControl, rating, customServingSize)
+  const handleNumberChange = (name: string, value: number) => {
+    setFormState(prevState => ({ ...prevState, [name]: value }));
   };
   
+  // Helper to create a synthetic event for Select and similar components
+  const createStringChangeEvent = (name: string, value: string) => ({
+    target: { name, value }
+  }) as React.ChangeEvent<HTMLInputElement | HTMLSelectElement>;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -123,14 +137,29 @@ const SessionFormComponent = ({
     try {
       if (initialSession) {
         await updateSession(initialSession.id, sessionData);
+        toast({
+          title: "Session updated!",
+          description: "Your session has been updated successfully.",
+          variant: "default"
+        });
         onSessionUpdated?.();
       } else {
         await addSession(sessionData as Omit<Session, 'id' | 'created_at' | 'updated_at' | 'user_id'>);
+        toast({
+          title: "Session logged!",
+          description: "Your session has been logged successfully.",
+          variant: "default"
+        });
         onSessionAdded?.();
       }
       onFormClose();
     } catch (error) {
       console.error('Error saving session:', error);
+      toast({
+        title: "Error",
+        description: "There was a problem saving your session. Please try again.",
+        variant: "destructive"
+      });
       // Here you can add user-facing error handling, e.g., a toast notification
     }
   };
@@ -167,7 +196,7 @@ const SessionFormComponent = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <div className="space-y-2">
             <Label htmlFor="type" className="font-medium text-gray-700 dark:text-gray-300">Type</Label>
-            <Select value={formState.sessionType} onValueChange={(value: SessionType) => handleInputChange('sessionType', value)}>
+            <Select value={formState.sessionType} onValueChange={(value: SessionType) => handleInputChange(createStringChangeEvent('sessionType', value))}>
               <SelectTrigger className="w-full h-12 rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
                 <SelectValue />
               </SelectTrigger>
@@ -180,27 +209,27 @@ const SessionFormComponent = ({
           </div>
           <div className="space-y-2">
             <Label htmlFor="sessionDate" className="font-medium text-gray-700 dark:text-gray-300">Date & Time</Label>
-            <Input id="sessionDate" type="datetime-local" value={formState.sessionDate} onChange={(e) => handleInputChange('sessionDate', e.target.value)} className="h-12 rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"/>
+            <Input id="sessionDate" type="datetime-local" name="sessionDate" value={formState.sessionDate} onChange={handleInputChange} className="h-12 rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"/>
           </div>
         </div>
 
         {/* Row 2: Quantity & Participants/Serving Size */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          <QuantityControl label={getQuantityLabel(category)} value={formState.quantity} onChange={(v) => handleInputChange('quantity', v)} />
+          <QuantityControl label={getQuantityLabel(category)} value={formState.quantity} onChange={(v) => handleNumberChange('quantity', v)} />
           
           {category === 'liquor' ? (
             <div className="space-y-2">
               <Label htmlFor="servingSize" className="font-medium text-gray-700 dark:text-gray-300">Serving Size</Label>
-              <Select value={formState.liquorServingSize} onValueChange={(v: LiquorServingSize) => handleInputChange('liquorServingSize', v)}>
+              <Select value={formState.liquorServingSize} onValueChange={(v: LiquorServingSize) => handleInputChange(createStringChangeEvent('liquorServingSize', v))}>
                 <SelectTrigger className="w-full h-12 rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"><SelectValue /></SelectTrigger>
                 <SelectContent>{servingSizes.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
               </Select>
               {formState.liquorServingSize === 'Custom' && (
-                <Input type="number" placeholder="Enter size in ml" value={formState.customServingSize} onChange={e => handleInputChange('customServingSize', Number(e.target.value))} className="mt-2 h-12 rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600" />
+                <Input type="number" placeholder="Enter size in ml" name="customServingSize" value={formState.customServingSize} onChange={e => handleNumberChange('customServingSize', Number(e.target.value))} className="mt-2 h-12 rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600" />
               )}
             </div>
           ) : (
-            <QuantityControl label="Participants" value={formState.participantCount} onChange={(v) => handleInputChange('participantCount', v)} />
+            <QuantityControl label="Participants" value={formState.participantCount} onChange={(v) => handleNumberChange('participantCount', v)} />
           )}
         </div>
 
@@ -217,7 +246,7 @@ const SessionFormComponent = ({
             <Label className="font-medium text-gray-700 dark:text-gray-300">Session Rating</Label>
             <div className="flex items-center gap-2">
                 {[1, 2, 3, 4, 5].map((star) => (
-                    <button key={star} type="button" onClick={() => handleInputChange('rating', star)}
+                    <button key={star} type="button" onClick={() => handleNumberChange('rating', star)}
                         className={`w-10 h-10 flex-1 md:flex-none rounded-lg transition-all duration-200 text-2xl flex items-center justify-center ${star <= formState.rating ? 'bg-amber-400 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600'}`}>
                         <Star className={`w-6 h-6 ${star <= formState.rating ? 'fill-current' : ''}`} />
                     </button>
@@ -228,7 +257,7 @@ const SessionFormComponent = ({
         {/* Row 5: Notes */}
         <div className="space-y-2">
           <Label htmlFor="notes" className="font-medium text-gray-700 dark:text-gray-300">Notes (optional)</Label>
-          <Textarea id="notes" placeholder="Any details, effects, or thoughts..." value={formState.notes} onChange={e => handleInputChange('notes', e.target.value)} className="min-h-[100px] rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 resize-y"/>
+          <Textarea id="notes" placeholder="Any details, effects, or thoughts..." name="notes" value={formState.notes} onChange={handleInputChange} className="min-h-[100px] rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 resize-y"/>
         </div>
 
         {/* Row 6: Action Buttons */}
