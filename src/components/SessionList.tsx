@@ -52,7 +52,7 @@ export const SessionList = ({
   onEditSession,
   onDeleteSession
 }: SessionListProps) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleDelete = async (sessionId: string) => {
     if (window.confirm('Are you sure you want to delete this session?')) {
