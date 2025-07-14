@@ -1,3 +1,5 @@
+// /src/hooks/use-toast.ts
+
 import * as React from "react"
 
 import type {
@@ -6,7 +8,8 @@ import type {
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+// FIX: Changed the remove delay to a reasonable 5 seconds (5000ms).
+const TOAST_REMOVE_DELAY = 5000
 
 type ToasterToast = ToastProps & {
   id: string

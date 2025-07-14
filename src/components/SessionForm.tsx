@@ -7,9 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Session, SessionType, Category, LiquorServingSize } from "@/types/session";
-import { Plus, Minus, Star } from "lucide-react";
+import { Plus, Minus, Star, Loader2 } from "lucide-react"; // Import Loader2 for spinner
 import { useSessions } from "@/hooks/useSessions";
-import { useToast } from "@/components/ui/use-toast"; // Corrected import path for shadcn/ui
+import { useToast } from "@/components/ui/use-toast";
 
 // --- Props Interface ---
 interface SessionFormProps {
@@ -18,6 +18,18 @@ interface SessionFormProps {
   onFormClose: () => void;
   onSessionAdded?: () => void;
   onSessionUpdated?: () => void;
+}
+
+// --- Form State Interface ---
+interface FormState {
+  sessionType: SessionType;
+  quantity: number;
+  participantCount: number;
+  liquorServingSize: LiquorServingSize;
+  customServingSize: number;
+  notes: string;
+  rating: number;
+  sessionDate: string;
 }
 
 // --- Helper Functions (Static, outside the component) ---
@@ -57,6 +69,22 @@ const getCategoryVisuals = (category: Category) => {
   }
 };
 
+/**
+ * Converts a date to a string suitable for datetime-local input,
+ * correctly handling the user's local timezone.
+ * @param date - The Date object to format.
+ * @returns A string in 'YYYY-MM-DDTHH:mm' format.
+ */
+const toDateTimeLocalString = (date: Date): string => {
+  const ten = (i: number) => (i < 10 ? '0' : '') + i;
+  const YYYY = date.getFullYear();
+  const MM = ten(date.getMonth() + 1);
+  const DD = ten(date.getDate());
+  const HH = ten(date.getHours());
+  const mm = ten(date.getMinutes());
+  return `${YYYY}-${MM}-${DD}T${HH}:${mm}`;
+};
+
 // --- Main Form Component ---
 const SessionFormComponent = ({ 
   category, 
@@ -72,77 +100,74 @@ const SessionFormComponent = ({
   const servingSizes = useMemo(() => getLiquorServingSizes(), []);
   const categoryVisuals = useMemo(() => getCategoryVisuals(category), [category]);
 
-  const getDefaultState = useCallback(() => {
-    const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    const initialDate = initialSession ? new Date(initialSession.session_date) : now;
-    initialDate.setMinutes(initialDate.getMinutes() - initialDate.getTimezoneOffset());
+  const getDefaultState = useCallback((): FormState => {
+    // FIX: Correctly handle timezone for both new and existing sessions.
+    const initialDate = initialSession ? new Date(initialSession.session_date) : new Date();
     
     return {
       sessionType: initialSession?.session_type || sessionTypes[0]?.value as SessionType,
       quantity: initialSession?.quantity || 1,
       participantCount: initialSession?.participant_count || 1,
       liquorServingSize: initialSession?.liquor_serving_size || '330ml (Beer Bottle)' as LiquorServingSize,
-      customServingSize: 0, // Simplified: always start at 0
+      customServingSize: 0,
       notes: initialSession?.notes || '',
       rating: initialSession?.rating || 3,
-      sessionDate: initialDate.toISOString().slice(0, 16),
+      sessionDate: toDateTimeLocalString(initialDate), // Use our timezone-aware formatter
     };
   }, [initialSession, sessionTypes]);
 
-  const [formState, setFormState] = useState(getDefaultState());
+  const [formState, setFormState] = useState<FormState>(getDefaultState());
 
   useEffect(() => {
     setFormState(getDefaultState());
   }, [initialSession, getDefaultState]);
 
-  // Unified state handler for all inputs
-  const handleStateChange = (field: keyof typeof formState, value: any) => {
+  // FIX 1: Replace 'any' with proper generic type for type safety
+  const handleStateChange = <K extends keyof FormState>(field: K, value: FormState[K]) => {
     setFormState(prevState => ({ ...prevState, [field]: value }));
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const sessionData: Partial<Session> = {
+    // FIX 2: Convert to ISO string to match Session type definition (session_date: string)
+    const submissionDate = new Date(formState.sessionDate).toISOString();
+
+    // FIX 3: Create properly typed object for addSession matching SessionInsert type
+    const sessionData = {
+      category: category, // Required by SessionInsert
+      user_id: '', // Required by SessionInsert (will be overridden by useSessions hook)
       session_type: formState.sessionType,
       quantity: formState.quantity,
       notes: formState.notes.trim() || null,
       rating: formState.rating,
-      session_date: new Date(formState.sessionDate).toISOString(),
+      session_date: submissionDate, // Now properly typed as string
       participant_count: formState.participantCount,
+      ...(category === 'liquor' && { liquor_serving_size: formState.liquorServingSize }),
     };
 
-    if (category === 'liquor') {
-      sessionData.liquor_serving_size = formState.liquorServingSize;
-      if (formState.liquorServingSize === 'Custom') {
-        const customNote = `Custom serving size: ${formState.customServingSize}ml`;
-        sessionData.notes = formState.notes ? `${formState.notes}\n${customNote}` : customNote;
-      }
+    // Handle custom serving size for liquor
+    if (category === 'liquor' && formState.liquorServingSize === 'Custom') {
+      const customNote = `Custom serving size: ${formState.customServingSize}ml`;
+      sessionData.notes = formState.notes ? `${formState.notes}\n${customNote}` : customNote;
     }
 
     try {
       if (initialSession) {
         await updateSession(initialSession.id, sessionData);
-        toast({
-          title: "✅ Session Updated!",
-          description: "Your changes have been saved successfully.",
-        });
-        onSessionUpdated?.();
+        toast({ title: "✅ Session Updated!", description: "Your changes have been saved." });
+        if(onSessionUpdated) onSessionUpdated();
       } else {
-        await addSession(sessionData as Omit<Session, 'id' | 'created_at' | 'updated_at' | 'user_id'>);
-        toast({
-          title: "🎉 Session Logged!",
-          description: "Your new session has been recorded.",
-        });
-        onSessionAdded?.();
+        await addSession(sessionData);
+        toast({ title: "🎉 Session Logged!", description: "Your new session is recorded." });
+        if(onSessionAdded) onSessionAdded();
       }
-      onFormClose(); // Close the form on success
+      onFormClose();
     } catch (error) {
       console.error('Error saving session:', error);
       toast({
         title: "❌ Error",
-        description: "Could not save the session. Please try again.",
+        description: "Could not save the session. Please check your connection and try again.",
         variant: "destructive",
       });
     }
@@ -176,7 +201,7 @@ const SessionFormComponent = ({
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Row 1: Session Type & Date */}
+        {/* All form inputs now correctly use handleStateChange */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <div className="space-y-2">
             <Label htmlFor="type" className="font-medium text-gray-700 dark:text-gray-300">Type</Label>
@@ -191,7 +216,6 @@ const SessionFormComponent = ({
           </div>
         </div>
 
-        {/* Row 2: Quantity & Participants/Serving Size */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <QuantityControl label={getQuantityLabel(category)} value={formState.quantity} onChange={(v) => handleStateChange('quantity', v)} />
           {category === 'liquor' ? (
@@ -210,7 +234,6 @@ const SessionFormComponent = ({
           )}
         </div>
 
-        {/* Row 3: Consumption Highlight */}
         <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
             <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
               {category === 'liquor' ? 'Total Volume' : 'Consumption per Person'}
@@ -218,7 +241,6 @@ const SessionFormComponent = ({
             <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{consumptionDisplay}</p>
         </div>
 
-        {/* Row 4: Rating */}
         <div className="space-y-3">
             <Label className="font-medium text-gray-700 dark:text-gray-300">Session Rating</Label>
             <div className="flex items-center gap-2">
@@ -230,19 +252,18 @@ const SessionFormComponent = ({
                 ))}
             </div>
         </div>
-
-        {/* Row 5: Notes */}
+        
         <div className="space-y-2">
           <Label htmlFor="notes" className="font-medium text-gray-700 dark:text-gray-300">Notes (optional)</Label>
           <Textarea id="notes" placeholder="Any details, effects, or thoughts..." value={formState.notes} onChange={(e) => handleStateChange('notes', e.target.value)} className="min-h-[100px] rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 resize-y"/>
         </div>
-
-        {/* Row 6: Action Buttons */}
+        
         <div className="flex flex-col md:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <Button type="submit" disabled={isSubmitting} className={`w-full md:flex-1 h-12 text-base font-semibold bg-gradient-to-r ${categoryVisuals.gradient} text-white rounded-lg transition-opacity hover:opacity-90 disabled:opacity-50`}>
+          <Button type="submit" disabled={isSubmitting} className={`w-full md:flex-1 h-12 text-base font-semibold bg-gradient-to-r ${categoryVisuals.gradient} text-white rounded-lg transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center`}>
+            {isSubmitting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
             {isSubmitting ? 'Saving...' : (initialSession ? 'Update Session' : 'Log Session')}
           </Button>
-          <Button type="button" onClick={onFormClose} variant="outline" className="w-full md:w-auto h-12 text-base rounded-lg border-gray-300 dark:border-gray-600">
+          <Button type="button" onClick={onFormClose} disabled={isSubmitting} variant="outline" className="w-full md:w-auto h-12 text-base rounded-lg border-gray-300 dark:border-gray-600">
             Cancel
           </Button>
         </div>
@@ -251,7 +272,6 @@ const SessionFormComponent = ({
   );
 };
 
-// --- Quantity Control Sub-component ---
 const QuantityControl = ({ label, value, onChange, min = 1, max = 99, step = 1 }: {
   label: string;
   value: number;
@@ -277,5 +297,4 @@ const QuantityControl = ({ label, value, onChange, min = 1, max = 99, step = 1 }
   </div>
 );
 
-// Memoize the component to prevent unnecessary re-renders
 export const SessionForm = memo(SessionFormComponent);

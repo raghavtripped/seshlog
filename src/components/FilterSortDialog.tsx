@@ -1,3 +1,5 @@
+// /src/components/FilterSortDialog.tsx
+
 import { Dialog, DialogContent, DialogTrigger } from './ui/dialog';
 import { Button } from './ui/button';
 import { FilterControls } from './FilterControls';
@@ -5,11 +7,15 @@ import { Filter } from 'lucide-react';
 import { Category } from '@/types/session';
 import { DateRange } from 'react-day-picker';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useState } from 'react';
+import { useState, Dispatch, SetStateAction } from 'react';
 
-interface FilterSortDialogProps {
-  selectedType: string;
-  setSelectedType: (value: string) => void;
+// --- Generic Props Interface ---
+// We use a generic type 'T' which will represent the specific union of session types
+// (e.g., CigSessionType | 'All').
+interface FilterSortDialogProps<T> {
+  selectedType: T;
+  // FIX: Use the generic type 'T' instead of 'any' for full type safety.
+  setSelectedType: Dispatch<SetStateAction<T>>;
   dateRange: DateRange | undefined;
   setDateRange: (dateRange: DateRange | undefined) => void;
   sortBy: string;
@@ -18,7 +24,8 @@ interface FilterSortDialogProps {
   buttonWidth?: string;
 }
 
-export function FilterSortDialog({
+// The component is now generic, accepting a type 'T' that must be a string.
+export function FilterSortDialog<T extends string>({
   selectedType,
   setSelectedType,
   dateRange,
@@ -27,12 +34,15 @@ export function FilterSortDialog({
   setSortBy,
   category,
   buttonWidth = 'w-full',
-}: FilterSortDialogProps) {
+}: FilterSortDialogProps<T>) {
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
 
+  // The handlers now work with the generic type T.
+  // We cast `value` to `T` because FilterControls will pass a string,
+  // and we trust it's a valid value of type T.
   const handleTypeChange = (value: string) => {
-    setSelectedType(value);
+    setSelectedType(value as T);
     setOpen(false);
   };
 
@@ -72,4 +82,4 @@ export function FilterSortDialog({
       </DialogContent>
     </Dialog>
   );
-} 
+}
