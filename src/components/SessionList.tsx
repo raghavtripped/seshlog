@@ -1,13 +1,10 @@
-// /src/components/SessionList.tsx
-
 import { useState } from 'react';
 import { Session, Category } from "@/types/session";
 import { Button } from "@/components/ui/button";
-// FIX: Added Beaker to the imports
 import { Calendar, Users, Hash, TrendingUp, Edit, Trash2, Star, MessageSquare, ChevronDown, ChevronUp, Loader2, Beaker } from "lucide-react";
 import { format } from 'date-fns';
-import { getCategoryGradient } from '@/lib/utils'; // FIX: Corrected import path
-import { useIsMobile } from '@/hooks/use-mobile'; // FIX: Added missing import
+import { getCategoryGradient } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // --- Props Interface ---
 interface SessionListProps {
@@ -145,7 +142,7 @@ interface SessionItemProps {
 }
 
 const SessionItem = ({ session, category, onEdit, onDelete }: SessionItemProps) => {
-  const isMobile = useIsMobile(); // This will now work correctly
+  const isMobile = useIsMobile();
   const sessionEmoji = getSessionTypeEmoji(session.session_type, category);
 
   let consumptionValue: number;
@@ -194,12 +191,19 @@ const SessionItem = ({ session, category, onEdit, onDelete }: SessionItemProps) 
           <Star className="w-4 h-4 text-amber-400" />
           <span className="font-medium text-gray-600 dark:text-gray-300">Rating: {session.rating || 'N/A'}/5</span>
         </div>
+        
+        {/* --- MODIFIED NOTES SECTION --- */}
         {session.notes && (
-          <div className="flex items-start gap-2 text-sm">
-            <MessageSquare className="w-4 h-4 mt-0.5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-            <p className="text-gray-700 dark:text-gray-300">{session.notes}</p>
+          <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600/50">
+            <div className="flex items-start gap-3">
+              <MessageSquare className="w-4 h-4 mt-1 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+              <p className="text-gray-700 dark:text-gray-300 italic text-sm leading-relaxed">
+                "{session.notes}"
+              </p>
+            </div>
           </div>
         )}
+        {/* --- END OF MODIFIED SECTION --- */}
       </div>
     </div>
   );
