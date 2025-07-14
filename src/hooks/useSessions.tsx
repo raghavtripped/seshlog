@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Session, Category, SessionType, LiquorServingSize } from '@/types/session'; // Import necessary types
+import { Session, Category, SessionType, LiquorServingSize } from '@/types/session';
 import { useAuth } from '@/hooks/useAuth';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -19,10 +19,8 @@ type SessionUpdate = Database['public']['Tables']['sessions']['Update'];
 const fromDatabase = (dbSession: SessionRow): Session => {
   return {
     ...dbSession,
-    // Explicitly cast generic strings from the DB to our specific union types.
     category: dbSession.category as Category,
     session_type: dbSession.session_type as SessionType,
-    // FIX: Add casting for liquor_serving_size as well.
     liquor_serving_size: dbSession.liquor_serving_size as LiquorServingSize | undefined,
   };
 };
@@ -72,7 +70,6 @@ export const useSessions = (category: Category) => {
     
     const tempId = `temp-${Date.now()}`;
     const optimisticSession: Session = {
-      // Build a valid 'Session' object for the UI
       id: tempId,
       user_id: user.id,
       category: category,
@@ -89,7 +86,6 @@ export const useSessions = (category: Category) => {
     setSessions(prev => [optimisticSession, ...prev]);
 
     try {
-      // FIX: Adhere to the `SessionInsert` type by ensuring session_date is a string.
       const submissionData: SessionInsert = {
         ...newSessionData,
         user_id: user.id,
@@ -109,8 +105,9 @@ export const useSessions = (category: Category) => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to add session';
       console.error('Error adding session:', errorMessage);
-      setSessions(prev => prev.filter(s => s.id !== tempId));
+      setSessions(prev => prev.filter(s => s.id !== tempId)); // Revert optimistic update
       setError(errorMessage);
+      // FIX: Re-throw the error to be caught by the calling component (SessionForm)
       throw err;
     } finally {
       setIsSubmitting(false);
@@ -124,16 +121,14 @@ export const useSessions = (category: Category) => {
     const originalSession = sessions.find(s => s.id === sessionId);
     if (!originalSession) {
       setIsSubmitting(false);
-      return;
+      throw new Error("Session to update not found.");
     }
     
-    // Optimistic UI update
     setSessions(prev =>
       prev.map(s => (s.id === sessionId ? { ...s, ...updatedData } as Session : s))
     );
 
     try {
-      // FIX: Adhere to the `SessionUpdate` type by ensuring session_date is a string if provided.
       const submissionData = { ...updatedData };
       if (updatedData.session_date) {
         submissionData.session_date = new Date(updatedData.session_date).toISOString();
@@ -152,8 +147,9 @@ export const useSessions = (category: Category) => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update session';
       console.error('Error updating session:', errorMessage);
-      setSessions(prev => prev.map(s => (s.id === sessionId ? originalSession : s)));
+      setSessions(prev => prev.map(s => (s.id === sessionId ? originalSession : s))); // Revert optimistic update
       setError(errorMessage);
+      // FIX: Re-throw the error to be caught by the calling component (SessionForm)
       throw err;
     } finally {
       setIsSubmitting(false);
@@ -178,8 +174,9 @@ export const useSessions = (category: Category) => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete session';
       console.error('Error deleting session:', errorMessage);
-      setSessions(originalSessions);
+      setSessions(originalSessions); // Revert optimistic update
       setError(errorMessage);
+      // FIX: Re-throw the error to be caught by the calling component
       throw err;
     } finally {
       setIsSubmitting(false);

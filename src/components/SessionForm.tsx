@@ -1,4 +1,4 @@
-// /src/components/SessionForm.tsx
+// /Users/raghavtripathi/Projects 2.0/session-scribe-log/src/components/SessionForm.tsx
 
 import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
