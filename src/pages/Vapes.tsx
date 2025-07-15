@@ -7,6 +7,7 @@ import { AppDashboard } from '@/components/AppDashboard';
 import { SessionForm } from '@/components/SessionForm';
 import { SessionList } from '@/components/SessionList';
 import { SessionStats } from '@/components/SessionStats';
+import { Insights } from '@/components/Insights';
 import { useAuth } from '@/hooks/useAuth';
 import { useSessions } from '@/hooks/useSessions';
 import { Session, VapeSessionType } from '@/types/session';
@@ -147,6 +148,8 @@ const VapesPage = () => {
         </Dialog>
         
         <SessionStats sessions={filteredAndSortedSessions} category="vapes" />
+        
+        <Insights periodSessions={filteredAndSortedSessions} category="vapes" />
         
         <SessionList 
           sessions={filteredAndSortedSessions} 

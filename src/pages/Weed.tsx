@@ -7,6 +7,7 @@ import { AppDashboard } from '@/components/AppDashboard';
 import { SessionForm } from '@/components/SessionForm';
 import { SessionList } from '@/components/SessionList';
 import { SessionStats } from '@/components/SessionStats';
+import { Insights } from '@/components/Insights';
 import { useAuth } from '@/hooks/useAuth';
 import { useSessions } from '@/hooks/useSessions';
 import { Session, WeedSessionType } from '@/types/session';
@@ -151,6 +152,8 @@ const WeedPage = () => {
         </Dialog>
         
         <SessionStats sessions={filteredAndSortedSessions} category="weed" />
+        
+        <Insights periodSessions={filteredAndSortedSessions} category="weed" />
         
         {/* FIX: SessionList now receives the correct props */}
         <SessionList 
