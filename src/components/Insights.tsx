@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Session, Category } from "@/types/session";
 import { useIsMobile } from '@/hooks/use-mobile';
+import { TimeGranularity } from '@/components/GranularityControl';
 import {
   LineChart,
   Line,
@@ -15,14 +16,31 @@ import {
   ResponsiveContainer,
   Legend
 } from 'recharts';
-import { format, startOfDay, startOfWeek, startOfMonth, differenceInDays, parseISO } from 'date-fns';
+import { 
+  format, 
+  startOfDay, 
+  startOfWeek, 
+  startOfMonth, 
+  startOfYear,
+  addDays, 
+  addWeeks, 
+  addMonths, 
+  addYears,
+  differenceInDays, 
+  parseISO, 
+  isSameDay,
+  isSameWeek,
+  isSameMonth,
+  isSameYear
+} from 'date-fns';
 
 interface InsightsProps {
   periodSessions: Session[];
   category: Category;
+  granularity: TimeGranularity;
 }
 
-export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
+export const Insights = ({ periodSessions = [], category, granularity }: InsightsProps) => {
   const isMobile = useIsMobile();
 
   const getCategoryGradient = (category: Category) => {
@@ -72,63 +90,95 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
     }
   };
 
-  // Determine time granularity based on date range
-  const timeGranularity = useMemo(() => {
-    if (periodSessions.length === 0) return 'day';
-    
-    const dates = periodSessions.map(s => parseISO(s.session_date));
-    const minDate = new Date(Math.min(...dates.map(d => d.getTime())));
-    const maxDate = new Date(Math.max(...dates.map(d => d.getTime())));
-    const daysDiff = differenceInDays(maxDate, minDate);
+  // Helper function to get the start of period based on granularity
+  const getStartOfPeriod = (date: Date, granularity: TimeGranularity): Date => {
+    switch (granularity) {
+      case 'day': return startOfDay(date);
+      case 'week': return startOfWeek(date);
+      case 'month': return startOfMonth(date);
+      case 'year': return startOfYear(date);
+      default: return startOfDay(date);
+    }
+  };
 
-    if (daysDiff <= 14) return 'day';
-    if (daysDiff <= 90) return 'week';
-    return 'month';
-  }, [periodSessions]);
+  // Helper function to add period based on granularity
+  const addPeriod = (date: Date, granularity: TimeGranularity): Date => {
+    switch (granularity) {
+      case 'day': return addDays(date, 1);
+      case 'week': return addWeeks(date, 1);
+      case 'month': return addMonths(date, 1);
+      case 'year': return addYears(date, 1);
+      default: return addDays(date, 1);
+    }
+  };
 
-  // Process data for Sessions Over Time chart
+  // Helper function to check if two dates are in the same period
+  const isSamePeriod = (date1: Date, date2: Date, granularity: TimeGranularity): boolean => {
+    switch (granularity) {
+      case 'day': return isSameDay(date1, date2);
+      case 'week': return isSameWeek(date1, date2);
+      case 'month': return isSameMonth(date1, date2);
+      case 'year': return isSameYear(date1, date2);
+      default: return isSameDay(date1, date2);
+    }
+  };
+
+  // Process data for Sessions Over Time chart with complete time series
   const sessionsOverTimeData = useMemo(() => {
     if (periodSessions.length === 0) return [];
 
-    const groupedData: Record<string, { date: string, sessions: number, consumption: number }> = {};
+    // Get the date range
+    const dates = periodSessions.map(s => parseISO(s.session_date));
+    const minDate = getStartOfPeriod(new Date(Math.min(...dates.map(d => d.getTime()))), granularity);
+    const maxDate = getStartOfPeriod(new Date(Math.max(...dates.map(d => d.getTime()))), granularity);
 
-    periodSessions.forEach(session => {
-      const sessionDate = parseISO(session.session_date);
-      let groupKey: string;
+    // Create a complete time series with all periods from min to max
+    const timeSeriesData: { date: string, sessions: number, consumption: number, sortKey: string }[] = [];
+    let currentDate = minDate;
+
+    while (currentDate <= maxDate) {
       let displayDate: string;
-
-      switch (timeGranularity) {
+      
+      switch (granularity) {
         case 'day':
-          groupKey = format(startOfDay(sessionDate), 'yyyy-MM-dd');
-          displayDate = format(sessionDate, 'MMM dd');
+          displayDate = format(currentDate, 'MMM dd');
           break;
         case 'week':
-          groupKey = format(startOfWeek(sessionDate), 'yyyy-MM-dd');
-          displayDate = format(startOfWeek(sessionDate), "'Week of' MMM dd");
+          displayDate = format(currentDate, "'Week of' MMM dd");
           break;
         case 'month':
-          groupKey = format(startOfMonth(sessionDate), 'yyyy-MM-dd');
-          displayDate = format(sessionDate, "MMM ''yy");
+          displayDate = format(currentDate, "MMM ''yy");
+          break;
+        case 'year':
+          displayDate = format(currentDate, 'yyyy');
           break;
         default:
-          groupKey = format(startOfDay(sessionDate), 'yyyy-MM-dd');
-          displayDate = format(sessionDate, 'MMM dd');
+          displayDate = format(currentDate, 'MMM dd');
       }
 
-      if (!groupedData[groupKey]) {
-        groupedData[groupKey] = {
-          date: displayDate,
-          sessions: 0,
-          consumption: 0
-        };
-      }
+      // Initialize with zero values
+      const dataPoint = {
+        date: displayDate,
+        sessions: 0,
+        consumption: 0,
+        sortKey: format(currentDate, 'yyyy-MM-dd')
+      };
 
-      groupedData[groupKey].sessions += 1;
-      groupedData[groupKey].consumption += getIndividualConsumption(session);
-    });
+      // Count sessions and consumption for this period
+      periodSessions.forEach(session => {
+        const sessionDate = parseISO(session.session_date);
+        if (isSamePeriod(currentDate, sessionDate, granularity)) {
+          dataPoint.sessions += 1;
+          dataPoint.consumption += getIndividualConsumption(session);
+        }
+      });
 
-    return Object.values(groupedData).sort((a, b) => a.date.localeCompare(b.date));
-  }, [periodSessions, timeGranularity, category]);
+      timeSeriesData.push(dataPoint);
+      currentDate = addPeriod(currentDate, granularity);
+    }
+
+    return timeSeriesData.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+  }, [periodSessions, granularity, category]);
 
   // Process data for Consumption Breakdown chart (Top 5 types)
   const consumptionBreakdownData = useMemo(() => {

@@ -8,6 +8,7 @@ import { SessionForm } from '@/components/SessionForm';
 import { SessionList } from '@/components/SessionList';
 import { SessionStats } from '@/components/SessionStats';
 import { Insights } from '@/components/Insights';
+import { GranularityControl, TimeGranularity } from '@/components/GranularityControl';
 import { useAuth } from '@/hooks/useAuth';
 import { useSessions } from '@/hooks/useSessions';
 import { Session, LiquorSessionType } from '@/types/session';
@@ -26,6 +27,9 @@ const LiquorPage = () => {
   const [selectedType, setSelectedType] = useState<LiquorSessionType | 'All'>('All');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [sortBy, setSortBy] = useState('date-desc');
+  
+  // State for chart granularity
+  const [granularity, setGranularity] = useState<TimeGranularity>('week');
   
   // FIX: State for managing the form's visibility and mode (new vs. edit)
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -149,7 +153,18 @@ const LiquorPage = () => {
         
         <SessionStats sessions={filteredAndSortedSessions} category="liquor" />
         
-        <Insights periodSessions={filteredAndSortedSessions} category="liquor" />
+        <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'lg:grid-cols-3 gap-6'}`}>
+          <div className={`${isMobile ? '' : 'lg:col-span-2'}`}>
+            <Insights periodSessions={filteredAndSortedSessions} category="liquor" granularity={granularity} />
+          </div>
+          <div>
+            <GranularityControl 
+              selectedGranularity={granularity}
+              onGranularityChange={setGranularity}
+              category="liquor"
+            />
+          </div>
+        </div>
         
         <SessionList 
           sessions={filteredAndSortedSessions} 
