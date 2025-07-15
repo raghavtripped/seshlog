@@ -1,43 +1,36 @@
-// /src/pages/Cigs.tsx
-
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DateRange } from 'react-day-picker';
 import { AppDashboard } from '@/components/AppDashboard';
 import { SessionForm } from '@/components/SessionForm';
-
-import { SessionStats } from '@/components/SessionStats';
-import { Insights } from '@/components/Insights';
+import { SessionList } from '@/components/SessionList';
 import { useAuth } from '@/hooks/useAuth';
 import { useSessions } from '@/hooks/useSessions';
-import { CigSessionType } from '@/types/session';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Session, VapeSessionType } from '@/types/session';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus, Loader2, ArrowLeft } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { FilterSortDialog } from '@/components/FilterSortDialog';
+import { getCategoryGradient } from '@/lib/utils';
 
-// This helper is often defined in a shared utility file, but keeping it here for simplicity.
-const getCategoryGradient = (category: 'cigs') => {
-  return 'from-gray-500 to-slate-600';
-};
-
-const CigsPage = () => {
+const VapesHistory = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   
   // State for filtering and sorting
-  const [selectedType, setSelectedType] = useState<CigSessionType | 'All'>('All');
+  const [selectedType, setSelectedType] = useState<VapeSessionType | 'All'>('All');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [sortBy, setSortBy] = useState('date-desc');
   
-  // State for managing the form's visibility
+  // State for managing the form's visibility and mode (new vs. edit)
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingSession, setEditingSession] = useState<Session | undefined>(undefined);
 
   const isMobile = useIsMobile();
 
-  // FIX: Destructure the correct state names from the hook
-  const { sessions, isLoading, error, fetchSessions, deleteSession } = useSessions('cigs');
+  // Destructure the correct state names from the hook
+  const { sessions, isLoading, error, fetchSessions, deleteSession } = useSessions('vapes');
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -46,7 +39,7 @@ const CigsPage = () => {
     }
   }, [authLoading, user, navigate]);
 
-  // Memoized logic for filtering and sorting remains the same
+  // Memoized logic for filtering and sorting
   const filteredAndSortedSessions = useMemo(() => {
     let filtered = sessions;
 
@@ -79,19 +72,25 @@ const CigsPage = () => {
     return sorted;
   }, [sessions, selectedType, dateRange, sortBy]);
   
-  // Handler for opening the form
+  // Handlers for opening the form
   const handleOpenNewForm = () => {
+    setEditingSession(undefined);
+    setIsFormOpen(true);
+  };
+  
+  const handleOpenEditForm = (session: Session) => {
+    setEditingSession(session);
     setIsFormOpen(true);
   };
   
   const handleFormClose = () => {
     setIsFormOpen(false);
+    // A small delay gives the dialog close animation time to finish before clearing the data
+    setTimeout(() => setEditingSession(undefined), 150);
   };
   
-  // FIX: Unified handler for when a session is added or updated
+  // Unified handler for when a session is added or updated
   const handleDataChange = () => {
-    // Optimistic updates in the hook handle the UI change, 
-    // but a refetch ensures perfect data consistency.
     fetchSessions();
   };
 
@@ -105,38 +104,52 @@ const CigsPage = () => {
 
   return (
     <AppDashboard 
-      title="Cigarette Tracker"
-      emoji="🚬"
-      category="cigs"
+      title="Vape History"
+      emoji="💨"
+      category="vapes"
       onBackToCategories={() => navigate('/categories')}
     >
       <div className="space-y-8">
-        <div className={`flex w-full max-w-4xl mx-auto items-center justify-center gap-4 ${isMobile ? 'flex-col' : 'flex-row'}`}>
+        {/* Back to Vapes Dashboard and Action Row */}
+        <div className="space-y-4">
           <Button
-            className={`flex-1 text-lg font-semibold py-5 rounded-xl shadow-lg bg-gradient-to-r ${getCategoryGradient('cigs')} text-white hover:opacity-90 transition-all duration-200`}
-            size="lg"
-            onClick={handleOpenNewForm}
+            variant="ghost"
+            onClick={() => navigate('/vapes')}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
           >
-            <Plus className="mr-2 h-6 w-6" />
-            Log New Session
+            <ArrowLeft className="h-4 w-4" />
+            Back to Vape Dashboard
           </Button>
+          
+          <div className={`flex w-full max-w-4xl mx-auto items-center justify-center gap-4 ${isMobile ? 'flex-col' : 'flex-row'}`}>
+            <Button
+              className={`flex-1 text-lg font-semibold py-5 rounded-xl shadow-lg bg-gradient-to-r ${getCategoryGradient('vapes')} text-white hover:opacity-90 transition-all duration-200`}
+              size="lg"
+              onClick={handleOpenNewForm}
+            >
+              <Plus className="mr-2 h-6 w-6" />
+              Log New Session
+            </Button>
 
-          <FilterSortDialog
-            selectedType={selectedType}
-            setSelectedType={setSelectedType}
-            dateRange={dateRange}
-            setDateRange={setDateRange}
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-            category="cigs"
-            buttonWidth="flex-1"
-          />
+            <FilterSortDialog
+              selectedType={selectedType}
+              setSelectedType={setSelectedType}
+              dateRange={dateRange}
+              setDateRange={setDateRange}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              category="vapes"
+              buttonWidth="flex-1"
+            />
+          </div>
         </div>
 
+        {/* Dialog for Session Form */}
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogContent size={isMobile ? 'lg' : 'md'} mobile={isMobile} className="p-0 bg-transparent border-none shadow-none">
             <SessionForm 
-              category="cigs" 
+              category="vapes" 
+              initialSession={editingSession}
               onFormClose={handleFormClose}
               onSessionAdded={handleDataChange}
               onSessionUpdated={handleDataChange}
@@ -144,24 +157,18 @@ const CigsPage = () => {
           </DialogContent>
         </Dialog>
         
-        <SessionStats sessions={filteredAndSortedSessions} category="cigs" />
-        
-        <Insights periodSessions={filteredAndSortedSessions} category="cigs" />
-        
-        {/* History Button */}
-        <div className="flex justify-center">
-          <Button
-            onClick={() => navigate('/cigs/history')}
-            variant="outline"
-            size="lg"
-            className="text-lg font-semibold py-6 px-8 rounded-xl shadow-lg border-2 border-gray-500 text-gray-600 hover:bg-gray-50 dark:border-gray-400 dark:text-gray-400 dark:hover:bg-gray-900/20 transition-all duration-200"
-          >
-            📋 View Complete History
-          </Button>
-        </div>
+        {/* Session History List */}
+        <SessionList 
+          sessions={filteredAndSortedSessions} 
+          isLoading={isLoading} 
+          error={error}
+          category="vapes"
+          onEditSession={handleOpenEditForm}
+          onDeleteSession={deleteSession}
+        />
       </div>
     </AppDashboard>
   );
 };
 
-export default CigsPage;
+export default VapesHistory; 

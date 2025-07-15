@@ -5,12 +5,12 @@ import { useNavigate } from 'react-router-dom';
 import { DateRange } from 'react-day-picker';
 import { AppDashboard } from '@/components/AppDashboard';
 import { SessionForm } from '@/components/SessionForm';
-import { SessionList } from '@/components/SessionList';
+
 import { SessionStats } from '@/components/SessionStats';
 import { Insights } from '@/components/Insights';
 import { useAuth } from '@/hooks/useAuth';
 import { useSessions } from '@/hooks/useSessions';
-import { Session, VapeSessionType } from '@/types/session';
+import { VapeSessionType } from '@/types/session';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Plus, Loader2 } from 'lucide-react';
@@ -27,9 +27,8 @@ const VapesPage = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [sortBy, setSortBy] = useState('date-desc');
   
-  // FIX: State for managing the form's visibility and mode (new vs. edit)
+  // State for managing the form's visibility
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingSession, setEditingSession] = useState<Session | undefined>(undefined);
 
   const isMobile = useIsMobile();
 
@@ -76,20 +75,13 @@ const VapesPage = () => {
     return sorted;
   }, [sessions, selectedType, dateRange, sortBy]);
   
-  // FIX: Handlers for opening and closing the form
+  // Handler for opening the form
   const handleOpenNewForm = () => {
-    setEditingSession(undefined);
-    setIsFormOpen(true);
-  };
-  
-  const handleOpenEditForm = (session: Session) => {
-    setEditingSession(session);
     setIsFormOpen(true);
   };
   
   const handleFormClose = () => {
     setIsFormOpen(false);
-    setTimeout(() => setEditingSession(undefined), 150);
   };
   
   // FIX: Unified handler for data changes
@@ -139,7 +131,6 @@ const VapesPage = () => {
           <DialogContent size={isMobile ? 'lg' : 'md'} mobile={isMobile} className="p-0 bg-transparent border-none shadow-none">
             <SessionForm 
               category="vapes" 
-              initialSession={editingSession}
               onFormClose={handleFormClose}
               onSessionAdded={handleDataChange}
               onSessionUpdated={handleDataChange}
@@ -151,14 +142,17 @@ const VapesPage = () => {
         
         <Insights periodSessions={filteredAndSortedSessions} category="vapes" />
         
-        <SessionList 
-          sessions={filteredAndSortedSessions} 
-          isLoading={isLoading} 
-          error={error}
-          category="vapes"
-          onEditSession={handleOpenEditForm}
-          onDeleteSession={deleteSession}
-        />
+        {/* History Button */}
+        <div className="flex justify-center">
+          <Button
+            onClick={() => navigate('/vapes/history')}
+            variant="outline"
+            size="lg"
+            className="text-lg font-semibold py-6 px-8 rounded-xl shadow-lg border-2 border-cyan-500 text-cyan-600 hover:bg-cyan-50 dark:border-cyan-400 dark:text-cyan-400 dark:hover:bg-cyan-900/20 transition-all duration-200"
+          >
+            📋 View Complete History
+          </Button>
+        </div>
       </div>
     </AppDashboard>
   );

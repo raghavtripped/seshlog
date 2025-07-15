@@ -5,12 +5,12 @@ import { useNavigate } from 'react-router-dom';
 import { DateRange } from 'react-day-picker';
 import { AppDashboard } from '@/components/AppDashboard';
 import { SessionForm } from '@/components/SessionForm';
-import { SessionList } from '@/components/SessionList';
+
 import { SessionStats } from '@/components/SessionStats';
 import { Insights } from '@/components/Insights';
 import { useAuth } from '@/hooks/useAuth';
 import { useSessions } from '@/hooks/useSessions';
-import { Session, WeedSessionType } from '@/types/session';
+import { WeedSessionType } from '@/types/session';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Plus, Loader2 } from 'lucide-react';
@@ -27,9 +27,8 @@ const WeedPage = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [sortBy, setSortBy] = useState('date-desc');
   
-  // FIX: State for managing the form's visibility and mode (new vs. edit)
+  // State for managing the form's visibility
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingSession, setEditingSession] = useState<Session | undefined>(undefined);
 
   const isMobile = useIsMobile();
 
@@ -78,19 +77,11 @@ const WeedPage = () => {
   
   // FIX: Handlers for opening and closing the form, centralizing state logic
   const handleOpenNewForm = () => {
-    setEditingSession(undefined);
-    setIsFormOpen(true);
-  };
-  
-  const handleOpenEditForm = (session: Session) => {
-    setEditingSession(session);
     setIsFormOpen(true);
   };
   
   const handleFormClose = () => {
     setIsFormOpen(false);
-    // A small delay gives the dialog close animation time to finish before clearing the data
-    setTimeout(() => setEditingSession(undefined), 150);
   };
   
   // FIX: Unified handler for when a session is added or updated to refetch data
@@ -143,7 +134,6 @@ const WeedPage = () => {
             {/* FIX: SessionForm now receives the correct props */}
             <SessionForm 
               category="weed" 
-              initialSession={editingSession}
               onFormClose={handleFormClose}
               onSessionAdded={handleDataChange}
               onSessionUpdated={handleDataChange}
@@ -155,15 +145,17 @@ const WeedPage = () => {
         
         <Insights periodSessions={filteredAndSortedSessions} category="weed" />
         
-        {/* FIX: SessionList now receives the correct props */}
-        <SessionList 
-          sessions={filteredAndSortedSessions} 
-          isLoading={isLoading} 
-          error={error}
-          category="weed"
-          onEditSession={handleOpenEditForm}
-          onDeleteSession={deleteSession}
-        />
+        {/* History Button */}
+        <div className="flex justify-center">
+          <Button
+            onClick={() => navigate('/weed/history')}
+            variant="outline"
+            size="lg"
+            className="text-lg font-semibold py-6 px-8 rounded-xl shadow-lg border-2 border-green-500 text-green-600 hover:bg-green-50 dark:border-green-400 dark:text-green-400 dark:hover:bg-green-900/20 transition-all duration-200"
+          >
+            📋 View Complete History
+          </Button>
+        </div>
       </div>
     </AppDashboard>
   );

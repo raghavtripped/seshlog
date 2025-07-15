@@ -14,6 +14,10 @@ import Vapes from "./pages/Vapes";
 import Liquor from "./pages/Liquor";
 import NotFound from "./pages/NotFound";
 import Weed from "./pages/Weed";
+import WeedHistory from "./pages/WeedHistory";
+import CigsHistory from "./pages/CigsHistory";
+import VapesHistory from "./pages/VapesHistory";
+import LiquorHistory from "./pages/LiquorHistory";
 
 const queryClient = new QueryClient();
 
@@ -30,9 +34,13 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/categories" element={<Categories />} />
               <Route path="/cigs" element={<Cigs />} />
+              <Route path="/cigs/history" element={<CigsHistory />} />
               <Route path="/vapes" element={<Vapes />} />
+              <Route path="/vapes/history" element={<VapesHistory />} />
               <Route path="/liquor" element={<Liquor />} />
+              <Route path="/liquor/history" element={<LiquorHistory />} />
               <Route path="/weed" element={<Weed />} />
+              <Route path="/weed/history" element={<WeedHistory />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
