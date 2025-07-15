@@ -8,7 +8,6 @@ import { SessionForm } from '@/components/SessionForm';
 import { SessionList } from '@/components/SessionList';
 import { SessionStats } from '@/components/SessionStats';
 import { Insights } from '@/components/Insights';
-import { GranularityControl, TimeGranularity } from '@/components/GranularityControl';
 import { useAuth } from '@/hooks/useAuth';
 import { useSessions } from '@/hooks/useSessions';
 import { Session, CigSessionType } from '@/types/session';
@@ -31,9 +30,6 @@ const CigsPage = () => {
   const [selectedType, setSelectedType] = useState<CigSessionType | 'All'>('All');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [sortBy, setSortBy] = useState('date-desc');
-  
-  // State for chart granularity
-  const [granularity, setGranularity] = useState<TimeGranularity>('week');
   
   // FIX: State for managing the form's visibility and mode (new vs. edit)
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -160,18 +156,7 @@ const CigsPage = () => {
         
         <SessionStats sessions={filteredAndSortedSessions} category="cigs" />
         
-        <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'lg:grid-cols-3 gap-6'}`}>
-          <div className={`${isMobile ? '' : 'lg:col-span-2'}`}>
-            <Insights periodSessions={filteredAndSortedSessions} category="cigs" granularity={granularity} />
-          </div>
-          <div>
-            <GranularityControl 
-              selectedGranularity={granularity}
-              onGranularityChange={setGranularity}
-              category="cigs"
-            />
-          </div>
-        </div>
+        <Insights periodSessions={filteredAndSortedSessions} category="cigs" />
         
         <SessionList 
           sessions={filteredAndSortedSessions} 

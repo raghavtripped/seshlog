@@ -1,7 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Session, Category } from "@/types/session";
 import { useIsMobile } from '@/hooks/use-mobile';
-import { TimeGranularity } from '@/components/GranularityControl';
+import { Button } from "@/components/ui/button";
+import { CalendarDays, Calendar, Clock, TrendingUp } from "lucide-react";
+
+export type TimeGranularity = 'day' | 'week' | 'month' | 'year';
 import {
   LineChart,
   Line,
@@ -37,11 +40,11 @@ import {
 interface InsightsProps {
   periodSessions: Session[];
   category: Category;
-  granularity: TimeGranularity;
 }
 
-export const Insights = ({ periodSessions = [], category, granularity }: InsightsProps) => {
+export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
   const isMobile = useIsMobile();
+  const [granularity, setGranularity] = useState<TimeGranularity>('week');
 
   const getCategoryGradient = (category: Category) => {
     switch (category) {
@@ -262,6 +265,13 @@ export const Insights = ({ periodSessions = [], category, granularity }: Insight
     );
   }
 
+  const granularityOptions: { value: TimeGranularity; label: string; icon: typeof Clock }[] = [
+    { value: 'day', label: 'Days', icon: Clock },
+    { value: 'week', label: 'Weeks', icon: CalendarDays },
+    { value: 'month', label: 'Months', icon: Calendar },
+    { value: 'year', label: 'Years', icon: TrendingUp },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Section Header */}
@@ -275,51 +285,95 @@ export const Insights = ({ periodSessions = [], category, granularity }: Insight
         </div>
       </div>
 
-      {/* Charts Grid */}
-      <div className={`grid grid-cols-1 ${isMobile ? 'gap-6' : 'lg:grid-cols-2 gap-6'}`}>
-        {/* Sessions Over Time Chart */}
-        <div className="glass-card p-6 lg:col-span-2">
-          <h3 className="heading-md text-gray-800 dark:text-gray-200 mb-4">Sessions Over Time</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={sessionsOverTimeData}>
-                <defs>
-                  <linearGradient id="sessionsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={categoryColor} stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor={categoryColor} stopOpacity={0.1}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                <XAxis 
-                  dataKey="date" 
-                  className="text-sm"
-                  tick={{ fontSize: 12 }}
-                />
-                <YAxis 
-                  className="text-sm"
-                  tick={{ fontSize: 12 }}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    fontSize: '14px'
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="sessions"
-                  stroke={categoryColor}
-                  fillOpacity={1}
-                  fill="url(#sessionsGradient)"
-                  strokeWidth={2}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+      {/* Sessions Over Time Chart */}
+      <div className="glass-card p-6">
+        <h3 className="heading-md text-gray-800 dark:text-gray-200 mb-4">Sessions Over Time</h3>
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={sessionsOverTimeData}>
+              <defs>
+                <linearGradient id="sessionsGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={categoryColor} stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor={categoryColor} stopOpacity={0.1}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+              <XAxis 
+                dataKey="date" 
+                className="text-sm"
+                tick={{ fontSize: 12 }}
+              />
+              <YAxis 
+                className="text-sm"
+                tick={{ fontSize: 12 }}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  fontSize: '14px'
+                }}
+              />
+              <Area
+                type="monotone"
+                dataKey="sessions"
+                stroke={categoryColor}
+                fillOpacity={1}
+                fill="url(#sessionsGradient)"
+                strokeWidth={2}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Chart Granularity Control */}
+      <div className="glass-card p-4">
+        <div className="flex items-center gap-3 mb-4">
+          <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} bg-gradient-to-r ${gradient} rounded-full flex items-center justify-center shadow-lg`}>
+            <span className={`${isMobile ? 'text-sm' : 'text-lg'}`}>📊</span>
+          </div>
+          <div>
+            <h3 className={`${isMobile ? 'text-sm font-semibold' : 'text-base font-semibold'} text-gray-800 dark:text-gray-200`}>
+              Chart Granularity
+            </h3>
+            <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600 dark:text-gray-400`}>
+              Choose time period grouping
+            </p>
           </div>
         </div>
+        
+        <div className={`grid ${isMobile ? 'grid-cols-2 gap-2' : 'grid-cols-4 gap-3'}`}>
+          {granularityOptions.map((option) => {
+            const Icon = option.icon;
+            const isSelected = granularity === option.value;
+            
+            return (
+              <Button
+                key={option.value}
+                onClick={() => setGranularity(option.value)}
+                variant={isSelected ? "default" : "outline"}
+                size={isMobile ? "sm" : "default"}
+                className={`
+                  ${isSelected 
+                    ? `bg-gradient-to-r ${gradient} text-white border-transparent hover:opacity-90` 
+                    : 'bg-white/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 hover:bg-white/70 dark:hover:bg-gray-800/70'
+                  }
+                  transition-all duration-200 rounded-xl
+                  ${isMobile ? 'text-xs py-2 px-2' : 'text-sm py-2 px-3'}
+                `}
+              >
+                <Icon className={`${isMobile ? 'w-3 h-3 mr-1' : 'w-4 h-4 mr-2'}`} />
+                {option.label}
+              </Button>
+            );
+          })}
+        </div>
+      </div>
 
+      {/* Charts Grid */}
+      <div className={`grid grid-cols-1 ${isMobile ? 'gap-6' : 'lg:grid-cols-2 gap-6'}`}>
         {/* Consumption Breakdown Chart */}
         <div className="glass-card p-6">
           <h3 className="heading-md text-gray-800 dark:text-gray-200 mb-4">Top 5 Types by Consumption</h3>
