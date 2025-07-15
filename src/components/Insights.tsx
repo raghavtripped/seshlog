@@ -183,32 +183,28 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
     return timeSeriesData.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
   }, [periodSessions, granularity, category]);
 
-  // Process data for Consumption Breakdown chart (Top 5 types)
-  const consumptionBreakdownData = useMemo(() => {
-    const typeData: Record<string, number> = {};
 
-    periodSessions.forEach(session => {
-      const consumption = getIndividualConsumption(session);
-      typeData[session.session_type] = (typeData[session.session_type] || 0) + consumption;
-    });
 
-    return Object.entries(typeData)
-      .map(([type, consumption]) => ({ type, consumption }))
-      .sort((a, b) => b.consumption - a.consumption)
-      .slice(0, 5);
-  }, [periodSessions, category]);
-
-  // Calculate key metrics
+  // Calculate enhanced key metrics
   const keyMetrics = useMemo(() => {
     if (periodSessions.length === 0) {
       return {
-        mostFrequentDay: 'No Data',
-        averageRating: 'No Data',
-        busiestTimeOfDay: 'No Data'
+        avgPerSession: 'No Data',
+        socialSessionsPercent: 'No Data', 
+        favoriteDay: 'No Data',
+        peakHour: 'No Data'
       };
     }
 
-    // Most frequent day of week
+    // Average consumption per session
+    const totalConsumption = periodSessions.reduce((sum, session) => sum + getIndividualConsumption(session), 0);
+    const avgPerSession = (totalConsumption / periodSessions.length).toFixed(2);
+
+    // Social sessions percentage
+    const socialSessions = periodSessions.filter(s => s.participant_count > 1).length;
+    const socialSessionsPercent = ((socialSessions / periodSessions.length) * 100).toFixed(1) + '%';
+
+    // Most frequent day of week (favorite day)
     const dayCount: Record<string, number> = {};
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     
@@ -218,16 +214,10 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
       dayCount[dayName] = (dayCount[dayName] || 0) + 1;
     });
 
-    const mostFrequentDay = Object.entries(dayCount)
+    const favoriteDay = Object.entries(dayCount)
       .sort(([,a], [,b]) => b - a)[0]?.[0] || 'No Data';
 
-    // Average rating
-    const ratingsWithValues = periodSessions.filter(s => s.rating !== null);
-    const averageRating = ratingsWithValues.length > 0 
-      ? (ratingsWithValues.reduce((sum, s) => sum + s.rating!, 0) / ratingsWithValues.length).toFixed(1)
-      : 'No Data';
-
-    // Busiest time of day
+    // Peak hour (most common hour)
     const hourCount: Record<number, number> = {};
     
     periodSessions.forEach(session => {
@@ -235,19 +225,20 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
       hourCount[hour] = (hourCount[hour] || 0) + 1;
     });
 
-    const busiestHour = Object.entries(hourCount)
+    const peakHourNum = Object.entries(hourCount)
       .sort(([,a], [,b]) => b - a)[0]?.[0];
     
-    const busiestTimeOfDay = busiestHour !== undefined 
-      ? `${busiestHour}:00 - ${parseInt(busiestHour) + 1}:00`
+    const peakHour = peakHourNum !== undefined 
+      ? `${peakHourNum}:00 - ${parseInt(peakHourNum) + 1}:00`
       : 'No Data';
 
     return {
-      mostFrequentDay,
-      averageRating,
-      busiestTimeOfDay
+      avgPerSession,
+      socialSessionsPercent,
+      favoriteDay,
+      peakHour
     };
-  }, [periodSessions]);
+  }, [periodSessions, category]);
 
   const categoryColor = getCategoryColor(category);
   const gradient = getCategoryGradient(category);
@@ -372,74 +363,44 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
         </div>
       </div>
 
-      {/* Charts Grid */}
-      <div className={`grid grid-cols-1 ${isMobile ? 'gap-6' : 'lg:grid-cols-2 gap-6'}`}>
-        {/* Consumption Breakdown Chart */}
-        <div className="glass-card p-6">
-          <h3 className="heading-md text-gray-800 dark:text-gray-200 mb-4">Top 5 Types by Consumption</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={consumptionBreakdownData}>
-                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                <XAxis 
-                  dataKey="type" 
-                  className="text-sm"
-                  tick={{ fontSize: 12 }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
-                />
-                <YAxis 
-                  className="text-sm"
-                  tick={{ fontSize: 12 }}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    fontSize: '14px'
-                  }}
-                  formatter={(value: number) => [`${value.toFixed(1)} ${unit}`, 'Consumption']}
-                />
-                <Bar 
-                  dataKey="consumption" 
-                  fill={categoryColor}
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+      {/* Enhanced Key Metrics */}
+      <div className={`grid ${isMobile ? 'grid-cols-2 gap-4' : 'grid-cols-2 lg:grid-cols-4 gap-6'}`}>
+        {/* Average per Session */}
+        <div className="glass-card p-6 text-center">
+          <div className={`${isMobile ? 'w-12 h-12' : 'w-14 h-14'} bg-gradient-to-r ${gradient} rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg`}>
+            <span className={`${isMobile ? 'text-xl' : 'text-2xl'}`}>📊</span>
           </div>
+          <h4 className={`${isMobile ? 'text-sm' : 'text-base'} font-semibold text-gray-800 dark:text-gray-200 mb-2`}>Avg per Session</h4>
+          <p className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-gray-800 dark:text-gray-200`}>
+            {keyMetrics.avgPerSession} {keyMetrics.avgPerSession !== 'No Data' ? unit : ''}
+          </p>
         </div>
 
-        {/* Key Metrics Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {/* Most Frequent Day */}
-          <div className="glass-card p-4 text-center">
-            <div className={`w-10 h-10 bg-gradient-to-r ${gradient} rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg`}>
-              <span className="text-lg">📅</span>
-            </div>
-            <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">Most Frequent Day</h4>
-            <p className="text-lg font-bold text-gray-800 dark:text-gray-200">{keyMetrics.mostFrequentDay}</p>
+        {/* Social Sessions */}
+        <div className="glass-card p-6 text-center">
+          <div className={`${isMobile ? 'w-12 h-12' : 'w-14 h-14'} bg-gradient-to-r ${gradient} rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg`}>
+            <span className={`${isMobile ? 'text-xl' : 'text-2xl'}`}>👥</span>
           </div>
+          <h4 className={`${isMobile ? 'text-sm' : 'text-base'} font-semibold text-gray-800 dark:text-gray-200 mb-2`}>Social Sessions</h4>
+          <p className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-gray-800 dark:text-gray-200`}>{keyMetrics.socialSessionsPercent}</p>
+        </div>
 
-          {/* Average Rating */}
-          <div className="glass-card p-4 text-center">
-            <div className={`w-10 h-10 bg-gradient-to-r ${gradient} rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg`}>
-              <span className="text-lg">⭐</span>
-            </div>
-            <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">Average Rating</h4>
-            <p className="text-lg font-bold text-gray-800 dark:text-gray-200">{keyMetrics.averageRating}</p>
+        {/* Favorite Day */}
+        <div className="glass-card p-6 text-center">
+          <div className={`${isMobile ? 'w-12 h-12' : 'w-14 h-14'} bg-gradient-to-r ${gradient} rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg`}>
+            <span className={`${isMobile ? 'text-xl' : 'text-2xl'}`}>📅</span>
           </div>
+          <h4 className={`${isMobile ? 'text-sm' : 'text-base'} font-semibold text-gray-800 dark:text-gray-200 mb-2`}>Favorite Day</h4>
+          <p className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-gray-800 dark:text-gray-200`}>{keyMetrics.favoriteDay}</p>
+        </div>
 
-          {/* Busiest Time */}
-          <div className="glass-card p-4 text-center">
-            <div className={`w-10 h-10 bg-gradient-to-r ${gradient} rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg`}>
-              <span className="text-lg">🕐</span>
-            </div>
-            <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">Busiest Time</h4>
-            <p className="text-lg font-bold text-gray-800 dark:text-gray-200">{keyMetrics.busiestTimeOfDay}</p>
+        {/* Peak Hour */}
+        <div className="glass-card p-6 text-center">
+          <div className={`${isMobile ? 'w-12 h-12' : 'w-14 h-14'} bg-gradient-to-r ${gradient} rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg`}>
+            <span className={`${isMobile ? 'text-xl' : 'text-2xl'}`}>🎯</span>
           </div>
+          <h4 className={`${isMobile ? 'text-sm' : 'text-base'} font-semibold text-gray-800 dark:text-gray-200 mb-2`}>Peak Hour</h4>
+          <p className={`${isMobile ? 'text-sm' : 'text-base'} font-bold text-gray-800 dark:text-gray-200`}>{keyMetrics.peakHour}</p>
         </div>
       </div>
     </div>
