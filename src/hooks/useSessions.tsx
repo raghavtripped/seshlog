@@ -43,7 +43,7 @@ export const useSessions = (category: Category) => {
       console.log(`[useSessions] Fetching sessions for user: ${user.id}, category: ${category}`);
       
       // First try with the current approach
-      let { data, error: dbError } = await supabase
+      const { data, error: dbError } = await supabase
         .from('sessions')
         .select('*')
         .eq('user_id', user.id)
@@ -52,6 +52,7 @@ export const useSessions = (category: Category) => {
         .limit(10000);
 
       // If we get an error, try a simpler query to debug
+      let finalData = data;
       if (dbError) {
         console.error('[useSessions] Database error with full query:', dbError);
         console.log('[useSessions] Trying simpler query without limit...');
@@ -68,12 +69,12 @@ export const useSessions = (category: Category) => {
           throw simpleError;
         }
         
-        data = simpleData;
-        console.log(`[useSessions] Simple query succeeded, got ${data?.length || 0} sessions`);
+        finalData = simpleData;
+        console.log(`[useSessions] Simple query succeeded, got ${finalData?.length || 0} sessions`);
       }
       
-      console.log(`[useSessions] Successfully fetched ${data?.length || 0} sessions for category: ${category}`);
-      setSessions(data.map(fromDatabase));
+      console.log(`[useSessions] Successfully fetched ${finalData?.length || 0} sessions for category: ${category}`);
+      setSessions(finalData.map(fromDatabase));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch sessions';
       console.error('Error fetching sessions:', errorMessage);
