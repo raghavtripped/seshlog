@@ -45,7 +45,8 @@ export const useSessions = (category: Category) => {
         .select('*')
         .eq('user_id', user.id)
         .eq('category', category)
-        .order('session_date', { ascending: false });
+        .order('session_date', { ascending: false })
+        .limit(10000);
 
       if (dbError) throw dbError;
       setSessions(data.map(fromDatabase));
