@@ -98,7 +98,7 @@ export const Categories = () => {
             <span className={`brand-emoji ${isMobile ? 'text-lg' : ''}`}>📊</span>
           </div>
           <div>
-            <h1 className={`${isMobile ? 'text-base font-bold' : 'heading-lg'} gradient-text`}>Session Scribe</h1>
+            <h1 className={`${isMobile ? 'text-base font-bold' : 'heading-lg'} gradient-text`}>Seshlog</h1>
             <p className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>Track your sessions</p>
           </div>
         </div>
