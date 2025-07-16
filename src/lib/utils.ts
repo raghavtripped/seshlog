@@ -50,6 +50,16 @@ export const getCategoryBaseUnit = (category: Category): string => {
   }
 };
 
+export const getCategoryGradient = (category: Category): string => {
+  switch (category) {
+    case 'weed': return 'from-green-500 to-emerald-600';
+    case 'cigs': return 'from-gray-500 to-slate-600';
+    case 'vapes': return 'from-cyan-500 to-blue-600';
+    case 'liquor': return 'from-amber-500 to-orange-600';
+    default: return 'from-blue-500 to-purple-600';
+  }
+};
+
 // Get individual consumption normalized to base unit for calculations
 export const getNormalizedIndividualConsumption = (session: Session): number => {
   const { conversionToBase } = getSessionUnitInfo(session.category, session.session_type);

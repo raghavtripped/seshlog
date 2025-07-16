@@ -160,7 +160,7 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
     }
 
     return timeSeriesData.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
-  }, [periodSessions, granularity, category]);
+  }, [periodSessions, granularity]);
 
 
 
@@ -217,7 +217,7 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
       favoriteDay,
       peakHour
     };
-  }, [periodSessions, category]);
+  }, [periodSessions]);
 
   const categoryColor = getCategoryColor(category);
   const gradient = getCategoryGradient(category);

@@ -26,6 +26,45 @@ const getMlFromServingSize = (servingSize?: string): number => {
   return match ? parseInt(match[1]) : 0;
 };
 
+const getSessionTypeEmoji = (sessionType: string, category: Category) => {
+  switch (category) {
+    case 'weed':
+      switch (sessionType) {
+        case 'Joint': return '🌿';
+        case 'Bong': return '💨';
+        case 'Vape': return '💨';
+        case 'Edible': return '🍪';
+        default: return '🔄';
+      }
+    case 'cigs':
+      switch (sessionType) {
+        case 'Regular': return '🚬';
+        case 'Light': return '🚬';
+        case 'Menthol': return '🌿';
+        case 'E-Cigarette': return '💨';
+        default: return '🔄';
+      }
+    case 'vapes':
+      switch (sessionType) {
+        case 'Disposable': return '💨';
+        case 'Pod': return '🔋';
+        case 'Mod': return '🔧';
+        case 'Pen': return '✏️';
+        default: return '🔄';
+      }
+    case 'liquor':
+      switch (sessionType) {
+        case 'Beer': return '🍺';
+        case 'Wine': return '🍷';
+        case 'Spirits': return '🥃';
+        case 'Cocktail': return '🍸';
+        default: return '🔄';
+      }
+    default:
+      return '📊';
+  }
+};
+
 // --- Main Component ---
 export const SessionList = ({ 
   sessions, 
@@ -45,45 +84,6 @@ export const SessionList = ({
       case 'vapes': return 'from-cyan-500 to-blue-600';
       case 'liquor': return 'from-amber-500 to-orange-600';
       default: return 'from-blue-500 to-purple-600';
-    }
-  };
-
-  const getSessionTypeEmoji = (sessionType: string, category: Category) => {
-    switch (category) {
-      case 'weed':
-        switch (sessionType) {
-          case 'Joint': return '🌿';
-          case 'Bong': return '💨';
-          case 'Vape': return '💨';
-          case 'Edible': return '🍪';
-          default: return '🔄';
-        }
-      case 'cigs':
-        switch (sessionType) {
-          case 'Regular': return '🚬';
-          case 'Light': return '🚬';
-          case 'Menthol': return '🌿';
-          case 'E-Cigarette': return '💨';
-          default: return '🔄';
-        }
-      case 'vapes':
-        switch (sessionType) {
-          case 'Disposable': return '💨';
-          case 'Pod': return '🔋';
-          case 'Mod': return '🔧';
-          case 'Pen': return '✏️';
-          default: return '🔄';
-        }
-      case 'liquor':
-        switch (sessionType) {
-          case 'Beer': return '🍺';
-          case 'Wine': return '🍷';
-          case 'Spirits': return '🥃';
-          case 'Cocktail': return '🍸';
-          default: return '🔄';
-        }
-      default:
-        return '📊';
     }
   };
 
@@ -252,53 +252,6 @@ const SessionItem = ({ session, category, onEdit, onDelete }: SessionItemProps) 
       </div>
     </div>
   );
-};
-
-// Helper function for liquor serving sizes
-const getMlFromServingSize = (servingSize?: string): number => {
-  if (!servingSize) return 0;
-  const match = servingSize.match(/(\d+)ml/);
-  return match ? parseInt(match[1]) : 0;
-};
-
-// Helper function for session type emojis  
-const getSessionTypeEmoji = (sessionType: string, category: Category) => {
-  switch (category) {
-    case 'weed':
-      switch (sessionType) {
-        case 'Joint': return '🌿';
-        case 'Bong': return '💨';
-        case 'Vape': return '💨';
-        case 'Edible': return '🍪';
-        default: return '🔄';
-      }
-    case 'cigs':
-      switch (sessionType) {
-        case 'Regular': return '🚬';
-        case 'Light': return '🚬';
-        case 'Menthol': return '🌿';
-        case 'E-Cigarette': return '💨';
-        default: return '🔄';
-      }
-    case 'vapes':
-      switch (sessionType) {
-        case 'Disposable': return '💨';
-        case 'Pod': return '🔋';
-        case 'Mod': return '🔧';
-        case 'Pen': return '✏️';
-        default: return '🔄';
-      }
-    case 'liquor':
-      switch (sessionType) {
-        case 'Beer': return '🍺';
-        case 'Wine': return '🍷';
-        case 'Spirits': return '🥃';
-        case 'Cocktail': return '🍸';
-        default: return '🔄';
-      }
-    default:
-      return '📊';
-  }
 };
 
 // --- Helper StatDisplay component ---
