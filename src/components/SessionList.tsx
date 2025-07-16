@@ -1,84 +1,103 @@
-import { useState } from 'react';
-import { Session, Category } from "@/types/session";
-import { Button } from "@/components/ui/button";
-import { Calendar, Users, Hash, TrendingUp, Edit, Trash2, Star, MessageSquare, ChevronDown, ChevronUp, Loader2, Beaker } from "lucide-react";
-import { format } from 'date-fns';
-import { getCategoryGradient } from '@/lib/utils';
+import { useState, useEffect } from 'react';
+import { Session, Category } from '@/types/session';
+import { useSessions } from '@/hooks/useSessions';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
+import { ChevronDown, ChevronUp, Edit, Trash2, Calendar, Users, Hash, TrendingUp, Beaker, MessageSquare, Star, Loader2 } from 'lucide-react';
+import { format } from 'date-fns';
+import { 
+  getIndividualConsumptionWithUnit,
+  getSessionUnitInfo
+} from '@/lib/utils';
 
 // --- Props Interface ---
 interface SessionListProps {
   sessions: Session[];
-  isLoading: boolean;
-  error: string | null;
   category: Category;
-  onEditSession: (session: Session) => void;
-  onDeleteSession: (sessionId: string) => Promise<void>;
+  onEditSession?: (session: Session) => void;
+  onDeleteSession?: (sessionId: string) => void;
+  initialExpanded?: boolean;
 }
 
 // --- Local Helper Functions ---
-const getSessionTypeEmoji = (sessionType: string, category: Category) => {
-  if (category === 'weed') {
-    const emojis: { [key: string]: string } = { 'Joint': '🌿', 'Bong': '💨', 'Vape': '💨', 'Edible': '🍪', 'Other': '🔄' };
-    return emojis[sessionType] || '📝';
-  }
-  if (category === 'cigs') {
-    const emojis: { [key: string]: string } = { 'Regular': '🚬', 'Light': '🚬', 'Menthol': '🌿', 'E-Cigarette': '💨', 'Other': '🔄' };
-    return emojis[sessionType] || '🚬';
-  }
-  if (category === 'vapes') {
-    const emojis: { [key: string]: string } = { 'Disposable': '💨', 'Pod': '🔋', 'Mod': '🔧', 'Pen': '✏️', 'Other': '🔄' };
-    return emojis[sessionType] || '💨';
-  }
-  if (category === 'liquor') {
-    const emojis: { [key: string]: string } = { 'Beer': '🍺', 'Wine': '🍷', 'Spirits': '🥃', 'Cocktail': '🍸', 'Other': '🔄' };
-    return emojis[sessionType] || '🥃';
-  }
-  return '📝';
-};
-
 const getMlFromServingSize = (servingSize?: string): number => {
   if (!servingSize) return 0;
   const match = servingSize.match(/(\d+)ml/);
-  return match ? parseInt(match[1], 10) : 0;
+  return match ? parseInt(match[1]) : 0;
 };
 
 // --- Main Component ---
 export const SessionList = ({ 
   sessions, 
-  isLoading, 
-  error, 
-  category,
-  onEditSession,
-  onDeleteSession
+  category, 
+  onEditSession, 
+  onDeleteSession,
+  initialExpanded = false 
 }: SessionListProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(initialExpanded);
+  const { deleteSession } = useSessions(category);
+  const isMobile = useIsMobile();
 
-  const handleDelete = async (sessionId: string) => {
-    if (window.confirm('Are you sure you want to delete this session?')) {
-      try {
-        await onDeleteSession(sessionId);
-      } catch (err) {
-        console.error('Failed to delete session:', err);
-      }
+  const getCategoryGradient = (category: Category) => {
+    switch (category) {
+      case 'weed': return 'from-green-500 to-emerald-600';
+      case 'cigs': return 'from-gray-500 to-slate-600';
+      case 'vapes': return 'from-cyan-500 to-blue-600';
+      case 'liquor': return 'from-amber-500 to-orange-600';
+      default: return 'from-blue-500 to-purple-600';
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-      </div>
-    );
-  }
+  const getSessionTypeEmoji = (sessionType: string, category: Category) => {
+    switch (category) {
+      case 'weed':
+        switch (sessionType) {
+          case 'Joint': return '🌿';
+          case 'Bong': return '💨';
+          case 'Vape': return '💨';
+          case 'Edible': return '🍪';
+          default: return '🔄';
+        }
+      case 'cigs':
+        switch (sessionType) {
+          case 'Regular': return '🚬';
+          case 'Light': return '🚬';
+          case 'Menthol': return '🌿';
+          case 'E-Cigarette': return '💨';
+          default: return '🔄';
+        }
+      case 'vapes':
+        switch (sessionType) {
+          case 'Disposable': return '💨';
+          case 'Pod': return '🔋';
+          case 'Mod': return '🔧';
+          case 'Pen': return '✏️';
+          default: return '🔄';
+        }
+      case 'liquor':
+        switch (sessionType) {
+          case 'Beer': return '🍺';
+          case 'Wine': return '🍷';
+          case 'Spirits': return '🥃';
+          case 'Cocktail': return '🍸';
+          default: return '🔄';
+        }
+      default:
+        return '📊';
+    }
+  };
 
-  if (error) {
-    return (
-      <div className="p-6 text-center bg-red-50 dark:bg-red-900/20 rounded-lg">
-        <h3 className="font-semibold text-red-600 dark:text-red-400">Error Loading Sessions</h3>
-        <p className="text-sm text-red-500 dark:text-red-300">{error}</p>
-      </div>
-    );
+  const handleDelete = async (sessionId: string) => {
+    try {
+      await deleteSession(sessionId);
+      onDeleteSession?.(sessionId);
+    } catch (error) {
+      console.error('Failed to delete session:', error);
+    }
+  };
+
+  if (sessions.length === 0) {
+    return null; // Parent will handle empty state
   }
 
   const gradient = getCategoryGradient(category);
@@ -137,7 +156,7 @@ export const SessionList = ({
 interface SessionItemProps {
   session: Session;
   category: Category;
-  onEdit: (session: Session) => void;
+  onEdit?: (session: Session) => void;
   onDelete: (sessionId: string) => void;
 }
 
@@ -145,13 +164,9 @@ const SessionItem = ({ session, category, onEdit, onDelete }: SessionItemProps) 
   const isMobile = useIsMobile();
   const sessionEmoji = getSessionTypeEmoji(session.session_type, category);
 
-  let consumptionValue: number;
-  if (category === 'liquor' && session.liquor_serving_size) {
-    const mlPerServing = getMlFromServingSize(session.liquor_serving_size);
-    consumptionValue = session.quantity * mlPerServing;
-  } else {
-    consumptionValue = session.participant_count > 0 ? session.quantity / session.participant_count : 0;
-  }
+  // Get unit-aware consumption values
+  const { value: consumptionValue, unit: consumptionUnit } = getIndividualConsumptionWithUnit(session);
+  const sessionUnitInfo = getSessionUnitInfo(session.category, session.session_type);
 
   return (
     <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
@@ -167,23 +182,54 @@ const SessionItem = ({ session, category, onEdit, onDelete }: SessionItemProps) 
           </div>
         </div>
         <div className="flex gap-1">
-          <Button onClick={() => onEdit(session)} variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/50">
-            <Edit className="w-4 h-4" />
-          </Button>
-          <Button onClick={() => onDelete(session.id)} variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/50">
+          {onEdit && (
+            <Button 
+              onClick={() => onEdit(session)} 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-gray-500 hover:text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/50"
+            >
+              <Edit className="w-4 h-4" />
+            </Button>
+          )}
+          <Button 
+            onClick={() => onDelete(session.id)} 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/50"
+          >
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
       <div className={`grid grid-cols-3 gap-4 mb-4 text-center`}>
-        <StatDisplay icon={<Hash />} label="Quantity" value={session.quantity.toString()} />
+        <StatDisplay 
+          icon={<Hash />} 
+          label="Quantity" 
+          value={session.quantity.toString()} 
+          unit={sessionUnitInfo.unit}
+        />
         {category === 'liquor' ? (
-          <StatDisplay icon={<Beaker />} label="Size" value={`${getMlFromServingSize(session.liquor_serving_size)}ml`} />
+          <StatDisplay 
+            icon={<Beaker />} 
+            label="Size" 
+            value={getMlFromServingSize(session.liquor_serving_size).toString()} 
+            unit="ml"
+          />
         ) : (
-          <StatDisplay icon={<Users />} label="People" value={session.participant_count.toString()} />
+          <StatDisplay 
+            icon={<Users />} 
+            label="People" 
+            value={session.participant_count.toString()} 
+          />
         )}
-        <StatDisplay icon={<TrendingUp />} label={category === 'liquor' ? 'Total' : 'Per Person'} value={consumptionValue.toFixed(category === 'liquor' ? 0 : 2)} unit={category === 'liquor' ? 'ml' : undefined} />
+        <StatDisplay 
+          icon={<TrendingUp />} 
+          label={category === 'liquor' ? 'Total' : 'Per Person'} 
+          value={consumptionValue.toFixed(sessionUnitInfo.displayDecimals)} 
+          unit={consumptionUnit}
+        />
       </div>
 
       <div className="space-y-3">
@@ -192,32 +238,85 @@ const SessionItem = ({ session, category, onEdit, onDelete }: SessionItemProps) 
           <span className="font-medium text-gray-600 dark:text-gray-300">Rating: {session.rating || 'N/A'}/5</span>
         </div>
         
-        {/* --- MODIFIED NOTES SECTION --- */}
+        {/* --- NOTES SECTION --- */}
         {session.notes && (
           <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600/50">
             <div className="flex items-start gap-3">
               <MessageSquare className="w-4 h-4 mt-1 text-gray-500 dark:text-gray-400 flex-shrink-0" />
               <p className="text-gray-700 dark:text-gray-300 italic text-sm leading-relaxed">
-                "{session.notes}"
+                {session.notes}
               </p>
             </div>
           </div>
         )}
-        {/* --- END OF MODIFIED SECTION --- */}
       </div>
     </div>
   );
 };
 
-const StatDisplay = ({ icon, label, value, unit }: { icon: React.ReactNode, label: string, value: string, unit?: string }) => (
+// Helper function for liquor serving sizes
+const getMlFromServingSize = (servingSize?: string): number => {
+  if (!servingSize) return 0;
+  const match = servingSize.match(/(\d+)ml/);
+  return match ? parseInt(match[1]) : 0;
+};
+
+// Helper function for session type emojis  
+const getSessionTypeEmoji = (sessionType: string, category: Category) => {
+  switch (category) {
+    case 'weed':
+      switch (sessionType) {
+        case 'Joint': return '🌿';
+        case 'Bong': return '💨';
+        case 'Vape': return '💨';
+        case 'Edible': return '🍪';
+        default: return '🔄';
+      }
+    case 'cigs':
+      switch (sessionType) {
+        case 'Regular': return '🚬';
+        case 'Light': return '🚬';
+        case 'Menthol': return '🌿';
+        case 'E-Cigarette': return '💨';
+        default: return '🔄';
+      }
+    case 'vapes':
+      switch (sessionType) {
+        case 'Disposable': return '💨';
+        case 'Pod': return '🔋';
+        case 'Mod': return '🔧';
+        case 'Pen': return '✏️';
+        default: return '🔄';
+      }
+    case 'liquor':
+      switch (sessionType) {
+        case 'Beer': return '🍺';
+        case 'Wine': return '🍷';
+        case 'Spirits': return '🥃';
+        case 'Cocktail': return '🍸';
+        default: return '🔄';
+      }
+    default:
+      return '📊';
+  }
+};
+
+// --- Helper StatDisplay component ---
+interface StatDisplayProps {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  unit?: string;
+}
+
+const StatDisplay = ({ icon, label, value, unit }: StatDisplayProps) => (
   <div>
-    <div className="flex items-center justify-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+    <div className="flex items-center justify-center text-gray-400 mb-1">
       {icon}
-      <span>{label}</span>
     </div>
-    <p className="font-semibold text-lg text-gray-800 dark:text-gray-200">
-      {value}
-      {unit && <span className="text-sm font-normal ml-1">{unit}</span>}
+    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{label}</p>
+    <p className="font-semibold text-gray-800 dark:text-gray-200">
+      {value}{unit ? ` ${unit}` : ''}
     </p>
   </div>
 );

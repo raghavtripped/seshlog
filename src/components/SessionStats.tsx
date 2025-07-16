@@ -1,6 +1,14 @@
 import { useMemo } from 'react';
 import { Session, Category } from "@/types/session";
 import { useIsMobile } from '@/hooks/use-mobile';
+import { 
+  getNormalizedIndividualConsumption, 
+  getIndividualConsumptionWithUnit,
+  getCategoryBaseUnit,
+  getSmartCategoryDisplay,
+  hasMultipleUnits,
+  formatConsumption
+} from '@/lib/utils';
 
 interface SessionStatsProps {
   sessions: Session[];
@@ -27,16 +35,6 @@ export const SessionStats = ({ sessions = [], category }: SessionStatsProps) => 
       case 'vapes': return 'from-cyan-500 to-blue-600';
       case 'liquor': return 'from-amber-500 to-orange-600';
       default: return 'from-blue-500 to-purple-600';
-    }
-  };
-
-  const getCategoryUnit = (category: Category) => {
-    switch (category) {
-      case 'weed': return 'g';
-      case 'cigs': return 'cigs';
-      case 'vapes': return 'puffs';
-      case 'liquor': return 'ml';
-      default: return 'units';
     }
   };
 
@@ -89,57 +87,51 @@ export const SessionStats = ({ sessions = [], category }: SessionStatsProps) => 
     }
   };
 
-  // Helper function to get ml per serving for liquor
-  const getMlFromServingSize = (servingSize?: string): number => {
-    if (!servingSize) return 0;
-    const match = servingSize.match(/(\d+)ml/);
-    return match ? parseInt(match[1]) : 0;
-  };
-
-  // Calculate total individual consumption
+  // Calculate total individual consumption using normalized values
   const totalIndividualConsumption = sessions.reduce((sum, session) => {
-    if (category === 'liquor') {
-      const mlPerServing = getMlFromServingSize(session.liquor_serving_size);
-      return sum + (session.quantity * mlPerServing);
-    } else {
-      // For weed and all other categories, just use quantity / participant_count
-      return sum + (session.quantity / session.participant_count);
-    }
+    return sum + getNormalizedIndividualConsumption(session);
   }, 0);
 
-  // Calculate top session types with corrected logic
+  // Calculate top session types with unit-aware logic
   const sessionTypeCounts = sessions.reduce((acc, session) => {
     const type = session.session_type;
     if (!acc[type]) {
       acc[type] = { 
         count: 0, 
-        totalIndividualConsumption: 0
+        totalNormalizedConsumption: 0,
+        sessions: [] // Store sessions for unit analysis
       };
     }
     acc[type].count += 1;
-    if (category === 'liquor') {
-      const mlPerServing = getMlFromServingSize(session.liquor_serving_size);
-      acc[type].totalIndividualConsumption += (session.quantity * mlPerServing);
-    } else {
-      // For weed and all other categories, just use quantity / participant_count
-      acc[type].totalIndividualConsumption += (session.quantity / session.participant_count);
-    }
+    acc[type].totalNormalizedConsumption += getNormalizedIndividualConsumption(session);
+    acc[type].sessions.push(session);
     return acc;
-  }, {} as Record<string, { count: number; totalIndividualConsumption: number }>);
+  }, {} as Record<string, { count: number; totalNormalizedConsumption: number; sessions: Session[] }>);
 
   const topSessionTypes = Object.entries(sessionTypeCounts)
-    .map(([type, data]) => ({
-      type,
-      count: data.count,
-      totalConsumption: data.totalIndividualConsumption, // Total consumption for this type
-      avgPerSession: data.totalIndividualConsumption / data.count, // Average consumption per session
-    }))
+    .map(([type, data]) => {
+      // Check if this type has multiple units
+      const typeHasMultipleUnits = hasMultipleUnits(data.sessions);
+      const avgNormalized = data.totalNormalizedConsumption / data.count;
+      
+      return {
+        type,
+        count: data.count,
+        totalNormalizedConsumption: data.totalNormalizedConsumption,
+        avgNormalized,
+        hasMultipleUnits: typeHasMultipleUnits,
+        sessions: data.sessions
+      };
+    })
     .sort((a, b) => b.count - a.count)
     .slice(0, 2);
 
+  // Determine display unit for the category
+  const categoryHasMultipleUnits = hasMultipleUnits(sessions);
+  const displayUnit = getSmartCategoryDisplay(category, totalIndividualConsumption, categoryHasMultipleUnits);
+
   const categoryEmoji = getCategoryEmoji(category);
   const gradient = getCategoryGradient(category);
-  const unit = getCategoryUnit(category);
   const categoryName = getCategoryName(category);
 
   return (
@@ -192,7 +184,12 @@ export const SessionStats = ({ sessions = [], category }: SessionStatsProps) => 
               {totalIndividualConsumption.toFixed(2)}
             </div>
             <p className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>
-              {category === 'liquor' ? `${unit} total consumed` : `${unit} consumed individually`}
+              {category === 'liquor' ? `${displayUnit} total consumed` : `${displayUnit} consumed individually`}
+              {categoryHasMultipleUnits && category === 'weed' && (
+                <span className="block text-xs text-gray-500 dark:text-gray-500 mt-1">
+                  Mixed units normalized to grams
+                </span>
+              )}
             </p>
           </div>
         </div>
@@ -212,38 +209,44 @@ export const SessionStats = ({ sessions = [], category }: SessionStatsProps) => 
         
         <div className="space-y-3 sm:space-y-4">
           {topSessionTypes.length > 0 ? (
-            topSessionTypes.map((typeData, index) => (
-              <div key={typeData.type} className={`glass-card-secondary ${isMobile ? 'p-3' : 'p-4'} rounded-lg`}>
-                <div className="flex items-center gap-3 mb-2 sm:mb-3">
-                  <span className={`${isMobile ? 'text-xl' : 'text-2xl'}`}>
-                    {getSessionTypeEmoji(typeData.type, category)}
-                  </span>
-                  <div className="flex-1">
-                    <p className={`${isMobile ? 'text-sm' : 'font-medium'} text-gray-800 dark:text-gray-200 mb-1`}>
-                      {typeData.type}
-                    </p>
-                    <p className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>
-                      {typeData.count} session{typeData.count !== 1 ? 's' : ''}
-                    </p>
+            topSessionTypes.map((typeData, index) => {
+              // For display, use the actual unit of the first session of this type
+              const firstSession = typeData.sessions[0];
+              const { unit: displayTypeUnit } = getIndividualConsumptionWithUnit(firstSession);
+              
+              return (
+                <div key={typeData.type} className={`glass-card-secondary ${isMobile ? 'p-3' : 'p-4'} rounded-lg`}>
+                  <div className="flex items-center gap-3 mb-2 sm:mb-3">
+                    <span className={`${isMobile ? 'text-xl' : 'text-2xl'}`}>
+                      {getSessionTypeEmoji(typeData.type, category)}
+                    </span>
+                    <div className="flex-1">
+                      <p className={`${isMobile ? 'text-sm' : 'font-medium'} text-gray-800 dark:text-gray-200 mb-1`}>
+                        {typeData.type}
+                      </p>
+                      <p className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>
+                        {typeData.count} session{typeData.count !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className={`space-y-1 sm:space-y-2 ${isMobile ? 'ml-8' : 'ml-11'}`}>
+                    <div className="flex justify-between items-center">
+                      <span className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>Total:</span>
+                      <span className={`${isMobile ? 'text-xs font-medium' : 'body-sm font-semibold'} text-gray-800 dark:text-gray-200`}>
+                        {typeData.totalNormalizedConsumption.toFixed(displayTypeUnit === 'mg' ? 1 : 2)} {displayTypeUnit}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>Average:</span>
+                      <span className={`${isMobile ? 'text-xs font-medium' : 'body-sm font-semibold'} text-gray-800 dark:text-gray-200`}>
+                        {typeData.avgNormalized.toFixed(displayTypeUnit === 'mg' ? 1 : 2)} {displayTypeUnit}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                
-                <div className={`space-y-1 sm:space-y-2 ${isMobile ? 'ml-8' : 'ml-11'}`}>
-                  <div className="flex justify-between items-center">
-                    <span className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>Total:</span>
-                    <span className={`${isMobile ? 'text-xs font-medium' : 'body-sm font-semibold'} text-gray-800 dark:text-gray-200`}>
-                      {typeData.totalConsumption.toFixed(1)} {unit}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>Average:</span>
-                    <span className={`${isMobile ? 'text-xs font-medium' : 'body-sm font-semibold'} text-gray-800 dark:text-gray-200`}>
-                      {typeData.avgPerSession.toFixed(1)} {unit}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <div className={`text-center ${isMobile ? 'py-6' : 'py-8'}`}>
               <span className={`${isMobile ? 'text-3xl' : 'text-4xl'} mb-2 sm:mb-3 block opacity-50`}>{categoryEmoji}</span>

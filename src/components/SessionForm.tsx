@@ -32,6 +32,57 @@ interface FormState {
   sessionDate: string;
 }
 
+// --- Weed Type Configuration ---
+interface WeedTypeConfig {
+  defaultQuantity: number;
+  step: number;
+  unit: string;
+  typicalRange: string;
+  description: string;
+}
+
+const getWeedTypeConfig = (sessionType: string): WeedTypeConfig => {
+  const configs: { [key: string]: WeedTypeConfig } = {
+    'Joint': {
+      defaultQuantity: 0.7,
+      step: 0.1,
+      unit: 'g',
+      typicalRange: '0.3-1.5g',
+      description: 'Standard joint (~0.5-1g flower)'
+    },
+    'Bong': {
+      defaultQuantity: 0.2,
+      step: 0.05,
+      unit: 'g',
+      typicalRange: '0.1-0.5g',
+      description: 'Per bowl/hit (~0.1-0.3g)'
+    },
+    'Vape': {
+      defaultQuantity: 0.15,
+      step: 0.05,
+      unit: 'g',
+      typicalRange: '0.05-0.3g',
+      description: 'Per session (~0.1-0.2g)'
+    },
+    'Edible': {
+      defaultQuantity: 10,
+      step: 2.5,
+      unit: 'mg',
+      typicalRange: '5-100mg',
+      description: 'THC content in mg'
+    },
+    'Other': {
+      defaultQuantity: 1,
+      step: 0.1,
+      unit: 'unit',
+      typicalRange: 'varies',
+      description: 'Specify in notes'
+    }
+  };
+  
+  return configs[sessionType] || configs['Other'];
+};
+
 // --- Helper Functions (Static, outside the component) ---
 const getLiquorServingSizes = (): Array<{ value: LiquorServingSize; label: string; ml: number }> => [
   { value: '30ml (Shot)', label: '🥃 30ml (Shot)', ml: 30 },
@@ -53,9 +104,13 @@ const getSessionTypesForCategory = (category: Category) => {
   }
 };
 
-const getQuantityLabel = (category: Category) => {
+const getQuantityLabel = (category: Category, sessionType?: SessionType) => {
   if (category === 'liquor') return 'Number of Servings';
   if (category === 'cigs') return 'Number of Cigarettes';
+  if (category === 'weed' && sessionType) {
+    const config = getWeedTypeConfig(sessionType);
+    return `Quantity (${config.unit})`;
+  }
   return 'Total Quantity';
 };
 
@@ -103,10 +158,18 @@ const SessionFormComponent = ({
   const getDefaultState = useCallback((): FormState => {
     // FIX: Correctly handle timezone for both new and existing sessions.
     const initialDate = initialSession ? new Date(initialSession.session_date) : new Date();
+    const defaultSessionType = initialSession?.session_type || sessionTypes[0]?.value as SessionType;
+    
+    // Get smart default quantity for weed based on session type
+    let defaultQuantity = initialSession?.quantity || 1;
+    if (!initialSession && category === 'weed') {
+      const config = getWeedTypeConfig(defaultSessionType);
+      defaultQuantity = config.defaultQuantity;
+    }
     
     return {
-      sessionType: initialSession?.session_type || sessionTypes[0]?.value as SessionType,
-      quantity: initialSession?.quantity || 1,
+      sessionType: defaultSessionType,
+      quantity: defaultQuantity,
       participantCount: initialSession?.participant_count || 1,
       liquorServingSize: initialSession?.liquor_serving_size || '330ml (Beer Bottle)' as LiquorServingSize,
       customServingSize: 0,
@@ -114,7 +177,7 @@ const SessionFormComponent = ({
       rating: initialSession?.rating || 3,
       sessionDate: toDateTimeLocalString(initialDate), // Use our timezone-aware formatter
     };
-  }, [initialSession, sessionTypes]);
+  }, [initialSession, sessionTypes, category]);
 
   const [formState, setFormState] = useState<FormState>(getDefaultState());
 
@@ -125,6 +188,17 @@ const SessionFormComponent = ({
   // FIX 1: Replace 'any' with proper generic type for type safety
   const handleStateChange = <K extends keyof FormState>(field: K, value: FormState[K]) => {
     setFormState(prevState => ({ ...prevState, [field]: value }));
+  };
+
+  // Handle session type change with smart quantity update
+  const handleSessionTypeChange = (newSessionType: SessionType) => {
+    handleStateChange('sessionType', newSessionType);
+    
+    // Update quantity to smart default if this is a new session and weed category
+    if (!initialSession && category === 'weed') {
+      const config = getWeedTypeConfig(newSessionType);
+      handleStateChange('quantity', config.defaultQuantity);
+    }
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -180,9 +254,19 @@ const SessionFormComponent = ({
       const totalMl = formState.quantity * mlPerServing;
       return `${totalMl.toFixed(0)} ml`;
     }
+    
+    if (category === 'weed') {
+      const config = getWeedTypeConfig(formState.sessionType);
+      const perPerson = formState.quantity / formState.participantCount;
+      return `${perPerson.toFixed(config.step >= 1 ? 0 : 2)} ${config.unit} per person`;
+    }
+    
     const perPerson = formState.quantity / formState.participantCount;
     return `${perPerson.toFixed(2)} per person`;
-  }, [category, formState.quantity, formState.participantCount, formState.liquorServingSize, formState.customServingSize, servingSizes]);
+  }, [category, formState.quantity, formState.participantCount, formState.liquorServingSize, formState.customServingSize, formState.sessionType, servingSizes]);
+
+  // Get current weed type config for smart controls
+  const currentWeedConfig = category === 'weed' ? getWeedTypeConfig(formState.sessionType) : null;
 
   return (
     <div className="p-4 md:p-6 bg-gray-50 dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
@@ -205,10 +289,16 @@ const SessionFormComponent = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <div className="space-y-2">
             <Label htmlFor="type" className="font-medium text-gray-700 dark:text-gray-300">Type</Label>
-            <Select value={formState.sessionType} onValueChange={(value: SessionType) => handleStateChange('sessionType', value)}>
+            <Select value={formState.sessionType} onValueChange={handleSessionTypeChange}>
               <SelectTrigger className="w-full h-12 rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"><SelectValue /></SelectTrigger>
               <SelectContent>{sessionTypes.map((type) => <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>)}</SelectContent>
             </Select>
+            {/* Add type description for weed */}
+            {category === 'weed' && currentWeedConfig && (
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {currentWeedConfig.description} • Typical: {currentWeedConfig.typicalRange}
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="sessionDate" className="font-medium text-gray-700 dark:text-gray-300">Date & Time</Label>
@@ -217,7 +307,12 @@ const SessionFormComponent = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          <QuantityControl label={getQuantityLabel(category)} value={formState.quantity} onChange={(v) => handleStateChange('quantity', v)} />
+          <SmartQuantityControl 
+            category={category}
+            sessionType={formState.sessionType}
+            value={formState.quantity}
+            onChange={(v) => handleStateChange('quantity', v)}
+          />
           {category === 'liquor' ? (
             <div className="space-y-2">
               <Label htmlFor="servingSize" className="font-medium text-gray-700 dark:text-gray-300">Serving Size</Label>
@@ -270,6 +365,69 @@ const SessionFormComponent = ({
       </form>
     </div>
   );
+};
+
+// Smart quantity control that adapts to weed session types
+const SmartQuantityControl = ({ 
+  category, 
+  sessionType, 
+  value, 
+  onChange 
+}: {
+  category: Category;
+  sessionType: SessionType;
+  value: number;
+  onChange: (value: number) => void;
+}) => {
+  const label = getQuantityLabel(category, sessionType);
+  
+  if (category === 'weed') {
+    const config = getWeedTypeConfig(sessionType);
+    const decimals = config.step < 1 ? 2 : 0;
+    
+    return (
+      <div className="space-y-2">
+        <Label className="font-medium text-gray-700 dark:text-gray-300">{label}</Label>
+        <div className="flex items-center gap-2">
+          <Button 
+            type="button" 
+            variant="outline" 
+            size="icon" 
+            onClick={() => onChange(Math.max(config.step, +(value - config.step).toFixed(decimals)))}
+            disabled={value <= config.step} 
+            className="h-12 w-12 rounded-lg"
+          >
+            <Minus className="w-5 h-5" />
+          </Button>
+          <Input 
+            type="number" 
+            value={value} 
+            step={config.step}
+            onChange={e => {
+              const num = Number(e.target.value);
+              if (!isNaN(num) && num >= 0) onChange(num);
+            }} 
+            className="h-12 text-center text-lg font-bold rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+          />
+          <Button 
+            type="button" 
+            variant="outline" 
+            size="icon" 
+            onClick={() => onChange(+(value + config.step).toFixed(decimals))}
+            className="h-12 w-12 rounded-lg"
+          >
+            <Plus className="w-5 h-5" />
+          </Button>
+        </div>
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Step: {config.step}{config.unit} • Range: {config.typicalRange}
+        </p>
+      </div>
+    );
+  }
+  
+  // Fallback to regular quantity control for other categories
+  return <QuantityControl label={label} value={value} onChange={onChange} />;
 };
 
 const QuantityControl = ({ label, value, onChange, min = 1, max = 99, step = 1 }: {

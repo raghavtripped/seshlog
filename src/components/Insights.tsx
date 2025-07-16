@@ -3,6 +3,12 @@ import { Session, Category } from "@/types/session";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from "@/components/ui/button";
 import { CalendarDays, Calendar, Clock, TrendingUp } from "lucide-react";
+import { 
+  getNormalizedIndividualConsumption,
+  getCategoryBaseUnit,
+  getSmartCategoryDisplay,
+  hasMultipleUnits
+} from '@/lib/utils';
 
 export type TimeGranularity = 'day' | 'week' | 'month' | 'year';
 import {
@@ -63,33 +69,6 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
       case 'vapes': return '#06b6d4'; // cyan-500
       case 'liquor': return '#f59e0b'; // amber-500
       default: return '#3b82f6'; // blue-500
-    }
-  };
-
-  const getCategoryUnit = (category: Category) => {
-    switch (category) {
-      case 'weed': return 'g';
-      case 'cigs': return 'cigs';
-      case 'vapes': return 'puffs';
-      case 'liquor': return 'ml';
-      default: return 'units';
-    }
-  };
-
-  // Helper function to get ml from serving size for liquor
-  const getMlFromServingSize = (servingSize?: string): number => {
-    if (!servingSize) return 0;
-    const match = servingSize.match(/(\d+)ml/);
-    return match ? parseInt(match[1]) : 0;
-  };
-
-  // Calculate the individual consumption for a session
-  const getIndividualConsumption = (session: Session): number => {
-    if (category === 'liquor') {
-      const mlPerServing = getMlFromServingSize(session.liquor_serving_size);
-      return session.quantity * mlPerServing;
-    } else {
-      return session.quantity / session.participant_count;
     }
   };
 
@@ -167,12 +146,12 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
         sortKey: format(currentDate, 'yyyy-MM-dd')
       };
 
-      // Count sessions and consumption for this period
+      // Count sessions and consumption for this period using normalized values
       periodSessions.forEach(session => {
         const sessionDate = parseISO(session.session_date);
         if (isSamePeriod(currentDate, sessionDate, granularity)) {
           dataPoint.sessions += 1;
-          dataPoint.consumption += getIndividualConsumption(session);
+          dataPoint.consumption += getNormalizedIndividualConsumption(session);
         }
       });
 
@@ -185,7 +164,7 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
 
 
 
-  // Calculate enhanced key metrics
+  // Calculate enhanced key metrics with unit-aware logic
   const keyMetrics = useMemo(() => {
     if (periodSessions.length === 0) {
       return {
@@ -196,9 +175,9 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
       };
     }
 
-    // Average consumption per session
-    const totalConsumption = periodSessions.reduce((sum, session) => sum + getIndividualConsumption(session), 0);
-    const avgPerSession = (totalConsumption / periodSessions.length).toFixed(2);
+    // Average consumption per session using normalized values
+    const totalNormalizedConsumption = periodSessions.reduce((sum, session) => sum + getNormalizedIndividualConsumption(session), 0);
+    const avgPerSession = (totalNormalizedConsumption / periodSessions.length).toFixed(2);
 
     // Social sessions percentage
     const socialSessions = periodSessions.filter(s => s.participant_count > 1).length;
@@ -242,7 +221,10 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
 
   const categoryColor = getCategoryColor(category);
   const gradient = getCategoryGradient(category);
-  const unit = getCategoryUnit(category);
+  
+  // Smart unit display
+  const categoryHasMultipleUnits = hasMultipleUnits(periodSessions);
+  const displayUnit = getSmartCategoryDisplay(category, 0, categoryHasMultipleUnits);
 
   if (periodSessions.length === 0) {
     return (
@@ -372,8 +354,13 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
           </div>
           <h4 className={`${isMobile ? 'text-sm' : 'text-base'} font-semibold text-gray-800 dark:text-gray-200 mb-2`}>Avg per Session</h4>
           <p className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-gray-800 dark:text-gray-200`}>
-            {keyMetrics.avgPerSession} {keyMetrics.avgPerSession !== 'No Data' ? unit : ''}
+            {keyMetrics.avgPerSession} {keyMetrics.avgPerSession !== 'No Data' ? displayUnit : ''}
           </p>
+          {categoryHasMultipleUnits && category === 'weed' && keyMetrics.avgPerSession !== 'No Data' && (
+            <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-500 dark:text-gray-500 mt-1`}>
+              normalized
+            </p>
+          )}
         </div>
 
         {/* Social Sessions */}
