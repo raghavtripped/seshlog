@@ -1,104 +1,113 @@
-# Welcome to your Lovable project
+# Sesh Log
 
-## Project info
+## Overview
 
-**URL**: https://lovable.dev/projects/965650dd-ac7a-4ae0-86e7-6b929d2766aa
+**Sesh Log** is a modern, privacy-focused web application for tracking your personal consumption sessions across four categories: **Weed, Cigarettes, Vapes, and Liquor**. It provides beautiful dashboards, detailed analytics, and insightful visualizations to help you understand your habits and make informed decisions. All your data is securely stored and isolated using Supabase authentication and database.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## Features
 
-**Use Lovable**
+### ✨ Multi-Category Session Tracking
+- **Weed**: Log sessions by type (Joint, Bong, Vape, Edible, Other), quantity, participants, notes, and rating.
+- **Cigarettes**: Track regular, light, menthol, and e-cigarette sessions, with quantity, people, notes, and rating.
+- **Vapes**: Log disposable, pod, mod, and pen sessions, with detailed stats.
+- **Liquor**: Track beer, wine, spirits, cocktails, and custom servings, including serving size, quantity, and notes.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/965650dd-ac7a-4ae0-86e7-6b929d2766aa) and start prompting.
+### 📊 Analytics & Insights
+- **Session Stats**: See total sessions, consumption per person, and top types for any period.
+- **Insights Dashboard**: Interactive charts (by day, week, month, year) show trends over time.
+- **Key Metrics**: Average per session, social session percentage, favorite day, and peak hour.
+- **Filter & Sort**: Filter by type, date range, and sort sessions for deep analysis.
 
-Changes made via Lovable will be committed automatically to this repo.
+### 📝 Session Details
+- Add notes, ratings, and participant count to each session.
+- Edit or delete any session with a user-friendly interface.
+- All quantities are unit-aware and normalized for accurate stats.
 
-**Use your preferred IDE**
+### 🔒 Privacy & Security
+- **Supabase Auth**: Secure email/password authentication.
+- **Data Isolation**: Each user can only access their own data.
+- **Session Persistence**: Stay logged in across browser sessions.
+- **RLS Policies**: Database row-level security ensures privacy.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 🌗 Modern UI/UX
+- **Responsive Design**: Works beautifully on mobile and desktop.
+- **Dark/Light/System Theme**: Toggle between themes instantly.
+- **Accessible**: Built with accessibility in mind.
+- **Shadcn-UI & Tailwind CSS**: Clean, modern, and customizable.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+---
 
-Follow these steps:
+## How It Works
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+1. **Landing Page**: Welcome screen with app branding and a "Get Started" button.
+2. **Authentication**: Sign up or log in with email/password. (Email verification supported.)
+3. **Category Selection**: Choose what you want to track: Weed, Cigarettes, Vapes, or Liquor.
+4. **Dashboard**: For each category, log new sessions, view stats, and explore insights.
+5. **Session Management**: Edit, delete, and filter your sessions. All changes are instantly reflected in your analytics.
+6. **Analytics**: Visualize your habits with charts, key metrics, and period-based insights.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+---
 
-# Step 3: Install the necessary dependencies.
-npm i
+## Technologies Used
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+- **Vite** (build tool)
+- **TypeScript**
+- **React**
+- **shadcn-ui** (component library)
+- **Tailwind CSS**
+- **Supabase** (authentication & database)
+- **React Query** (data fetching/caching)
+- **date-fns** (date utilities)
+- **Recharts** (data visualization)
 
-**Edit a file directly in GitHub**
+---
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Development
 
-**Use GitHub Codespaces**
+### Getting Started
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1. **Clone the repository:**
+   ```sh
+   git clone <YOUR_GIT_URL>
+   cd session-scribe-log
+   ```
+2. **Install dependencies:**
+   ```sh
+   npm install
+   ```
+3. **Start the development server:**
+   ```sh
+   npm run dev
+   ```
+4. **Open in your browser:**
+   Visit [http://localhost:5173](http://localhost:5173) (or as shown in your terminal)
 
-## What technologies are used for this project?
+---
 
-This project is built with:
+## Deployment
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-- Supabase (Authentication & Database)
+- Deploy on Vercel, Netlify, or your preferred platform.
+- Configure your Supabase credentials in the environment as needed.
 
-## Authentication
+---
 
-This application uses Supabase for secure email/password authentication. Here's how it works:
+## Database & Security
 
-### Authentication Flow
-1. **Landing Page**: Users see a welcome screen with a "Get Started" button
-2. **Login Page**: Users can sign in with existing credentials or create a new account
-3. **Email/Password**: Simple, secure authentication with password requirements
-4. **Email Verification**: New accounts receive verification emails (optional)
-5. **Dashboard**: Authenticated users can manage their sessions
+- **Supabase** is used for authentication and as a Postgres database.
+- **Row Level Security (RLS)** is enabled for all tables.
+- All CRUD operations are authenticated and scoped to the current user.
+- See `/supabase/migrations/` for schema and policy details.
 
-### Security Features
-- **Email/Password Authentication**: Traditional, secure login system
-- **Server-side session management**: Sessions are managed securely by Supabase
-- **Automatic session persistence**: Users stay logged in across browser sessions
-- **Secure data isolation**: Each user can only access their own session data
-- **Password requirements**: Minimum 6 characters for security
+---
 
-### Key Components
-- `useAuth`: Custom hook managing authentication state
-- `AuthProvider`: Context provider for authentication throughout the app
-- `Login`: Dedicated login page for magic link authentication
-- `AuthCallback`: Handles the magic link callback and session setup
-- `AppDashboard`: Protected dashboard component for authenticated users
+## Contributing
 
-### Database Integration
-- User sessions are stored in Supabase with proper user isolation
-- All CRUD operations are authenticated and user-scoped
-- Real-time updates and data synchronization
+Pull requests and issues are welcome! Please open an issue to discuss your ideas or report bugs.
 
-## How can I deploy this project?
+---
 
-Simply open [Lovable](https://lovable.dev/projects/965650dd-ac7a-4ae0-86e7-6b929d2766aa) and click on Share -> Publish.
+## License
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+MIT
