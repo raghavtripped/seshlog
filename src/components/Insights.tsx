@@ -351,7 +351,7 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
               <Tooltip content={<CustomTooltip />} />
               <Area
                 type="monotone"
-                dataKey={chartView}
+                dataKey={chartView === 'sessions' ? 'sessions' : 'consumption'}
                 stroke={categoryColor}
                 fillOpacity={1}
                 fill={chartView === 'sessions' ? "url(#sessionsGradient)" : "url(#quantityGradient)"}
