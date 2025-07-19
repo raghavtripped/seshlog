@@ -229,7 +229,16 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
   const displayUnit = getSmartCategoryDisplay(category, 0, categoryHasMultipleUnits);
 
   // Custom tooltip for the chart
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  interface TooltipProps {
+    active?: boolean;
+    payload?: Array<{
+      value: number;
+      color: string;
+    }>;
+    label?: string;
+  }
+
+  const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0];
       const value = data.value;
