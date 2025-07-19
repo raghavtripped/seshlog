@@ -52,7 +52,7 @@ interface InsightsProps {
 export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
   const isMobile = useIsMobile();
   const [granularity, setGranularity] = useState<TimeGranularity>('week');
-  const [chartView, setChartView] = useState<ChartViewType>('sessions');
+  const [chartView, setChartView] = useState<ChartViewType>('quantity');
 
   const getCategoryGradient = (category: Category) => {
     switch (category) {
