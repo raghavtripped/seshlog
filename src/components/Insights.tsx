@@ -11,6 +11,7 @@ import {
 } from '@/lib/utils';
 
 export type TimeGranularity = 'day' | 'week' | 'month' | 'year';
+export type ChartViewType = 'sessions' | 'quantity';
 import {
   LineChart,
   Line,
@@ -51,6 +52,7 @@ interface InsightsProps {
 export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
   const isMobile = useIsMobile();
   const [granularity, setGranularity] = useState<TimeGranularity>('week');
+  const [chartView, setChartView] = useState<ChartViewType>('sessions');
 
   const getCategoryGradient = (category: Category) => {
     switch (category) {
@@ -226,6 +228,39 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
   const categoryHasMultipleUnits = hasMultipleUnits(periodSessions);
   const displayUnit = getSmartCategoryDisplay(category, 0, categoryHasMultipleUnits);
 
+  // Custom tooltip for the chart
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0];
+      const value = data.value;
+      
+      if (chartView === 'sessions') {
+        return (
+          <div className="bg-white/95 dark:bg-gray-800/95 border border-gray-200 dark:border-gray-700 rounded-lg p-3 shadow-lg">
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{label}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              <span className="font-semibold" style={{ color: data.color }}>
+                {value} Sessions
+              </span>
+            </p>
+          </div>
+        );
+      } else {
+        return (
+          <div className="bg-white/95 dark:bg-gray-800/95 border border-gray-200 dark:border-gray-700 rounded-lg p-3 shadow-lg">
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{label}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              <span className="font-semibold" style={{ color: data.color }}>
+                {value.toFixed(2)} {displayUnit} Quantity
+              </span>
+            </p>
+          </div>
+        );
+      }
+    }
+    return null;
+  };
+
   if (periodSessions.length === 0) {
     return (
       <div className="glass-card p-6 text-center">
@@ -260,7 +295,36 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
 
       {/* Sessions Over Time Chart */}
       <div className="glass-card p-6">
-        <h3 className="heading-md text-gray-800 dark:text-gray-200 mb-4">Sessions Over Time</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="heading-md text-gray-800 dark:text-gray-200">
+            {chartView === 'sessions' ? 'Sessions Over Time' : `Quantity Over Time (${displayUnit})`}
+          </h3>
+          
+          {/* Toggle Button */}
+          <div className="flex items-center bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg p-1 gap-1">
+            <button
+              onClick={() => setChartView('sessions')}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                chartView === 'sessions'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-500 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              Sessions
+            </button>
+            <button
+              onClick={() => setChartView('quantity')}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                chartView === 'quantity'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-500 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              Quantity
+            </button>
+          </div>
+        </div>
+        
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={sessionsOverTimeData}>
@@ -268,6 +332,10 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
                 <linearGradient id="sessionsGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={categoryColor} stopOpacity={0.8}/>
                   <stop offset="95%" stopColor={categoryColor} stopOpacity={0.1}/>
+                </linearGradient>
+                <linearGradient id="quantityGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={categoryColor} stopOpacity={0.6}/>
+                  <stop offset="95%" stopColor={categoryColor} stopOpacity={0.2}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
@@ -280,20 +348,13 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
                 className="text-sm"
                 tick={{ fontSize: 12 }}
               />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  fontSize: '14px'
-                }}
-              />
+              <Tooltip content={<CustomTooltip />} />
               <Area
                 type="monotone"
-                dataKey="sessions"
+                dataKey={chartView}
                 stroke={categoryColor}
                 fillOpacity={1}
-                fill="url(#sessionsGradient)"
+                fill={chartView === 'sessions' ? "url(#sessionsGradient)" : "url(#quantityGradient)"}
                 strokeWidth={2}
               />
             </AreaChart>
