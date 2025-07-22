@@ -7,8 +7,9 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Separator } from '../components/ui/separator';
 import { Plus, Sparkles } from 'lucide-react';
+import type { Database } from '../integrations/supabase/types';
 
-// Routine type
+// Routine type (matching the database schema)
 type Routine = {
   id: string;
   user_id: string;
@@ -16,24 +17,50 @@ type Routine = {
   items: string[];
 };
 
+type DbRoutine = Database['public']['Tables']['routines']['Row'];
+type DbRoutineInsert = Database['public']['Tables']['routines']['Insert'];
+
+// Convert database routine to app routine
+const convertDbToRoutine = (dbRoutine: DbRoutine): Routine => ({
+  id: dbRoutine.id,
+  user_id: dbRoutine.user_id,
+  name: dbRoutine.name,
+  items: Array.isArray(dbRoutine.items) ? dbRoutine.items as string[] : [],
+});
+
+// Convert app routine to database routine
+const convertRoutineToDb = (routine: Partial<Routine>): Partial<DbRoutineInsert> => ({
+  ...routine,
+  items: routine.items || [],
+});
+
 // Fetch routines for the current user
 const fetchRoutines = async (): Promise<Routine[]> => {
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) throw new Error('Not authenticated');
+  
   const { data, error } = await supabase
     .from('routines')
     .select('*')
-    .order('created_at', { ascending: true });
+    .eq('user_id', user.id)
+    .order('name', { ascending: true });
   if (error) throw error;
-  return data as Routine[];
+  
+  return data.map(convertDbToRoutine);
 };
 
 // Add or update a routine
 const upsertRoutine = async (routine: Partial<Routine>) => {
+  const dbRoutine = convertRoutineToDb(routine);
+  
   const { data, error } = await supabase
     .from('routines')
-    .upsert([routine], { onConflict: 'id' })
-    .select();
+    .upsert([dbRoutine as DbRoutineInsert], { onConflict: 'id' })
+    .select()
+    .single();
   if (error) throw error;
-  return data?.[0] as Routine;
+  
+  return convertDbToRoutine(data);
 };
 
 // Delete a routine
@@ -47,7 +74,7 @@ const deleteRoutine = async (id: string) => {
 
 // Create default routines
 const createDefaultRoutines = async (userId: string) => {
-  const defaultRoutines = [
+  const defaultRoutines: DbRoutineInsert[] = [
     {
       user_id: userId,
       name: 'Morning Health Check',
@@ -124,7 +151,7 @@ const createDefaultRoutines = async (userId: string) => {
     .select();
   
   if (error) throw error;
-  return data;
+  return data.map(convertDbToRoutine);
 };
 
 // Routine Form Component
@@ -223,6 +250,49 @@ export default function Routines() {
     },
   });
 
+  // Add debug function to check database state
+  const checkDatabaseState = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('❌ User not authenticated');
+        return;
+      }
+      
+      console.log('✅ User authenticated:', user.email);
+      
+      // Test if routines table exists and is accessible
+      const { data, error } = await supabase
+        .from('routines')
+        .select('count', { count: 'exact', head: true });
+        
+      if (error) {
+        console.log('❌ Routines table error:', error.message);
+        console.log('🔧 You may need to run the database migrations in Supabase:');
+        console.log('1. Go to Supabase Dashboard > SQL Editor');
+        console.log('2. Run the migrations from supabase/migrations/ folder');
+        console.log('3. Particularly: 20250616213506-65b2eadc-bcc8-4cac-b653-c530f0b8183e.sql');
+        console.log('4. And: 20250121000001_add_default_routines.sql');
+      } else {
+        console.log('✅ Routines table accessible. Count:', data);
+      }
+      
+      // Test daily_events table
+      const { data: eventsData, error: eventsError } = await supabase
+        .from('daily_events')
+        .select('count', { count: 'exact', head: true });
+        
+      if (eventsError) {
+        console.log('❌ Daily events table error:', eventsError.message);
+      } else {
+        console.log('✅ Daily events table accessible. Count:', eventsData);
+      }
+      
+    } catch (err) {
+      console.log('❌ Database check failed:', err);
+    }
+  };
+
   if (isLoading) return <div className="p-8">Loading routines...</div>;
   if (error) return <div className="p-8 text-red-500">Error loading routines.</div>;
 
@@ -249,26 +319,45 @@ export default function Routines() {
         )}
       </div>
 
-      {routines && routines.length > 0 && (
-        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-medium text-blue-900">Want comprehensive life tracking?</h3>
-              <p className="text-sm text-blue-700">Add default routines that cover all dashboard analytics</p>
+              {routines && routines.length > 0 && (
+          <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-blue-900">Want comprehensive life tracking?</h3>
+                <p className="text-sm text-blue-700">Add default routines that cover all dashboard analytics</p>
+              </div>
+              <Button 
+                onClick={() => defaultRoutinesMutation.mutate()}
+                disabled={defaultRoutinesMutation.isPending}
+                size="sm"
+                variant="outline"
+                className="border-blue-300 text-blue-700 hover:bg-blue-100"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                {defaultRoutinesMutation.isPending ? 'Adding...' : 'Add Defaults'}
+              </Button>
             </div>
-            <Button 
-              onClick={() => defaultRoutinesMutation.mutate()}
-              disabled={defaultRoutinesMutation.isPending}
-              size="sm"
-              variant="outline"
-              className="border-blue-300 text-blue-700 hover:bg-blue-100"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              {defaultRoutinesMutation.isPending ? 'Adding...' : 'Add Defaults'}
-            </Button>
           </div>
-        </div>
-      )}
+        )}
+
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-red-900">Database Connection Issue</h3>
+                <p className="text-sm text-red-700">Unable to load routines. Check console for details.</p>
+              </div>
+              <Button 
+                onClick={checkDatabaseState}
+                size="sm"
+                variant="outline"
+                className="border-red-300 text-red-700 hover:bg-red-100"
+              >
+                Debug Database
+              </Button>
+            </div>
+          </div>
+        )}
 
       {showForm && (
         <RoutineForm
@@ -285,6 +374,16 @@ export default function Routines() {
             <p className="text-sm text-gray-400 mb-4">
               Create custom routines or add our comprehensive default routines that track all the metrics shown in your dashboard analytics.
             </p>
+            <div className="mt-4">
+              <Button 
+                onClick={checkDatabaseState}
+                size="sm"
+                variant="ghost"
+                className="text-gray-500 hover:text-gray-700"
+              >
+                🔧 Debug Database Connection
+              </Button>
+            </div>
           </div>
         )}
         {routines && routines.map((routine) => (

@@ -11,6 +11,67 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      daily_events: {
+        Row: {
+          id: string
+          user_id: string
+          created_at: string
+          event_type: string
+          payload: Json
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          created_at?: string
+          event_type: string
+          payload: Json
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          created_at?: string
+          event_type?: string
+          payload?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      routines: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          items: Json
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          items: Json
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          items?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routines_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sessions: {
         Row: {
           category: string
@@ -55,6 +116,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_insights: {
+        Row: {
+          id: string
+          user_id: string
+          insight_text: string
+          generated_at: string
+          priority: number
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          insight_text: string
+          generated_at?: string
+          priority?: number
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          insight_text?: string
+          generated_at?: string
+          priority?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_insights_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
