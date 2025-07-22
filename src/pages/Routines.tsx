@@ -6,6 +6,7 @@ import { Card } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Separator } from '../components/ui/separator';
+import { Plus, Sparkles } from 'lucide-react';
 
 // Routine type
 type Routine = {
@@ -42,6 +43,88 @@ const deleteRoutine = async (id: string) => {
     .delete()
     .eq('id', id);
   if (error) throw error;
+};
+
+// Create default routines
+const createDefaultRoutines = async (userId: string) => {
+  const defaultRoutines = [
+    {
+      user_id: userId,
+      name: 'Morning Health Check',
+      items: [
+        'Rate sleep quality (1-5 stars)',
+        'Log wake time',
+        'Check pain/stiffness level (0-10)',
+        'Assess morning mood',
+        'Drink first glass of water'
+      ]
+    },
+    {
+      user_id: userId,
+      name: 'Daily Nutrition Tracking',
+      items: [
+        'Log breakfast meal composition',
+        'Log lunch meal composition', 
+        'Log dinner meal composition',
+        'Rate meal satisfaction (1-10)',
+        'Take meal photos (optional)'
+      ]
+    },
+    {
+      user_id: userId,
+      name: 'Daily Hydration Goals',
+      items: [
+        'Morning: 2 glasses water',
+        'Coffee/Tea intake',
+        'Midday: 2 glasses water',
+        'Afternoon: 1 glass water',
+        'Evening: 1 glass water',
+        'Track total daily intake'
+      ]
+    },
+    {
+      user_id: userId,
+      name: 'Work Session Tracking',
+      items: [
+        'Set session duration goal',
+        'Rate focus level before starting',
+        'Log work type/project',
+        'Rate focus level after session',
+        'Note any distractions or insights'
+      ]
+    },
+    {
+      user_id: userId,
+      name: 'Daily Activity Log',
+      items: [
+        'Morning movement/stretch',
+        'Planned workout or activity',
+        'Log activity type and duration',
+        'Rate energy level before/after',
+        'Note how body feels'
+      ]
+    },
+    {
+      user_id: userId,
+      name: 'Evening Wind-Down',
+      items: [
+        'Brush teeth',
+        'Wash face',
+        'Take evening supplements',
+        'Reflect on day highlights',
+        'Rate final pain/mood/energy levels',
+        'Set tomorrow intention'
+      ]
+    }
+  ];
+
+  const { data, error } = await supabase
+    .from('routines')
+    .insert(defaultRoutines)
+    .select();
+  
+  if (error) throw error;
+  return data;
 };
 
 // Routine Form Component
@@ -118,7 +201,7 @@ export default function Routines() {
   const upsertMutation = useMutation({
     mutationFn: upsertRoutine,
     onSuccess: () => {
-      queryClient.invalidateQueries(['routines']);
+      queryClient.invalidateQueries({ queryKey: ['routines'] });
       setShowForm(false);
       setEditing(null);
     },
@@ -126,7 +209,18 @@ export default function Routines() {
 
   const deleteMutation = useMutation({
     mutationFn: deleteRoutine,
-    onSuccess: () => queryClient.invalidateQueries(['routines']),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['routines'] }),
+  });
+
+  const defaultRoutinesMutation = useMutation({
+    mutationFn: async () => {
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) throw new Error('Not logged in');
+      return createDefaultRoutines(user.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['routines'] });
+    },
   });
 
   if (isLoading) return <div className="p-8">Loading routines...</div>;
@@ -135,9 +229,47 @@ export default function Routines() {
   return (
     <div className="max-w-2xl mx-auto p-8">
       <h1 className="text-2xl font-bold mb-4">Routines</h1>
-      <Button onClick={() => { setShowForm(true); setEditing(null); }} className="mb-4">
-        + New Routine
-      </Button>
+      
+      <div className="flex gap-2 mb-4">
+        <Button onClick={() => { setShowForm(true); setEditing(null); }}>
+          <Plus className="w-4 h-4 mr-2" />
+          New Routine
+        </Button>
+        
+        {routines && routines.length === 0 && (
+          <Button 
+            onClick={() => defaultRoutinesMutation.mutate()}
+            disabled={defaultRoutinesMutation.isPending}
+            variant="outline"
+            className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            {defaultRoutinesMutation.isPending ? 'Adding...' : 'Add Default Life-Tracking Routines'}
+          </Button>
+        )}
+      </div>
+
+      {routines && routines.length > 0 && (
+        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-medium text-blue-900">Want comprehensive life tracking?</h3>
+              <p className="text-sm text-blue-700">Add default routines that cover all dashboard analytics</p>
+            </div>
+            <Button 
+              onClick={() => defaultRoutinesMutation.mutate()}
+              disabled={defaultRoutinesMutation.isPending}
+              size="sm"
+              variant="outline"
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              {defaultRoutinesMutation.isPending ? 'Adding...' : 'Add Defaults'}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {showForm && (
         <RoutineForm
           initial={editing || undefined}
@@ -147,7 +279,14 @@ export default function Routines() {
       )}
       <Separator className="my-6" />
       <div className="space-y-4">
-        {routines && routines.length === 0 && <div>No routines yet.</div>}
+        {routines && routines.length === 0 && (
+          <div className="text-center py-8">
+            <div className="text-gray-500 mb-4">No routines yet.</div>
+            <p className="text-sm text-gray-400 mb-4">
+              Create custom routines or add our comprehensive default routines that track all the metrics shown in your dashboard analytics.
+            </p>
+          </div>
+        )}
         {routines && routines.map((routine) => (
           <Card key={routine.id} className="p-4 flex flex-col gap-2">
             <div className="flex justify-between items-center">
