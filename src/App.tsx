@@ -27,13 +27,13 @@ import Activity from './pages/ActivityPage';
 import Work from './pages/WorkPage';
 import Pain from './pages/PainPage';
 import Supplements from './pages/SupplementsPage';
-import { MorningRiseModal } from './components/MorningRiseModal';
-import { EveningUnwindModal } from './components/EveningUnwindModal';
+
+
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from './integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { DayLog } from './components/DayLog';
+
 
 const queryClient = new QueryClient();
 
