@@ -21,6 +21,12 @@ import LiquorHistory from "./pages/LiquorHistory";
 import Routines from './pages/Routines';
 import Sleep from './pages/SleepPage';
 import Mood from './pages/Mood';
+import Nutrition from './pages/Nutrition';
+import Hydration from './pages/Hydration';
+import Activity from './pages/ActivityPage';
+import Work from './pages/WorkPage';
+import Pain from './pages/PainPage';
+import Supplements from './pages/SupplementsPage';
 import { MorningRiseModal } from './components/MorningRiseModal';
 import { EveningUnwindModal } from './components/EveningUnwindModal';
 import { useEffect, useState } from 'react';
@@ -120,6 +126,12 @@ function AppContent() {
           <Route path="/routines" element={<Routines />} />
           <Route path="/sleep" element={<Sleep />} />
           <Route path="/mood" element={<Mood />} />
+          <Route path="/nutrition" element={<Nutrition />} />
+          <Route path="/hydration" element={<Hydration />} />
+          <Route path="/activity" element={<Activity />} />
+          <Route path="/work" element={<Work />} />
+          <Route path="/pain" element={<Pain />} />
+          <Route path="/supplements" element={<Supplements />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

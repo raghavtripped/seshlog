@@ -1,3 +1,5 @@
+// /src/hooks/useSleepEntries.ts
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -40,17 +42,17 @@ export const useSleepEntries = () => {
       
       // Transform the raw Supabase data into our clean SleepEntry type
       return data.map((entry): SleepEntry => {
-        const payload = entry.payload as Record<string, any> || {};
+        const payload = entry.payload as Record<string, unknown> || {};
         return {
           id: entry.id,
           user_id: entry.user_id,
           created_at: entry.created_at,
-          bedtime: payload.bedtime ?? '00:00',
-          wake_time: payload.wake_time ?? '00:00',
-          duration_hours: payload.duration_hours ?? 0,
-          quality_rating: payload.quality_rating ?? 3,
-          awakenings: payload.awakenings ?? 0,
-          notes: payload.notes ?? '',
+          bedtime: (payload.bedtime as string) ?? '00:00',
+          wake_time: (payload.wake_time as string) ?? '00:00',
+          duration_hours: (payload.duration_hours as number) ?? 0,
+          quality_rating: (payload.quality_rating as number) ?? 3,
+          awakenings: (payload.awakenings as number) ?? 0,
+          notes: (payload.notes as string) ?? '',
         };
       });
     },

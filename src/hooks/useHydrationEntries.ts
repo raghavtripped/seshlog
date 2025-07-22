@@ -1,32 +1,29 @@
-// /src/hooks/useMoodEntries.ts
+// /src/hooks/useHydrationEntries.ts
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import type { Json } from '@/integrations/supabase/types';
 
-// Define the MoodEntry type for consistency
-export type MoodEntry = {
+// Define the HydrationEntry type
+export type HydrationEntry = {
   id: string;
   user_id: string;
   created_at: string;
-  mood_level: number;
-  mood_type: string;
-  energy_level: number;
-  stress_level: number;
-  triggers?: string;
+  amount_ml: number; // Amount in milliliters
+  beverage_type: string; // e.g., 'water', 'coffee', 'juice'
   notes?: string;
 };
 
-// The new custom hook
-export const useMoodEntries = () => {
+// The custom hook for hydration entries
+export const useHydrationEntries = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const queryKey = ['mood_entries', user?.id];
+  const queryKey = ['hydration_entries', user?.id];
 
-  // Fetch mood entries
-  const { data: entries = [], isLoading, error } = useQuery<MoodEntry[]>({
+  // Fetch hydration entries
+  const { data: entries = [], isLoading, error } = useQuery<HydrationEntry[]>({
     queryKey,
     queryFn: async () => {
       if (!user) throw new Error('User not authenticated');
@@ -35,23 +32,20 @@ export const useMoodEntries = () => {
         .from('daily_events')
         .select('id, user_id, created_at, payload')
         .eq('user_id', user.id)
-        .eq('event_type', 'MOOD_LOG')
+        .eq('event_type', 'HYDRATION_LOG')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       
-      // Transform the Supabase data into our MoodEntry type
-      return data.map((entry): MoodEntry => {
+      // Transform the Supabase data into our HydrationEntry type
+      return data.map((entry): HydrationEntry => {
         const payload = entry.payload as Record<string, unknown> || {};
         return {
           id: entry.id,
           user_id: entry.user_id,
           created_at: entry.created_at,
-          mood_level: (payload.mood_level as number) ?? 5,
-          mood_type: (payload.mood_type as string) ?? 'neutral',
-          energy_level: (payload.energy_level as number) ?? 5,
-          stress_level: (payload.stress_level as number) ?? 5,
-          triggers: (payload.triggers as string) ?? '',
+          amount_ml: (payload.amount_ml as number) ?? 0,
+          beverage_type: (payload.beverage_type as string) ?? 'water',
           notes: (payload.notes as string) ?? '',
         };
       });
@@ -59,16 +53,16 @@ export const useMoodEntries = () => {
     enabled: !!user,
   });
 
-  // Add a new mood entry
+  // Add a new hydration entry
   const addEntry = useMutation({
-    mutationFn: async (newEntryData: Omit<MoodEntry, 'id' | 'user_id'>) => {
+    mutationFn: async (newEntryData: Omit<HydrationEntry, 'id' | 'user_id'>) => {
       if (!user) throw new Error('User not authenticated');
       
       const { created_at, ...payload } = newEntryData;
 
       const { error } = await supabase.from('daily_events').insert([{
         user_id: user.id,
-        event_type: 'MOOD_LOG',
+        event_type: 'HYDRATION_LOG',
         created_at: created_at,
         payload: payload as Json,
       }]);
