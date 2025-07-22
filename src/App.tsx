@@ -31,7 +31,8 @@ import CustomizableDashboard from './pages/CustomizableDashboard';
 
 const queryClient = new QueryClient();
 
-const App = () => {
+// Separate component for auth-dependent logic
+function AppContent() {
   const { user } = useAuth();
   const [showMorningModal, setShowMorningModal] = useState(false);
   const [showEveningModal, setShowEveningModal] = useState(false);
@@ -92,6 +93,48 @@ const App = () => {
   }, [user, reflectionLoading, dailyReflection]);
 
   return (
+    <>
+      <div className="min-h-screen bg-gray-50">
+        <nav className="p-4 bg-white shadow flex gap-4">
+          <Link to="/">Welcome</Link>
+          <Link to="/dashboard">Dashboard</Link>
+          <Link to="/custom-dashboard">Custom Dashboard</Link>
+          <Link to="/routines">Routines</Link>
+          <Link to="/categories">Legacy Sessions</Link>
+        </nav>
+        <Routes>
+          <Route path="/" element={<>
+            <Index />
+            <div className="max-w-2xl mx-auto mt-8">
+              <DayLog />
+            </div>
+          </>} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/custom-dashboard" element={<CustomizableDashboard />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/categories" element={<Categories />} />
+          <Route path="/cigs" element={<Cigs />} />
+          <Route path="/cigs/history" element={<CigsHistory />} />
+          <Route path="/vapes" element={<Vapes />} />
+          <Route path="/vapes/history" element={<VapesHistory />} />
+          <Route path="/liquor" element={<Liquor />} />
+          <Route path="/liquor/history" element={<LiquorHistory />} />
+          <Route path="/weed" element={<Weed />} />
+          <Route path="/weed/history" element={<WeedHistory />} />
+          <Route path="/routines" element={<Routines />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <MorningRiseModal open={showMorningModal} onOpenChange={setShowMorningModal} />
+        <EveningUnwindModal open={showEveningModal} onOpenChange={setShowEveningModal} />
+      </div>
+    </>
+  );
+}
+
+const App = () => {
+  return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
@@ -99,41 +142,7 @@ const App = () => {
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <div className="min-h-screen bg-gray-50">
-                <nav className="p-4 bg-white shadow flex gap-4">
-                  <Link to="/">Welcome</Link>
-                  <Link to="/dashboard">Dashboard</Link>
-                  <Link to="/custom-dashboard">Custom Dashboard</Link>
-                  <Link to="/routines">Routines</Link>
-                  <Link to="/categories">Legacy Sessions</Link>
-                </nav>
-                <Routes>
-                  <Route path="/" element={<>
-                    <Index />
-                    <div className="max-w-2xl mx-auto mt-8">
-                      <DayLog />
-                    </div>
-                  </>} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/custom-dashboard" element={<CustomizableDashboard />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/categories" element={<Categories />} />
-                  <Route path="/cigs" element={<Cigs />} />
-                  <Route path="/cigs/history" element={<CigsHistory />} />
-                  <Route path="/vapes" element={<Vapes />} />
-                  <Route path="/vapes/history" element={<VapesHistory />} />
-                  <Route path="/liquor" element={<Liquor />} />
-                  <Route path="/liquor/history" element={<LiquorHistory />} />
-                  <Route path="/weed" element={<Weed />} />
-                  <Route path="/weed/history" element={<WeedHistory />} />
-                  <Route path="/routines" element={<Routines />} />
-                  <Route path="/auth/callback" element={<AuthCallback />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                <MorningRiseModal open={showMorningModal} onOpenChange={setShowMorningModal} />
-                <EveningUnwindModal open={showEveningModal} onOpenChange={setShowEveningModal} />
-              </div>
+              <AppContent />
             </BrowserRouter>
           </TooltipProvider>
         </AuthProvider>
