@@ -26,8 +26,6 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from './integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { DayLog } from './components/DayLog';
-import Dashboard from './pages/Dashboard';
-import CustomizableDashboard from './pages/CustomizableDashboard';
 
 const queryClient = new QueryClient();
 
@@ -97,9 +95,7 @@ function AppContent() {
       <div className="min-h-screen bg-gray-50">
         <nav className="p-4 bg-white shadow flex gap-4">
           <Link to="/">Welcome</Link>
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/custom-dashboard">Custom Dashboard</Link>
-          <Link to="/routines">Routines</Link>
+          <Link to="/routines">Life Tracking</Link>
           <Link to="/categories">Legacy Sessions</Link>
         </nav>
         <Routes>
@@ -109,8 +105,6 @@ function AppContent() {
               <DayLog />
             </div>
           </>} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/custom-dashboard" element={<CustomizableDashboard />} />
           <Route path="/login" element={<Login />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/cigs" element={<Cigs />} />

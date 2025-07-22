@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useNavigate } from 'react-router-dom';
@@ -60,35 +59,27 @@ const Index = () => {
           <div className="brand-logo mx-auto float mb-6">
             <span className="brand-emoji">🎯</span>
           </div>
-          <h1 className="heading-xl gradient-text mb-4">Welcome to Codex</h1>
+          <h1 className="heading-xl gradient-text mb-4">Welcome to Sesh Log</h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
-            Your comprehensive life-logging platform with AI-powered insights. Track everything from sleep to productivity and discover patterns in your daily life.
+            Your simple life-tracking platform. Quick log daily activities and track patterns over time.
           </p>
         </div>
 
         {/* Feature Cards */}
-        <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
+        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-12">
           <div className="glass-card p-6 text-center hover:shadow-lg transition-shadow">
             <Calendar className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">Daily Routines</h3>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">Daily Tracking</h3>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Set up comprehensive tracking routines for sleep, nutrition, work, and activities
+              Quick log activities like sleep, mood, nutrition, hydration, and work sessions
             </p>
           </div>
           
           <div className="glass-card p-6 text-center hover:shadow-lg transition-shadow">
             <BarChart3 className="w-12 h-12 text-green-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">Smart Analytics</h3>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">Legacy Sessions</h3>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Visualize trends, correlations, and patterns in your life data with beautiful charts
-            </p>
-          </div>
-          
-          <div className="glass-card p-6 text-center hover:shadow-lg transition-shadow">
-            <Target className="w-12 h-12 text-purple-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">AI Insights</h3>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Get personalized insights about sleep quality, mood patterns, and health correlations
+              Continue tracking your traditional sessions from the original Sesh Log
             </p>
           </div>
         </div>
@@ -103,35 +94,24 @@ const Index = () => {
               className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white py-4 rounded-xl font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
             >
               <Calendar className="w-5 h-5 mr-3" />
-              Set Up Your Tracking Routines
+              Start Life Tracking
               <ArrowRight className="w-5 h-5 ml-3" />
             </Button>
             
-            <div className="grid md:grid-cols-2 gap-4">
-              <Button 
-                onClick={() => navigate('/dashboard')}
-                variant="outline"
-                className="py-3 rounded-xl border-2 border-green-200 text-green-700 hover:bg-green-50 transition-all duration-300"
-              >
-                <BarChart3 className="w-4 h-4 mr-2" />
-                View Analytics
-              </Button>
-              
-              <Button 
-                onClick={() => navigate('/custom-dashboard')}
-                variant="outline"
-                className="py-3 rounded-xl border-2 border-purple-200 text-purple-700 hover:bg-purple-50 transition-all duration-300"
-              >
-                <Target className="w-4 h-4 mr-2" />
-                Custom Dashboard
-              </Button>
-            </div>
+            <Button 
+              onClick={() => navigate('/categories')}
+              variant="outline"
+              className="w-full py-3 rounded-xl border-2 border-green-200 text-green-700 hover:bg-green-50 transition-all duration-300"
+            >
+              <Target className="w-4 h-4 mr-2" />
+              Legacy Sessions
+            </Button>
           </div>
 
           <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-            <h3 className="font-semibold text-amber-800 mb-2">💡 Pro Tip</h3>
+            <h3 className="font-semibold text-amber-800 mb-2">💡 Simple & Fast</h3>
             <p className="text-amber-700 text-sm">
-              Start by adding our default life-tracking routines in the Routines section. This will give you comprehensive tracking that powers all your dashboard analytics and AI insights!
+              Click "Start Life Tracking" to begin logging daily activities with simple one-click tracking cards!
             </p>
           </div>
         </div>
