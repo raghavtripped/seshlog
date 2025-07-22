@@ -3,13 +3,17 @@ import { useAuth } from '@/hooks/useAuth';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { LogOut, UserIcon, ArrowRight } from 'lucide-react';
+import { LogOut, UserIcon, Plus } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '../integrations/supabase/client';
+import type { Json } from '../integrations/supabase/types';
 
 export default function Routines() {
   const navigate = useNavigate();
   const { user, signOut, loading } = useAuth();
   const isMobile = useIsMobile();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -26,35 +30,36 @@ export default function Routines() {
     }
   };
 
-  const handleCategorySelect = (categoryId: string) => {
-    switch (categoryId) {
-      case 'sleep':
-        navigate('/sleep');
-        break;
-      case 'mood':
-        navigate('/mood');
-        break;
-      case 'nutrition':
-        navigate('/nutrition');
-        break;
-      case 'hydration':
-        navigate('/hydration');
-        break;
-      case 'activity':
-        navigate('/activity');
-        break;
-      case 'work':
-        navigate('/work');
-        break;
-      case 'pain':
-        navigate('/pain');
-        break;
-      case 'supplements':
-        navigate('/supplements');
-        break;
-      default:
-        navigate('/');
-    }
+  // Quick log function for any tracking item
+  const logActivity = useMutation({
+    mutationFn: async ({ activityType, data }: { activityType: string; data: Record<string, unknown> }) => {
+      if (!user) throw new Error('Not logged in');
+      
+      const { error } = await supabase
+        .from('daily_events')
+        .insert([{
+          user_id: user.id,
+          event_type: activityType,
+          payload: data as Json, // Type assertion for Json compatibility
+        }]);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['daily_events'] });
+    },
+  });
+
+  const handleQuickLog = (activityType: string, activityName: string) => {
+    const timestamp = new Date().toISOString();
+    logActivity.mutate({
+      activityType,
+      data: {
+        activity: activityName,
+        logged_at: timestamp,
+        quick_log: true,
+      }
+    });
   };
 
   const trackingActivities = [
@@ -63,56 +68,64 @@ export default function Routines() {
       title: 'Sleep Quality',
       emoji: '😴',
       description: isMobile ? 'Log sleep & wake time' : 'Track sleep quality, duration, and wake time',
-      gradient: 'from-indigo-500 to-purple-600'
+      gradient: 'from-indigo-500 to-purple-600',
+      eventType: 'SLEEP_LOG'
     },
     {
       id: 'mood',
       title: 'Mood Check',
       emoji: '😊',
       description: isMobile ? 'Rate your mood' : 'Track your mood and emotional state',
-      gradient: 'from-yellow-500 to-orange-600'
+      gradient: 'from-yellow-500 to-orange-600',
+      eventType: 'MOOD_LOG'
     },
     {
       id: 'nutrition',
       title: 'Nutrition',
       emoji: '🍎',
       description: isMobile ? 'Log meals & satisfaction' : 'Track meals, composition, and satisfaction',
-      gradient: 'from-green-500 to-emerald-600'
+      gradient: 'from-green-500 to-emerald-600',
+      eventType: 'NUTRITION_LOG'
     },
     {
       id: 'hydration',
       title: 'Hydration',
       emoji: '💧',
       description: isMobile ? 'Track water intake' : 'Log water, coffee, and beverage consumption',
-      gradient: 'from-blue-500 to-cyan-600'
+      gradient: 'from-blue-500 to-cyan-600',
+      eventType: 'HYDRATION_LOG'
     },
     {
       id: 'activity',
       title: 'Physical Activity',
       emoji: '💪',
       description: isMobile ? 'Log workouts & movement' : 'Track exercise, workouts, and physical activity',
-      gradient: 'from-red-500 to-pink-600'
+      gradient: 'from-red-500 to-pink-600',
+      eventType: 'ACTIVITY_LOG'
     },
     {
       id: 'work',
       title: 'Work Focus',
       emoji: '💼',
       description: isMobile ? 'Track work sessions' : 'Log work sessions and productivity levels',
-      gradient: 'from-gray-500 to-slate-600'
+      gradient: 'from-gray-500 to-slate-600',
+      eventType: 'WORK_LOG'
     },
     {
       id: 'pain',
       title: 'Pain/Stiffness',
       emoji: '🩹',
       description: isMobile ? 'Rate pain levels' : 'Track pain, stiffness, and body sensations',
-      gradient: 'from-rose-500 to-red-600'
+      gradient: 'from-rose-500 to-red-600',
+      eventType: 'SOMATIC_LOG'
     },
     {
       id: 'supplements',
       title: 'Supplements',
       emoji: '💊',
       description: isMobile ? 'Log supplements taken' : 'Track supplements and medications',
-      gradient: 'from-teal-500 to-green-600'
+      gradient: 'from-teal-500 to-green-600',
+      eventType: 'SUPPLEMENT_LOG'
     }
   ];
 
@@ -139,7 +152,7 @@ export default function Routines() {
           </div>
           <div>
             <h1 className={`${isMobile ? 'text-base font-bold' : 'heading-lg'} gradient-text`}>Life Tracking</h1>
-            <p className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>Choose what to track today</p>
+            <p className={`${isMobile ? 'text-xs' : 'body-sm'} text-gray-600 dark:text-gray-400`}>Quick log your daily activities</p>
           </div>
         </div>
         
@@ -174,7 +187,6 @@ export default function Routines() {
             {trackingActivities.map((activity) => (
               <div
                 key={activity.id}
-                onClick={() => handleCategorySelect(activity.id)}
                 className={`glass-card ${isMobile ? 'p-4' : 'p-6'} hover:scale-105 transition-all duration-300 cursor-pointer group`}
               >
                 <div className="flex flex-col h-full">
@@ -182,7 +194,18 @@ export default function Routines() {
                     <div className={`w-12 h-12 rounded-2xl bg-gradient-to-r ${activity.gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
                       <span className="text-xl">{activity.emoji}</span>
                     </div>
-                    <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-all duration-300" />
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleQuickLog(activity.eventType, activity.title);
+                      }}
+                      disabled={logActivity.isPending}
+                      size="sm"
+                      className={`bg-gradient-to-r ${activity.gradient} hover:opacity-90 text-white border-0 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300`}
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      {logActivity.isPending ? 'Logging...' : 'Quick Log'}
+                    </Button>
                   </div>
                   
                   <div className="flex-1">
@@ -198,10 +221,10 @@ export default function Routines() {
             ))}
           </div>
 
-          {/* Information section */}
+          {/* Quick stats or recent activity could go here in phase 2 */}
           <div className="text-center mt-8">
             <p className="text-gray-500 dark:text-gray-400 text-sm">
-              Click any card to start tracking that activity. Each has its own dedicated logging and history page!
+              Click "Quick Log" to instantly track any activity. More detailed logging coming soon!
             </p>
           </div>
         </div>
