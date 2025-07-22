@@ -109,9 +109,6 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<>
             <Index />
-            <div className="max-w-2xl mx-auto mt-8">
-              <DayLog />
-            </div>
           </>} />
           <Route path="/login" element={<Login />} />
           <Route path="/categories" element={<Categories />} />
@@ -136,8 +133,6 @@ function AppContent() {
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-        <MorningRiseModal open={showMorningModal} onOpenChange={setShowMorningModal} />
-        <EveningUnwindModal open={showEveningModal} onOpenChange={setShowEveningModal} />
       </div>
     </>
   );
