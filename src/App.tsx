@@ -19,7 +19,8 @@ import CigsHistory from "./pages/CigsHistory";
 import VapesHistory from "./pages/VapesHistory";
 import LiquorHistory from "./pages/LiquorHistory";
 import Routines from './pages/Routines';
-import Sleep from './pages/Sleep';
+import Sleep from './pages/SleepPage';
+import Mood from './pages/Mood';
 import { MorningRiseModal } from './components/MorningRiseModal';
 import { EveningUnwindModal } from './components/EveningUnwindModal';
 import { useEffect, useState } from 'react';
@@ -118,6 +119,7 @@ function AppContent() {
           <Route path="/weed/history" element={<WeedHistory />} />
           <Route path="/routines" element={<Routines />} />
           <Route path="/sleep" element={<Sleep />} />
+          <Route path="/mood" element={<Mood />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
