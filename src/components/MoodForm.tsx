@@ -173,4 +173,4 @@ export const MoodForm = ({ onFormClose, onSuccess }: MoodFormProps) => {
       </div>
     </div>
   );
-}; 
+};
