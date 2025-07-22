@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
@@ -18,38 +18,128 @@ import WeedHistory from "./pages/WeedHistory";
 import CigsHistory from "./pages/CigsHistory";
 import VapesHistory from "./pages/VapesHistory";
 import LiquorHistory from "./pages/LiquorHistory";
+import Routines from './pages/Routines';
+import { MorningRiseModal } from './components/MorningRiseModal';
+import { EveningUnwindModal } from './components/EveningUnwindModal';
+import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from './integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { DayLog } from './components/DayLog';
+import Dashboard from './pages/Dashboard';
+import CustomizableDashboard from './pages/CustomizableDashboard';
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/categories" element={<Categories />} />
-              <Route path="/cigs" element={<Cigs />} />
-              <Route path="/cigs/history" element={<CigsHistory />} />
-              <Route path="/vapes" element={<Vapes />} />
-              <Route path="/vapes/history" element={<VapesHistory />} />
-              <Route path="/liquor" element={<Liquor />} />
-              <Route path="/liquor/history" element={<LiquorHistory />} />
-              <Route path="/weed" element={<Weed />} />
-              <Route path="/weed/history" element={<WeedHistory />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const { user } = useAuth();
+  const [showMorningModal, setShowMorningModal] = useState(false);
+  const [showEveningModal, setShowEveningModal] = useState(false);
+
+  // Query for today's SLEEP_LOG
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const isoToday = today.toISOString();
+  const { data: sleepLog, isLoading } = useQuery({
+    queryKey: ['sleep_log_today', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from('daily_events')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('event_type', 'SLEEP_LOG')
+        .gte('created_at', isoToday)
+        .lte('created_at', new Date(today.getTime() + 24*60*60*1000 - 1).toISOString());
+      if (error) throw error;
+      return data && data.length > 0 ? data[0] : null;
+    },
+    enabled: !!user,
+  });
+
+  // Query for today's DAILY_REFLECTION
+  const { data: dailyReflection, isLoading: reflectionLoading } = useQuery({
+    queryKey: ['daily_reflection_today', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from('daily_events')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('event_type', 'DAILY_REFLECTION')
+        .gte('created_at', isoToday)
+        .lte('created_at', new Date(today.getTime() + 24*60*60*1000 - 1).toISOString());
+      if (error) throw error;
+      return data && data.length > 0 ? data[0] : null;
+    },
+    enabled: !!user,
+  });
+
+  useEffect(() => {
+    if (user && !isLoading && !sleepLog) {
+      setShowMorningModal(true);
+    }
+  }, [user, isLoading, sleepLog]);
+
+  useEffect(() => {
+    if (user && !reflectionLoading && !dailyReflection) {
+      const currentHour = new Date().getHours();
+      // Show evening modal after 6 PM
+      if (currentHour >= 18) {
+        setShowEveningModal(true);
+      }
+    }
+  }, [user, reflectionLoading, dailyReflection]);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <div className="min-h-screen bg-gray-50">
+                <nav className="p-4 bg-white shadow flex gap-4">
+                  <Link to="/">Welcome</Link>
+                  <Link to="/dashboard">Dashboard</Link>
+                  <Link to="/custom-dashboard">Custom Dashboard</Link>
+                  <Link to="/routines">Routines</Link>
+                  <Link to="/categories">Legacy Sessions</Link>
+                </nav>
+                <Routes>
+                  <Route path="/" element={<>
+                    <Index />
+                    <div className="max-w-2xl mx-auto mt-8">
+                      <DayLog />
+                    </div>
+                  </>} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/custom-dashboard" element={<CustomizableDashboard />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/categories" element={<Categories />} />
+                  <Route path="/cigs" element={<Cigs />} />
+                  <Route path="/cigs/history" element={<CigsHistory />} />
+                  <Route path="/vapes" element={<Vapes />} />
+                  <Route path="/vapes/history" element={<VapesHistory />} />
+                  <Route path="/liquor" element={<Liquor />} />
+                  <Route path="/liquor/history" element={<LiquorHistory />} />
+                  <Route path="/weed" element={<Weed />} />
+                  <Route path="/weed/history" element={<WeedHistory />} />
+                  <Route path="/routines" element={<Routines />} />
+                  <Route path="/auth/callback" element={<AuthCallback />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <MorningRiseModal open={showMorningModal} onOpenChange={setShowMorningModal} />
+                <EveningUnwindModal open={showEveningModal} onOpenChange={setShowEveningModal} />
+              </div>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
