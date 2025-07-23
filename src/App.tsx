@@ -27,6 +27,14 @@ import Activity from './pages/ActivityPage';
 import Work from './pages/WorkPage';
 import Pain from './pages/PainPage';
 import Supplements from './pages/SupplementsPage';
+import HydrationHistory from './pages/HydrationHistory';
+import SupplementsHistory from './pages/SupplementsHistory';
+import WorkHistory from './pages/WorkHistory';
+import MoodHistory from './pages/MoodHistory';
+import PainHistory from './pages/PainHistory';
+import SleepHistory from './pages/SleepHistory';
+import NutritionHistory from './pages/NutritionHistory';
+import ActivityHistory from './pages/ActivityHistory';
 import TopNavbar from "@/components/TopNavbar";
 import { BottomNavbar } from "@/components";
 
@@ -128,6 +136,14 @@ function AppContent() {
           <Route path="/work" element={<Work />} />
           <Route path="/pain" element={<Pain />} />
           <Route path="/supplements" element={<Supplements />} />
+          <Route path="/hydration/history" element={<HydrationHistory />} />
+          <Route path="/supplements/history" element={<SupplementsHistory />} />
+          <Route path="/work/history" element={<WorkHistory />} />
+          <Route path="/mood/history" element={<MoodHistory />} />
+          <Route path="/pain/history" element={<PainHistory />} />
+          <Route path="/sleep/history" element={<SleepHistory />} />
+          <Route path="/nutrition/history" element={<NutritionHistory />} />
+          <Route path="/activity/history" element={<ActivityHistory />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

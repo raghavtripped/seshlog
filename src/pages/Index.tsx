@@ -47,71 +47,57 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20">
-      {/* Theme Toggle */}
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
-      </div>
-
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 pt-16 pb-20">
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <div className="brand-logo mx-auto float mb-6">
             <span className="brand-emoji">🎯</span>
           </div>
           <h1 className="heading-xl gradient-text mb-4">Welcome to Sesh Log</h1>
-          <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground body-base max-w-2xl mx-auto">
             Your simple life-tracking platform. Quick log daily activities and track patterns over time.
           </p>
         </div>
 
-        {/* Feature Cards */}
-        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-12">
-          <div className="glass-card p-6 text-center hover:shadow-lg transition-shadow">
-            <Calendar className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">Daily Tracking</h3>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Quick log activities like sleep, mood, nutrition, hydration, and work sessions
-            </p>
-          </div>
-          
-          <div className="glass-card p-6 text-center hover:shadow-lg transition-shadow">
-            <BarChart3 className="w-12 h-12 text-green-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">Legacy Sessions</h3>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Continue tracking your traditional sessions from the original Sesh Log
-            </p>
-          </div>
-        </div>
-
         {/* Quick Actions */}
-        <div className="glass-card p-8 max-w-2xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6 text-center">Get Started</h2>
-          
-          <div className="space-y-4">
+        <div className="glass-card p-6 max-w-lg mx-auto mb-8">
+          <div className="space-y-3">
             <Button 
               onClick={() => navigate('/routines')}
-              className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white py-4 rounded-xl font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 rounded-xl font-semibold transition-all duration-300"
             >
-              <Calendar className="w-5 h-5 mr-3" />
+              <Calendar className="w-4 h-4 mr-2" />
               Start Life Tracking
-              <ArrowRight className="w-5 h-5 ml-3" />
+              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
             
             <Button 
               onClick={() => navigate('/categories')}
               variant="outline"
-              className="w-full py-3 rounded-xl border-2 border-green-200 text-green-700 hover:bg-green-50 transition-all duration-300"
+              className="w-full py-3 rounded-xl border-2 transition-all duration-300"
             >
               <Target className="w-4 h-4 mr-2" />
               Legacy Sessions
             </Button>
           </div>
+        </div>
 
-          <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-            <h3 className="font-semibold text-amber-800 mb-2">💡 Simple & Fast</h3>
-            <p className="text-amber-700 text-sm">
-              Click "Start Life Tracking" to begin logging daily activities with simple one-click tracking cards!
+        {/* Feature Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+          <div className="glass-card p-4 text-center">
+            <Calendar className="w-8 h-8 text-primary mx-auto mb-3" />
+            <h3 className="heading-md mb-2">Daily Tracking</h3>
+            <p className="text-muted-foreground body-sm">
+              Log sleep, mood, nutrition, and activities
+            </p>
+          </div>
+          
+          <div className="glass-card p-4 text-center">
+            <BarChart3 className="w-8 h-8 text-primary mx-auto mb-3" />
+            <h3 className="heading-md mb-2">Legacy Sessions</h3>
+            <p className="text-muted-foreground body-sm">
+              Track traditional sessions and substances
             </p>
           </div>
         </div>

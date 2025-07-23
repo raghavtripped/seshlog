@@ -160,8 +160,6 @@ const WeedHistory = () => {
         {/* Session History List */}
         <SessionList 
           sessions={filteredAndSortedSessions} 
-          isLoading={isLoading} 
-          error={error}
           category="weed"
           onEditSession={handleOpenEditForm}
           onDeleteSession={deleteSession}

@@ -166,8 +166,6 @@ const CigsHistory = () => {
         {/* Session History List */}
         <SessionList 
           sessions={filteredAndSortedSessions} 
-          isLoading={isLoading} 
-          error={error}
           category="cigs"
           onEditSession={handleOpenEditForm}
           onDeleteSession={deleteSession}

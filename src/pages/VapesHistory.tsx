@@ -160,8 +160,6 @@ const VapesHistory = () => {
         {/* Session History List */}
         <SessionList 
           sessions={filteredAndSortedSessions} 
-          isLoading={isLoading} 
-          error={error}
           category="vapes"
           onEditSession={handleOpenEditForm}
           onDeleteSession={deleteSession}
