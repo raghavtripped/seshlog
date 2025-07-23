@@ -188,6 +188,15 @@ export default function Routines() {
               <div
                 key={activity.id}
                 className={`glass-card ${isMobile ? 'p-4' : 'p-6'} hover:scale-105 transition-all duration-300 cursor-pointer group`}
+                onClick={() => navigate(`/${activity.id}`)}
+                tabIndex={0}
+                role="button"
+                aria-label={`Open ${activity.title} page`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    navigate(`/${activity.id}`);
+                  }
+                }}
               >
                 <div className="flex flex-col h-full">
                   <div className="flex items-center justify-between mb-3">
