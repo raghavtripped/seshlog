@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LogOut, User as UserIcon, LogIn, ChevronDown, Home, List, BarChart3, Calendar, Target, Moon, Sun, Monitor, Menu } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const trackers = [
   { to: "/sleep", label: "Sleep", icon: <Calendar className="w-4 h-4 mr-2" /> },
@@ -37,6 +38,7 @@ export const TopNavbar: React.FC = () => {
   const { user, signOut, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   const handleLogout = async () => {
     await signOut();
@@ -46,10 +48,10 @@ export const TopNavbar: React.FC = () => {
   return (
     <div className="sticky top-0 z-50 w-full bg-white/70 dark:bg-gray-900/80 backdrop-blur-md shadow-sm border-b border-gray-200 dark:border-gray-800">
       <div className="container mx-auto px-2 sm:px-6 py-2 flex items-center justify-between gap-2">
-        {/* Brand/Logo */}
+        {/* Brand/Logo (always show Seshlog text on mobile) */}
         <Link to="/" className="flex items-center gap-2 font-bold text-xl gradient-text hover:opacity-90 transition">
           <span className="brand-emoji text-2xl">📝</span>
-          <span className="hidden sm:inline">Sesh Log</span>
+          <span className={isMobile ? "inline" : "hidden sm:inline"}>Seshlog</span>
         </Link>
 
         {/* Main Navigation */}
@@ -85,11 +87,16 @@ export const TopNavbar: React.FC = () => {
         {/* Right Side: Theme, User, Auth */}
         <div className="flex items-center gap-2 sm:gap-3">
           <ThemeToggle />
+          {/* Show user email beside logout on mobile, and in glass card on desktop */}
           {user && (
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl glass-card-secondary">
-              <UserIcon className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-              <span className="text-gray-700 dark:text-gray-300 text-sm font-medium truncate max-w-[120px]">{user.email}</span>
-            </div>
+            isMobile ? (
+              <span className="text-gray-700 dark:text-gray-300 text-sm font-medium truncate max-w-[100px]">{user.email}</span>
+            ) : (
+              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl glass-card-secondary">
+                <UserIcon className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                <span className="text-gray-700 dark:text-gray-300 text-sm font-medium truncate max-w-[120px]">{user.email}</span>
+              </div>
+            )
           )}
           {user ? (
             <Button
@@ -100,7 +107,7 @@ export const TopNavbar: React.FC = () => {
               title="Logout"
             >
               <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline ml-1">Logout</span>
+              <span className={isMobile ? "inline ml-1" : "hidden sm:inline ml-1"}>Logout</span>
             </Button>
           ) : !loading && (
             <Button
