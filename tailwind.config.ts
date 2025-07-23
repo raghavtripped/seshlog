@@ -19,6 +19,16 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				sans: ["'InterVariable'", 'system-ui', 'sans-serif'],
+			},
+			screens: {
+				'xs': '375px', // iPhone SE
+				'sm': '640px',
+				'md': '768px',
+				'lg': '1024px',
+				'xl': '1280px',
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',

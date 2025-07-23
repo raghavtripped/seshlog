@@ -4,6 +4,24 @@
 
 /* Money Pots Tracker Design System */
 
+@import "@fontsource/inter/variable.css";
+
+:root {
+  font-family: 'InterVariable', system-ui, sans-serif;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'InterVariable', system-ui, sans-serif;
+  font-size: 1rem;
+  margin: 0;
+  padding: 0;
+  background: #fff;
+  color: #111;
+}
+
 @layer base {
   :root {
     /* Primary Brand Colors */
@@ -430,3 +448,48 @@
   .backdrop-blur-md { backdrop-filter: blur(8px); }
   .backdrop-blur-lg { backdrop-filter: blur(12px); }
 }
+
+/* --- Mobile-Optimized Typography --- */
+.heading-xl {
+  font-size: clamp(2rem, 6vw, 3rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+.heading-lg {
+  font-size: clamp(1.5rem, 5vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.15;
+}
+.heading-md {
+  font-size: clamp(1.25rem, 4vw, 1.5rem);
+  font-weight: 600;
+  line-height: 1.2;
+}
+.body-lg {
+  font-size: clamp(1rem, 3vw, 1.125rem);
+  font-weight: 400;
+  line-height: 1.5;
+}
+.body-sm {
+  font-size: clamp(0.875rem, 2vw, 1rem);
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* --- Mobile-Optimized Spacing --- */
+@media (max-width: 640px) {
+  .container, .max-w-6xl, .max-w-4xl, .max-w-2xl, .max-w-sm {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  .heading-xl, .heading-lg, .heading-md {
+    text-align: left;
+  }
+  .glass-card, .glass-card-secondary {
+    padding: 1rem !important;
+  }
+}
+
+/* --- Utility: Hide on Mobile/Desktop --- */
+.hide-mobile { display: none !important; }
+@media (min-width: 641px) { .hide-desktop { display: none !important; } }
