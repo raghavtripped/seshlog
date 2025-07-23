@@ -203,18 +203,7 @@ export default function Routines() {
                     <div className={`w-12 h-12 rounded-2xl bg-gradient-to-r ${activity.gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
                       <span className="text-xl">{activity.emoji}</span>
                     </div>
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleQuickLog(activity.eventType, activity.title);
-                      }}
-                      disabled={logActivity.isPending}
-                      size="sm"
-                      className={`bg-gradient-to-r ${activity.gradient} hover:opacity-90 text-white border-0 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300`}
-                    >
-                      <Plus className="w-4 h-4 mr-1" />
-                      {logActivity.isPending ? 'Logging...' : 'Quick Log'}
-                    </Button>
+                    {/* Quick Log button removed */}
                   </div>
                   
                   <div className="flex-1">
