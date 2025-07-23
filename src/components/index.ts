@@ -17,3 +17,4 @@ export { FilterSortDialog } from './FilterSortDialog';
 export { SessionList } from './SessionList';
 export { SessionStats } from './SessionStats';
 export { Insights } from './Insights';
+export { BottomNavbar } from "./BottomNavbar";

@@ -28,6 +28,7 @@ import Work from './pages/WorkPage';
 import Pain from './pages/PainPage';
 import Supplements from './pages/SupplementsPage';
 import TopNavbar from "@/components/TopNavbar";
+import { BottomNavbar } from "@/components";
 
 
 import { useEffect, useState } from 'react';
@@ -103,6 +104,7 @@ function AppContent() {
     <>
       <div className="min-h-screen bg-gray-50">
         <TopNavbar />
+        <BottomNavbar />
         <Routes>
           <Route path="/" element={<>
             <Index />
