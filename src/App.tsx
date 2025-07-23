@@ -27,6 +27,7 @@ import Activity from './pages/ActivityPage';
 import Work from './pages/WorkPage';
 import Pain from './pages/PainPage';
 import Supplements from './pages/SupplementsPage';
+import TopNavbar from "@/components/TopNavbar";
 
 
 import { useEffect, useState } from 'react';
@@ -101,11 +102,7 @@ function AppContent() {
   return (
     <>
       <div className="min-h-screen bg-gray-50">
-        <nav className="p-4 bg-white shadow flex gap-4">
-          <Link to="/">Welcome</Link>
-          <Link to="/routines">Life Tracking</Link>
-          <Link to="/categories">Legacy Sessions</Link>
-        </nav>
+        <TopNavbar />
         <Routes>
           <Route path="/" element={<>
             <Index />
