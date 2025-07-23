@@ -70,10 +70,17 @@ export const TopNavbar: React.FC = () => {
               </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <Link to="/categories" className="px-4 py-2 rounded-lg hover:bg-accent/40 transition font-medium flex items-center gap-2">
+                  <Target className="w-4 h-4" /> Substance Tracking
+                </Link>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
               <NavigationMenuTrigger className="px-4 py-2 rounded-lg font-medium flex items-center gap-2">
                 <List className="w-4 h-4" /> Trackers <ChevronDown className="w-4 h-4 ml-1" />
               </NavigationMenuTrigger>
-              <NavigationMenuContent className="min-w-[220px] bg-white dark:bg-gray-900 rounded-xl shadow-xl p-2">
+              <NavigationMenuContent className="min-w-[220px] bg-white dark:bg-gray-900 rounded-xl shadow-xl p-2 mt-2">
                 <div className="flex flex-col gap-1">
                   {trackers.map((item) => (
                     <Link
@@ -91,7 +98,7 @@ export const TopNavbar: React.FC = () => {
               <NavigationMenuTrigger className="px-4 py-2 rounded-lg font-medium flex items-center gap-2">
                 <BarChart3 className="w-4 h-4" /> Legacy <ChevronDown className="w-4 h-4 ml-1" />
               </NavigationMenuTrigger>
-              <NavigationMenuContent className="min-w-[220px] bg-white dark:bg-gray-900 rounded-xl shadow-xl p-2">
+              <NavigationMenuContent className="min-w-[220px] bg-white dark:bg-gray-900 rounded-xl shadow-xl p-2 mt-2">
                 <div className="flex flex-col gap-1">
                   {legacy.map((item) => (
                     <Link
