@@ -46,12 +46,18 @@ export const PainForm = ({ onFormClose, onSuccess }: PainFormProps) => {
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium">Pain Level: {painLevel}/10</label>
-          <input type="range" min="0" max="10" value={painLevel} onChange={(e) => setPainLevel(parseInt(e.target.value))} className="w-full accent-red-500" />
+          <input type="range" min="0" max="10" value={painLevel} onChange={(e) => {
+            const value = e.target.value;
+            setPainLevel(value === '' ? 0 : parseInt(value));
+          }} className="w-full accent-red-500" />
         </div>
         
         <div>
           <label className="block text-sm font-medium">Stiffness Level: {stiffnessLevel}/10</label>
-          <input type="range" min="0" max="10" value={stiffnessLevel} onChange={(e) => setStiffnessLevel(parseInt(e.target.value))} className="w-full accent-gray-500" />
+          <input type="range" min="0" max="10" value={stiffnessLevel} onChange={(e) => {
+            const value = e.target.value;
+            setStiffnessLevel(value === '' ? 0 : parseInt(value));
+          }} className="w-full accent-gray-500" />
         </div>
 
         <div>

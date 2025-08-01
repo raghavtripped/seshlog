@@ -118,7 +118,10 @@ export const SleepForm = ({ onFormClose, onSuccess }: SleepFormProps) => {
             min="0"
             max="20"
             value={awakenings}
-            onChange={(e) => setAwakenings(parseInt(e.target.value) || 0)}
+            onChange={(e) => {
+              const value = e.target.value;
+              setAwakenings(value === '' ? 0 : parseInt(value) || 0);
+            }}
             className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           />
         </div>

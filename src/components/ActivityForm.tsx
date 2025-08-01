@@ -74,7 +74,10 @@ export const ActivityForm = ({ onFormClose, onSuccess }: ActivityFormProps) => {
           <input
             type="number"
             value={duration}
-            onChange={(e) => setDuration(parseInt(e.target.value) || 0)}
+            onChange={(e) => {
+              const value = e.target.value;
+              setDuration(value === '' ? 0 : parseInt(value) || 0);
+            }}
             className="w-full p-3 mt-1 border rounded-lg"
           />
         </div>

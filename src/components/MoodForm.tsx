@@ -83,7 +83,10 @@ export const MoodForm = ({ onFormClose, onSuccess }: MoodFormProps) => {
             min="1"
             max="10"
             value={moodLevel}
-            onChange={(e) => setMoodLevel(parseInt(e.target.value))}
+            onChange={(e) => {
+              const value = e.target.value;
+              setMoodLevel(value === '' ? 1 : parseInt(value));
+            }}
             className="w-full accent-yellow-500"
           />
           <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -101,7 +104,10 @@ export const MoodForm = ({ onFormClose, onSuccess }: MoodFormProps) => {
             min="1"
             max="10"
             value={energyLevel}
-            onChange={(e) => setEnergyLevel(parseInt(e.target.value))}
+            onChange={(e) => {
+              const value = e.target.value;
+              setEnergyLevel(value === '' ? 1 : parseInt(value));
+            }}
             className="w-full accent-green-500"
           />
           <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -119,7 +125,10 @@ export const MoodForm = ({ onFormClose, onSuccess }: MoodFormProps) => {
             min="1"
             max="10"
             value={stressLevel}
-            onChange={(e) => setStressLevel(parseInt(e.target.value))}
+            onChange={(e) => {
+              const value = e.target.value;
+              setStressLevel(value === '' ? 1 : parseInt(value));
+            }}
             className="w-full accent-red-500"
           />
           <div className="flex justify-between text-xs text-gray-500 mt-1">

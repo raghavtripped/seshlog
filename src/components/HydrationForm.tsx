@@ -50,7 +50,10 @@ export const HydrationForm = ({ onFormClose, onSuccess }: HydrationFormProps) =>
             max="1500"
             step="10"
             value={amount}
-            onChange={(e) => setAmount(parseInt(e.target.value))}
+            onChange={(e) => {
+              const value = e.target.value;
+              setAmount(value === '' ? 50 : parseInt(value));
+            }}
             className="w-full accent-blue-500"
           />
           <div className="flex justify-between text-xs text-gray-500 mt-1">

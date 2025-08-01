@@ -86,7 +86,10 @@ export const NutritionForm = ({ onFormClose, onSuccess }: NutritionFormProps) =>
           <input
             type="number"
             value={calories}
-            onChange={(e) => setCalories(parseInt(e.target.value) || 0)}
+            onChange={(e) => {
+              const value = e.target.value;
+              setCalories(value === '' ? 0 : parseInt(value) || 0);
+            }}
             className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           />
         </div>

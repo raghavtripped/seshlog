@@ -61,7 +61,10 @@ export const WorkForm = ({ onFormClose, onSuccess }: WorkFormProps) => {
             type="range"
             min="15" max="240" step="15"
             value={duration}
-            onChange={(e) => setDuration(parseInt(e.target.value))}
+            onChange={(e) => {
+              const value = e.target.value;
+              setDuration(value === '' ? 15 : parseInt(value));
+            }}
             className="w-full accent-indigo-500"
           />
         </div>

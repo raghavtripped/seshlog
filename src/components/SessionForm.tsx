@@ -26,7 +26,7 @@ interface FormState {
   quantity: number;
   participantCount: number;
   liquorServingSize: LiquorServingSize;
-  customServingSize: number;
+  customServingSize: string; // Changed from number to string
   notes: string;
   rating: number;
   sessionDate: string;
@@ -99,7 +99,7 @@ const getSessionTypesForCategory = (category: Category) => {
     case 'weed': return [{ value: 'Joint', label: '🌿 Joint'}, { value: 'Bong', label: '💨 Bong'}, { value: 'Vape', label: '💨 Vape'}, { value: 'Edible', label: '🍪 Edible'}, { value: 'Other', label: '🔄 Other'}];
     case 'cigs': return [{ value: 'Regular', label: '🚬 Regular'}, { value: 'Light', label: '🚬 Light'}, { value: 'Menthol', label: '🌿 Menthol'}, { value: 'Other', label: '🔄 Other'}];
     case 'vapes': return [{ value: 'Disposable', label: '💨 Disposable'}, { value: 'Pod', label: '🔋 Pod'}, { value: 'Mod', label: '🔧 Mod'}, { value: 'Other', label: '🔄 Other'}];
-    case 'liquor': return [{ value: 'Beer', label: '🍺 Beer'}, { value: 'Wine', label: '🍷 Wine'}, { value: 'Spirits', label: '🥃 Spirits'}, { value: 'Cocktail', label: '🍸 Cocktail'}, { value: 'Other', label: '🔄 Other'}];
+    case 'liquor': return [{ value: 'Beer', label: '🍺 Beer'}, { value: 'Wine', label: '🍷 Wine'}, { value: 'Spirits', label: '�� Spirits'}, { value: 'Cocktail', label: '🍸 Cocktail'}, { value: 'Other', label: '🔄 Other'}];
     default: return [{ value: 'Other', label: '🔄 Other'}];
   }
 };
@@ -172,7 +172,7 @@ const SessionFormComponent = ({
       quantity: defaultQuantity,
       participantCount: initialSession?.participant_count || 1,
       liquorServingSize: initialSession?.liquor_serving_size || '330ml (Beer Bottle)' as LiquorServingSize,
-      customServingSize: 0,
+      customServingSize: '', // Initialize as empty string
       notes: initialSession?.notes || '',
       rating: initialSession?.rating || 3,
       sessionDate: toDateTimeLocalString(initialDate), // Use our timezone-aware formatter
@@ -250,7 +250,7 @@ const SessionFormComponent = ({
   const consumptionDisplay = useMemo(() => {
     if (category === 'liquor') {
       const selectedSize = servingSizes.find(size => size.value === formState.liquorServingSize);
-      const mlPerServing = formState.liquorServingSize === 'Custom' ? formState.customServingSize : (selectedSize?.ml || 0);
+      const mlPerServing = formState.liquorServingSize === 'Custom' ? Number(formState.customServingSize) || 0 : (selectedSize?.ml || 0);
       const totalMl = formState.quantity * mlPerServing;
       return `${totalMl.toFixed(0)} ml`;
     }
@@ -321,7 +321,7 @@ const SessionFormComponent = ({
                 <SelectContent>{servingSizes.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
               </Select>
               {formState.liquorServingSize === 'Custom' && (
-                <Input type="number" placeholder="Enter size in ml" value={formState.customServingSize} onChange={e => handleStateChange('customServingSize', Number(e.target.value))} className="mt-2 h-12 rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600" />
+                <Input type="number" placeholder="Enter size in ml" value={formState.customServingSize} onChange={e => handleStateChange('customServingSize', e.target.value)} className="mt-2 h-12 rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600" />
               )}
             </div>
           ) : (
@@ -404,8 +404,10 @@ const SmartQuantityControl = ({
             value={value} 
             step={config.step}
             onChange={e => {
-              const num = Number(e.target.value);
-              if (!isNaN(num) && num >= 0) onChange(num);
+              const value = e.target.value;
+              if (value === '' || !isNaN(Number(value))) {
+                onChange(value === '' ? 0 : Number(value));
+              }
             }} 
             className="h-12 text-center text-lg font-bold rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
           />
@@ -445,8 +447,11 @@ const QuantityControl = ({ label, value, onChange, min = 1, max = 99, step = 1 }
         <Minus className="w-5 h-5" />
       </Button>
       <Input type="number" value={value} onChange={e => {
-          const num = Number(e.target.value);
-          if (!isNaN(num) && num >= min) onChange(num);
+          const value = e.target.value;
+          if (value === '' || !isNaN(Number(value))) {
+            const num = value === '' ? min : Number(value);
+            if (num >= min) onChange(num);
+          }
       }} className="h-12 text-center text-lg font-bold rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
       <Button type="button" variant="outline" size="icon" onClick={() => onChange(Math.min(max, value + step))} disabled={value >= max} className="h-12 w-12 rounded-lg">
         <Plus className="w-5 h-5" />
