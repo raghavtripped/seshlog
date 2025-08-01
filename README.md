@@ -106,6 +106,8 @@
 
 Pull requests and issues are welcome! Please open an issue to discuss your ideas or report bugs.
 
+**Note**: This project is actively maintained and regularly updated with new features and improvements.
+
 ---
 
 ## License
