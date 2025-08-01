@@ -23,8 +23,8 @@ interface SessionFormProps {
 // --- Form State Interface ---
 interface FormState {
   sessionType: SessionType;
-  quantity: number;
-  participantCount: number;
+  quantity: string; // Changed from number to string for better input handling
+  participantCount: string; // Changed from number to string for better input handling
   liquorServingSize: LiquorServingSize;
   customServingSize: string; // Changed from number to string
   notes: string;
@@ -169,8 +169,8 @@ const SessionFormComponent = ({
     
     return {
       sessionType: defaultSessionType,
-      quantity: defaultQuantity,
-      participantCount: initialSession?.participant_count || 1,
+      quantity: defaultQuantity.toString(),
+      participantCount: (initialSession?.participant_count || 1).toString(),
       liquorServingSize: initialSession?.liquor_serving_size || '330ml (Beer Bottle)' as LiquorServingSize,
       customServingSize: '', // Initialize as empty string
       notes: initialSession?.notes || '',
@@ -197,7 +197,7 @@ const SessionFormComponent = ({
     // Update quantity to smart default if this is a new session and weed category
     if (!initialSession && category === 'weed') {
       const config = getWeedTypeConfig(newSessionType);
-      handleStateChange('quantity', config.defaultQuantity);
+      handleStateChange('quantity', config.defaultQuantity.toString());
     }
   };
   
@@ -212,11 +212,11 @@ const SessionFormComponent = ({
       category: category, // Required by SessionInsert
       user_id: '', // Required by SessionInsert (will be overridden by useSessions hook)
       session_type: formState.sessionType,
-      quantity: formState.quantity,
+      quantity: parseFloat(formState.quantity) || 0,
       notes: formState.notes.trim() || null,
       rating: formState.rating,
       session_date: submissionDate, // Now properly typed as string
-      participant_count: formState.participantCount,
+      participant_count: parseInt(formState.participantCount) || 1,
       ...(category === 'liquor' && { liquor_serving_size: formState.liquorServingSize }),
     };
 
@@ -251,17 +251,17 @@ const SessionFormComponent = ({
     if (category === 'liquor') {
       const selectedSize = servingSizes.find(size => size.value === formState.liquorServingSize);
       const mlPerServing = formState.liquorServingSize === 'Custom' ? Number(formState.customServingSize) || 0 : (selectedSize?.ml || 0);
-      const totalMl = formState.quantity * mlPerServing;
+      const totalMl = (parseFloat(formState.quantity) || 0) * mlPerServing;
       return `${totalMl.toFixed(0)} ml`;
     }
     
     if (category === 'weed') {
       const config = getWeedTypeConfig(formState.sessionType);
-      const perPerson = formState.quantity / formState.participantCount;
+      const perPerson = (parseFloat(formState.quantity) || 0) / (parseInt(formState.participantCount) || 1);
       return `${perPerson.toFixed(config.step >= 1 ? 0 : 2)} ${config.unit} per person`;
     }
     
-    const perPerson = formState.quantity / formState.participantCount;
+    const perPerson = (parseFloat(formState.quantity) || 0) / (parseInt(formState.participantCount) || 1);
     return `${perPerson.toFixed(2)} per person`;
   }, [category, formState.quantity, formState.participantCount, formState.liquorServingSize, formState.customServingSize, formState.sessionType, servingSizes]);
 
@@ -376,8 +376,8 @@ const SmartQuantityControl = ({
 }: {
   category: Category;
   sessionType: SessionType;
-  value: number;
-  onChange: (value: number) => void;
+  value: string;
+  onChange: (value: string) => void;
 }) => {
   const label = getQuantityLabel(category, sessionType);
   
@@ -393,8 +393,12 @@ const SmartQuantityControl = ({
             type="button" 
             variant="outline" 
             size="icon" 
-            onClick={() => onChange(Math.max(config.step, +(value - config.step).toFixed(decimals)))}
-            disabled={value <= config.step} 
+            onClick={() => {
+              const currentValue = parseFloat(value) || 0;
+              const newValue = Math.max(config.step, +(currentValue - config.step).toFixed(decimals));
+              onChange(newValue.toString());
+            }}
+            disabled={(parseFloat(value) || 0) <= config.step} 
             className="h-12 w-12 rounded-lg"
           >
             <Minus className="w-5 h-5" />
@@ -404,10 +408,8 @@ const SmartQuantityControl = ({
             value={value} 
             step={config.step}
             onChange={e => {
-              const value = e.target.value;
-              if (value === '' || !isNaN(Number(value))) {
-                onChange(value === '' ? 0 : Number(value));
-              }
+              const inputValue = e.target.value;
+              onChange(inputValue);
             }} 
             className="h-12 text-center text-lg font-bold rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
           />
@@ -415,7 +417,11 @@ const SmartQuantityControl = ({
             type="button" 
             variant="outline" 
             size="icon" 
-            onClick={() => onChange(+(value + config.step).toFixed(decimals))}
+            onClick={() => {
+              const currentValue = parseFloat(value) || 0;
+              const newValue = +(currentValue + config.step).toFixed(decimals);
+              onChange(newValue.toString());
+            }}
             className="h-12 w-12 rounded-lg"
           >
             <Plus className="w-5 h-5" />
@@ -434,8 +440,8 @@ const SmartQuantityControl = ({
 
 const QuantityControl = ({ label, value, onChange, min = 1, max = 99, step = 1 }: {
   label: string;
-  value: number;
-  onChange: (value: number) => void;
+  value: string;
+  onChange: (value: string) => void;
   min?: number;
   max?: number;
   step?: number;
@@ -443,17 +449,22 @@ const QuantityControl = ({ label, value, onChange, min = 1, max = 99, step = 1 }
   <div className="space-y-2">
     <Label className="font-medium text-gray-700 dark:text-gray-300">{label}</Label>
     <div className="flex items-center gap-2">
-      <Button type="button" variant="outline" size="icon" onClick={() => onChange(Math.max(min, value - step))} disabled={value <= min} className="h-12 w-12 rounded-lg">
+      <Button type="button" variant="outline" size="icon" onClick={() => {
+        const currentValue = parseInt(value) || min;
+        const newValue = Math.max(min, currentValue - step);
+        onChange(newValue.toString());
+      }} disabled={(parseInt(value) || min) <= min} className="h-12 w-12 rounded-lg">
         <Minus className="w-5 h-5" />
       </Button>
       <Input type="number" value={value} onChange={e => {
-          const value = e.target.value;
-          if (value === '' || !isNaN(Number(value))) {
-            const num = value === '' ? min : Number(value);
-            if (num >= min) onChange(num);
-          }
+          const inputValue = e.target.value;
+          onChange(inputValue);
       }} className="h-12 text-center text-lg font-bold rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-      <Button type="button" variant="outline" size="icon" onClick={() => onChange(Math.min(max, value + step))} disabled={value >= max} className="h-12 w-12 rounded-lg">
+      <Button type="button" variant="outline" size="icon" onClick={() => {
+        const currentValue = parseInt(value) || min;
+        const newValue = Math.min(max, currentValue + step);
+        onChange(newValue.toString());
+      }} disabled={(parseInt(value) || min) >= max} className="h-12 w-12 rounded-lg">
         <Plus className="w-5 h-5" />
       </Button>
     </div>
