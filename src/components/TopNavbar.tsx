@@ -18,12 +18,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const trackers = [
   { to: "/sleep", label: "Sleep", icon: <Calendar className="w-4 h-4 mr-2" /> },
   { to: "/mood", label: "Mood", icon: <BarChart3 className="w-4 h-4 mr-2" /> },
-  { to: "/nutrition", label: "Nutrition", icon: <span className="mr-2">🍎</span> },
   { to: "/hydration", label: "Hydration", icon: <span className="mr-2">💧</span> },
   { to: "/activity", label: "Activity", icon: <span className="mr-2">🔥</span> },
-  { to: "/work", label: "Work", icon: <span className="mr-2">🎯</span> },
-  { to: "/pain", label: "Pain", icon: <span className="mr-2">🩹</span> },
-  { to: "/supplements", label: "Supplements", icon: <span className="mr-2">💊</span> },
 ];
 
 const legacy = [

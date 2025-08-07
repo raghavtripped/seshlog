@@ -1,12 +1,9 @@
 // Barrel exports for form components
 export { MoodForm } from './MoodForm';
 export { SleepForm } from './SleepForm';
-export { NutritionForm } from './NutritionForm';
 export { HydrationForm } from './HydrationForm';
 export { ActivityForm } from './ActivityForm';
-export { WorkForm } from './WorkForm';
-export { PainForm } from './PainForm';
-export { SupplementsForm } from './SupplementsForm';
+// removed nutrition/work/pain/supplements forms
 
 // Other component exports
 export { SessionForm } from './SessionForm';

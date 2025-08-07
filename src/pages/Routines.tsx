@@ -80,14 +80,6 @@ export default function Routines() {
       eventType: 'MOOD_LOG'
     },
     {
-      id: 'nutrition',
-      title: 'Nutrition',
-      emoji: '🍎',
-      description: isMobile ? 'Log meals & satisfaction' : 'Track meals, composition, and satisfaction',
-      gradient: 'from-green-500 to-emerald-600',
-      eventType: 'NUTRITION_LOG'
-    },
-    {
       id: 'hydration',
       title: 'Hydration',
       emoji: '💧',
@@ -103,30 +95,7 @@ export default function Routines() {
       gradient: 'from-red-500 to-pink-600',
       eventType: 'ACTIVITY_LOG'
     },
-    {
-      id: 'work',
-      title: 'Work Focus',
-      emoji: '💼',
-      description: isMobile ? 'Track work sessions' : 'Log work sessions and productivity levels',
-      gradient: 'from-gray-500 to-slate-600',
-      eventType: 'WORK_LOG'
-    },
-    {
-      id: 'pain',
-      title: 'Pain/Stiffness',
-      emoji: '🩹',
-      description: isMobile ? 'Rate pain levels' : 'Track pain, stiffness, and body sensations',
-      gradient: 'from-rose-500 to-red-600',
-      eventType: 'SOMATIC_LOG'
-    },
-    {
-      id: 'supplements',
-      title: 'Supplements',
-      emoji: '💊',
-      description: isMobile ? 'Log supplements taken' : 'Track supplements and medications',
-      gradient: 'from-teal-500 to-green-600',
-      eventType: 'SUPPLEMENT_LOG'
-    }
+    // removed nutrition, work, pain, supplements
   ];
 
   if (loading) {
@@ -185,12 +154,7 @@ export default function Routines() {
             ))}
           </div>
 
-          {/* Quick stats or recent activity could go here in phase 2 */}
-          <div className="text-center mt-8">
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
-              Click "Quick Log" to instantly track any activity. More detailed logging coming soon!
-            </p>
-          </div>
+          {/* Removed extra blurb for lean UI */}
         </div>
       </main>
     </div>

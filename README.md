@@ -2,23 +2,18 @@
 
 ## Overview
 
-**Sesh Log** is a modern, privacy-focused tracker for life routines (sleep, mood, hydration, nutrition, activity, work, pain, supplements) and legacy substance sessions (weed, cigarettes, vapes, liquor). It features a clean shell layout, intuitive mobile-first UX, and secure Supabase auth.
+**Sesh Log** is a modern, privacy-focused tracker for life routines (sleep, mood, hydration, physical activity) and legacy substance sessions (weed, cigarettes, vapes, liquor). The app is now lean by design with a simplified UI/UX.
 
 ---
 
 ## Features
 
-### ✨ Multi-Category Session Tracking
-- **Weed**: Log sessions by type (Joint, Bong, Vape, Edible, Other), quantity, participants, notes, and rating.
-- **Cigarettes**: Track regular, light, menthol, and e-cigarette sessions, with quantity, people, notes, and rating.
-- **Vapes**: Log disposable, pod, mod, and pen sessions, with detailed stats.
-- **Liquor**: Track beer, wine, spirits, cocktails, and custom servings, including serving size, quantity, and notes.
+### ✨ Tracking
+- **Legacy**: Weed, Cigarettes, Vapes, Liquor.
+- **Life**: Sleep, Mood, Hydration, Physical Activity.
 
 ### 📊 Analytics & Insights
-- **Session Stats**: See total sessions, consumption per person, and top types for any period.
-- **Insights Dashboard**: Interactive charts (by day, week, month, year) show trends over time.
-- **Key Metrics**: Average per session, social session percentage, favorite day, and peak hour.
-- **Filter & Sort**: Filter by type, date range, and sort sessions for deep analysis.
+- Quick stats and insights for the features above.
 
 ### 📝 Session Details
 - Add notes, ratings, and participant count to each session.
@@ -121,7 +116,7 @@ MIT
 - `src/app/providers/AppProviders.tsx`: Central providers (React Query, Theme, Auth, Tooltips, Toasters)
 - `src/app/layouts/RootLayout.tsx`: App shell with `TopNavbar`, `BottomNavbar`, and `Outlet`
 - `src/app/router.tsx`: Router with lazy-loaded routes and `ProtectedRoute`
-- `src/features/daily/*/components/*Form.tsx`: Daily tracker forms moved under feature folders
+- `src/features/daily/*/components/*Form.tsx`: Daily tracker forms (sleep, mood, hydration, activity)
 - `src/pages/*`: Pages remain; imports updated to use feature forms
 
 Notes:
@@ -134,6 +129,5 @@ Notes:
 - Unified spacing, shadows, and rounded radii across pages
 - Fixed dynamic Tailwind class in `AppDashboard` to avoid invalid class generation
 - Improved bottom nav active state with a subtle indicator dot
-- Introduced lazy-loaded routes with loading fallbacks to improve perceived performance
-- Guarded private routes via `ProtectedRoute`
+- Leaned the app: removed Nutrition, Work Focus, Pain, and Supplements features and routes
 

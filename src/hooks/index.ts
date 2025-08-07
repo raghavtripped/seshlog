@@ -1,12 +1,9 @@
 // Barrel exports for custom hooks
 export { useMoodEntries } from './useMoodEntries';
 export { useSleepEntries } from './useSleepEntries';
-export { useNutritionEntries } from './useNutritionEntries';
 export { useHydrationEntries } from './useHydrationEntries';
 export { useActivityEntries } from './useActivityEntries';
-export { useWorkEntries } from './useWorkEntries';
-export { usePainEntries } from './usePainEntries';
-export { useSupplementsEntries } from './useSupplementsEntries';
+// removed nutrition/work/pain/supplements hooks from barrel
 
 // Other hooks
 export { useAuth, AuthProvider } from './useAuth';
