@@ -1,10 +1,10 @@
+/* font imported via main.tsx */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* Money Pots Tracker Design System */
-
-@import "@fontsource/inter/variable.css";
 
 :root {
   font-family: 'InterVariable', system-ui, sans-serif;

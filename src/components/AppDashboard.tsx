@@ -105,7 +105,7 @@ export function AppDashboard({
         </header>
 
         {/* Main Content */}
-        <main className={`space-y-${isMobile ? '3' : '8'}`}>
+        <main className={isMobile ? 'space-y-3' : 'space-y-8'}>
           {/* Collapsible Content */}
           <div className="space-y-3">
             {children}

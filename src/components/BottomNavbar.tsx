@@ -35,7 +35,7 @@ export const BottomNavbar: React.FC = () => {
           <Link
             key={item.to}
             to={item.to}
-            className={`flex flex-col items-center gap-1 px-3 py-1 rounded-lg transition font-medium text-xs ${
+            className={`flex flex-col items-center gap-1 px-3 py-1 rounded-lg transition font-medium text-xs relative ${
               isActive
                 ? "bg-accent/30 text-primary"
                 : "hover:bg-accent/20 text-gray-600 dark:text-gray-300"
@@ -43,6 +43,9 @@ export const BottomNavbar: React.FC = () => {
           >
             {item.icon}
             <span>{item.label}</span>
+            {isActive && (
+              <span className="absolute -top-2 h-1.5 w-1.5 rounded-full bg-primary" />
+            )}
           </Link>
         );
       })}
