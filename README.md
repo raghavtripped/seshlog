@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Sesh Log** is a modern, privacy-focused web application for tracking your personal consumption sessions across four categories: **Weed, Cigarettes, Vapes, and Liquor**. It provides beautiful dashboards, detailed analytics, and insightful visualizations to help you understand your habits and make informed decisions. All your data is securely stored and isolated using Supabase authentication and database.
+**Sesh Log** is a modern, privacy-focused tracker for life routines (sleep, mood, hydration, nutrition, activity, work, pain, supplements) and legacy substance sessions (weed, cigarettes, vapes, liquor). It features a clean shell layout, intuitive mobile-first UX, and secure Supabase auth.
 
 ---
 
@@ -113,3 +113,27 @@ Pull requests and issues are welcome! Please open an issue to discuss your ideas
 ## License
 
 MIT
+
+---
+
+## App Structure (2025 Refactor)
+
+- `src/app/providers/AppProviders.tsx`: Central providers (React Query, Theme, Auth, Tooltips, Toasters)
+- `src/app/layouts/RootLayout.tsx`: App shell with `TopNavbar`, `BottomNavbar`, and `Outlet`
+- `src/app/router.tsx`: Router with lazy-loaded routes and `ProtectedRoute`
+- `src/features/daily/*/components/*Form.tsx`: Daily tracker forms moved under feature folders
+- `src/pages/*`: Pages remain; imports updated to use feature forms
+
+Notes:
+- Font import moved to `src/main.tsx` (`@fontsource/inter`) to avoid CSS import ordering issues
+- `index.css` reorganized; Tailwind layers are loaded after the font import via TS entry
+- `TopNavbar` and `BottomNavbar` provide a consistent shell; bottom nav shows on mobile only
+
+## UX Cleanup Highlights
+
+- Unified spacing, shadows, and rounded radii across pages
+- Fixed dynamic Tailwind class in `AppDashboard` to avoid invalid class generation
+- Improved bottom nav active state with a subtle indicator dot
+- Introduced lazy-loaded routes with loading fallbacks to improve perceived performance
+- Guarded private routes via `ProtectedRoute`
+
