@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -12,39 +12,38 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const stored = localStorage.getItem('theme');
-    return (stored as Theme) || 'system';
-  });
-
-  const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('dark');
+  // Force the app to always use light theme
+  const [themeState, setThemeState] = useState<Theme>('light');
+  const actualTheme: 'light' | 'dark' = 'light';
 
   useEffect(() => {
-    const updateActualTheme = () => {
-      if (theme === 'system') {
-        setActualTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      } else {
-        setActualTheme(theme);
-      }
-    };
-
-    updateActualTheme();
-
-    if (theme === 'system') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      mediaQuery.addEventListener('change', updateActualTheme);
-      return () => mediaQuery.removeEventListener('change', updateActualTheme);
+    // Persist light in case anything reads it
+    try {
+      localStorage.setItem('theme', 'light');
+    } catch (_) {
+      // ignore storage errors (SSR or private mode)
     }
-  }, [theme]);
+    // Ensure no dark class is present on <html>
+    document.documentElement.classList.remove('dark');
+    // Do NOT add a 'light' class; Tailwind treats light as default
+  }, []);
 
-  useEffect(() => {
-    localStorage.setItem('theme', theme);
-    document.documentElement.classList.remove('light', 'dark');
-    document.documentElement.classList.add(actualTheme);
-  }, [theme, actualTheme]);
+  const contextValue = useMemo<ThemeContextType>(() => ({
+    theme: themeState,
+    setTheme: () => {
+      // No-op to prevent changing away from light
+      setThemeState('light');
+      try {
+        localStorage.setItem('theme', 'light');
+      } catch (_) {
+        // ignore
+      }
+    },
+    actualTheme,
+  }), [themeState]);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, actualTheme }}>
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );
