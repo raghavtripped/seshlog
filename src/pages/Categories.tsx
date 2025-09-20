@@ -135,7 +135,13 @@ export const Categories = () => {
         </div>
 
         {/* Footer */}
-        <div className={`text-center ${isMobile ? 'mt-8' : 'mt-16'}`}>
+        <div className={`flex flex-col items-center ${isMobile ? 'mt-8 gap-3' : 'mt-16 gap-4'}`}>
+          <Button
+            onClick={() => navigate('/visualisation')}
+            className={`rounded-xl shadow-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:opacity-90 ${isMobile ? 'px-4 py-3 text-sm' : 'px-6 py-4 text-base'}`}
+          >
+            Visualisations
+          </Button>
           <p className={`text-gray-500 dark:text-gray-400 ${isMobile ? 'text-xs' : 'body-sm'}`}>
             All your data is stored securely and privately
           </p>

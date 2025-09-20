@@ -23,6 +23,7 @@ const Mood = lazy(() => import('@/pages/Mood'));
 // Nutrition removed
 const Hydration = lazy(() => import('@/pages/Hydration'));
 const Activity = lazy(() => import('@/pages/ActivityPage'));
+const Visualisation = lazy(() => import('@/pages/Visualisation'));
 // Work/Pain/Supplements removed
 const HydrationHistory = lazy(() => import('@/pages/HydrationHistory'));
 // Supplements/Work history removed
@@ -70,6 +71,7 @@ const router = createBrowserRouter([
       { path: 'sleep/history', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><SleepHistory /></ProtectedRoute></Suspense> },
       // nutrition history removed
       { path: 'activity/history', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><ActivityHistory /></ProtectedRoute></Suspense> },
+      { path: 'visualisation', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><Visualisation /></ProtectedRoute></Suspense> },
       { path: 'auth/callback', element: <Suspense fallback={<div className="p-6">Loading...</div>}><AuthCallback /></Suspense> },
       { path: '*', element: <NotFound /> },
     ],
