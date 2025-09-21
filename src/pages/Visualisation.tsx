@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { FilterSortDialog } from '@/components/FilterSortDialog'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import {
   format,
   startOfDay,
@@ -515,6 +516,15 @@ export default function Visualisation() {
           </div>
         </div>
 
+        {/* Tabs */}
+        <Tabs defaultValue="overlay" className="w-full">
+          <TabsList className="mb-3">
+            <TabsTrigger value="overlay">Overlay</TabsTrigger>
+            <TabsTrigger value="more">More visualisations</TabsTrigger>
+          </TabsList>
+
+          {/* Overlay Tab */}
+          <TabsContent value="overlay">
         {/* Chart */}
         <div className="glass-card p-6">
           <div className="flex items-center justify-between mb-4">
@@ -547,6 +557,61 @@ export default function Visualisation() {
             </ResponsiveContainer>
           </div>
         </div>
+          </TabsContent>
+
+          {/* More visualisations Tab */}
+          <TabsContent value="more">
+            <div className="glass-card p-4 mb-4">
+              {/* Global Filter & Sort duplicated for this tab */}
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <h3 className="heading-md text-gray-800 dark:text-gray-200">Per-category charts</h3>
+                <FilterSortDialog
+                  selectedType={selectedType}
+                  setSelectedType={setSelectedType}
+                  dateRange={dateRange}
+                  setDateRange={setDateRange}
+                  sortBy={sortBy}
+                  setSortBy={setSortBy}
+                  category={'weed'}
+                  buttonWidth=""
+                />
+              </div>
+            </div>
+
+            {/* Stacked charts sharing the same time extent */}
+            <div className="space-y-6">
+              {CATEGORY_ORDER.filter((c) => selectedCategories[c]).map((cat) => (
+                <div key={`stack-${cat}`} className="glass-card p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="heading-md text-gray-800 dark:text-gray-200">
+                      {cat.charAt(0).toUpperCase() + cat.slice(1)} ({getCategoryBaseUnit(cat)})
+                    </h4>
+                  </div>
+                  <div className="h-56">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={overlayResult.rows}>
+                        <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                        <XAxis dataKey="date" className="text-sm" tick={{ fontSize: 12 }} />
+                        <YAxis className="text-sm" tick={{ fontSize: 12 }} domain={normalize ? [0, 100] : ['auto', 'auto']} />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Legend />
+                        <Line
+                          type="monotone"
+                          dataKey={cat}
+                          name={normalize ? `${cat.charAt(0).toUpperCase() + cat.slice(1)} (% of max)` : `${cat.charAt(0).toUpperCase() + cat.slice(1)} (${getCategoryBaseUnit(cat)})`}
+                          stroke={getCategoryColor(cat)}
+                          strokeWidth={2}
+                          dot={false}
+                          isAnimationActive={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
 
         {/* Co-usage Insights */}
         <div className="glass-card p-6">

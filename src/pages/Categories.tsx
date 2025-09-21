@@ -137,7 +137,7 @@ export const Categories = () => {
         {/* Footer */}
         <div className={`flex flex-col items-center ${isMobile ? 'mt-8 gap-3' : 'mt-16 gap-4'}`}>
           <Button
-            onClick={() => navigate('/visualisation')}
+            onClick={() => navigate('/visualisations')}
             className={`rounded-xl shadow-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:opacity-90 ${isMobile ? 'px-4 py-3 text-sm' : 'px-6 py-4 text-base'}`}
           >
             Visualisations

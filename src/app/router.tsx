@@ -71,7 +71,8 @@ const router = createBrowserRouter([
       { path: 'sleep/history', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><SleepHistory /></ProtectedRoute></Suspense> },
       // nutrition history removed
       { path: 'activity/history', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><ActivityHistory /></ProtectedRoute></Suspense> },
-      { path: 'visualisation', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><Visualisation /></ProtectedRoute></Suspense> },
+      { path: 'visualisations', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><Visualisation /></ProtectedRoute></Suspense> },
+      { path: 'visualisation', element: <Navigate to="/visualisations" replace /> },
       { path: 'auth/callback', element: <Suspense fallback={<div className="p-6">Loading...</div>}><AuthCallback /></Suspense> },
       { path: '*', element: <NotFound /> },
     ],
