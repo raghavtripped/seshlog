@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppDashboard } from '@/components/AppDashboard'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -120,6 +120,16 @@ export default function Visualisation() {
   const [sortBy, setSortBy] = useState<string>('date-desc')
   const [normalize, setNormalize] = useState<boolean>(false)
   const [overlapThreshold, setOverlapThreshold] = useState<number>(20)
+  const [activeTab, setActiveTab] = useState<'overlay' | 'more'>('overlay')
+  const moreTabRef = useRef<HTMLDivElement | null>(null)
+
+  const goToMoreTab = () => {
+    setActiveTab('more')
+    // allow layout to render then scroll
+    setTimeout(() => {
+      moreTabRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 50)
+  }
 
   // Fetch sessions per category
   const weedData = useSessions('weed')
@@ -517,10 +527,15 @@ export default function Visualisation() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="overlay" className="w-full">
-          <TabsList className="mb-3">
-            <TabsTrigger value="overlay">Overlay</TabsTrigger>
-            <TabsTrigger value="more">More visualisations</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'overlay' | 'more')} className="w-full">
+          <TabsList className="mb-4 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+            <TabsTrigger value="overlay" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900">
+              Overlay
+            </TabsTrigger>
+            <TabsTrigger value="more" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900">
+              <span className="mr-2">More visualisations</span>
+              <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">New</span>
+            </TabsTrigger>
           </TabsList>
 
           {/* Overlay Tab */}
@@ -529,9 +544,14 @@ export default function Visualisation() {
         <div className="glass-card p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="heading-md text-gray-800 dark:text-gray-200">Quantity Over Time</h3>
-            {!hasAnyData && (
-              <span className="text-sm text-gray-500">No data yet</span>
-            )}
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size={isMobile ? 'sm' : 'default'} onClick={goToMoreTab} className="rounded-lg">
+                More visualisations
+              </Button>
+              {!hasAnyData && (
+                <span className="text-sm text-gray-500">No data yet</span>
+              )}
+            </div>
           </div>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -561,7 +581,7 @@ export default function Visualisation() {
 
           {/* More visualisations Tab */}
           <TabsContent value="more">
-            <div className="glass-card p-4 mb-4">
+            <div ref={moreTabRef} className="glass-card p-4 mb-4">
               {/* Global Filter & Sort duplicated for this tab */}
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <h3 className="heading-md text-gray-800 dark:text-gray-200">Per-category charts</h3>
@@ -586,6 +606,7 @@ export default function Visualisation() {
                     <h4 className="heading-md text-gray-800 dark:text-gray-200">
                       {cat.charAt(0).toUpperCase() + cat.slice(1)} ({getCategoryBaseUnit(cat)})
                     </h4>
+                    <div className="text-xs text-gray-500">Same time axis and filters as above</div>
                   </div>
                   <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">

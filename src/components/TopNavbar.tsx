@@ -1,39 +1,16 @@
 import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import {
-  NavigationMenu,
-  NavigationMenuList,
-  NavigationMenuItem,
-  NavigationMenuTrigger,
-  NavigationMenuContent,
-  NavigationMenuLink,
-} from "@/components/ui/navigation-menu";
+import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { LogOut, User as UserIcon, LogIn, ChevronDown, Home, List, BarChart3, Calendar, Target, Moon, Sun, Monitor, Menu } from "lucide-react";
+import { LogOut, User as UserIcon, LogIn, BarChart3, Target } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-
-const trackers = [
-  { to: "/sleep", label: "Sleep", icon: <Calendar className="w-4 h-4 mr-2" /> },
-  { to: "/mood", label: "Mood", icon: <BarChart3 className="w-4 h-4 mr-2" /> },
-  { to: "/hydration", label: "Hydration", icon: <span className="mr-2">💧</span> },
-  { to: "/activity", label: "Activity", icon: <span className="mr-2">🔥</span> },
-];
-
-const legacy = [
-  { to: "/weed", label: "Weed", icon: <span className="mr-2">🌿</span> },
-  { to: "/cigs", label: "Cigs", icon: <span className="mr-2">🚬</span> },
-  { to: "/vapes", label: "Vapes", icon: <span className="mr-2">💨</span> },
-  { to: "/liquor", label: "Liquor", icon: <span className="mr-2">🥃</span> },
-  { to: "/categories", label: "All Legacy", icon: <Target className="w-4 h-4 mr-2" /> },
-];
 
 export const TopNavbar: React.FC = () => {
   const { user, signOut, loading } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const isMobile = useIsMobile();
 
   const handleLogout = async () => {
@@ -44,7 +21,6 @@ export const TopNavbar: React.FC = () => {
   return (
     <div className="sticky top-0 z-50 w-full bg-white/70 dark:bg-gray-900/80 backdrop-blur-md shadow-sm border-b border-gray-200 dark:border-gray-800">
       <div className="container mx-auto px-2 sm:px-6 py-2 flex items-center justify-between gap-2">
-        {/* Brand/Logo (always show Seshlog text on mobile) */}
         <Link to="/" className="flex items-center gap-2 font-bold text-xl gradient-text hover:opacity-90 transition">
           <span className="brand-emoji text-2xl">📝</span>
           <span className={isMobile ? "inline" : "hidden sm:inline"}>Seshlog</span>
@@ -56,21 +32,14 @@ export const TopNavbar: React.FC = () => {
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
                 <Link to="/" className="px-4 py-2 rounded-lg hover:bg-accent/40 transition font-medium flex items-center gap-2">
-                  <Home className="w-4 h-4" /> Welcome
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link to="/routines" className="px-4 py-2 rounded-lg hover:bg-accent/40 transition font-medium flex items-center gap-2">
-                  <Calendar className="w-4 h-4" /> Life Tracking
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link to="/categories" className="px-4 py-2 rounded-lg hover:bg-accent/40 transition font-medium flex items-center gap-2">
                   <Target className="w-4 h-4" /> Substance Tracking
+                </Link>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <Link to="/visualisations" className="px-4 py-2 rounded-lg hover:bg-accent/40 transition font-medium flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4" /> Visualisations
                 </Link>
               </NavigationMenuLink>
             </NavigationMenuItem>

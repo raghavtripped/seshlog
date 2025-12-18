@@ -1,23 +1,18 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Calendar, Target } from "lucide-react";
+import { Target, BarChart3 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const navItems = [
   {
     to: "/",
-    label: "Welcome",
-    icon: <Home className="w-6 h-6" />,
-  },
-  {
-    to: "/routines",
-    label: "Life Tracking",
-    icon: <Calendar className="w-6 h-6" />,
-  },
-  {
-    to: "/categories",
-    label: "Substance Tracking",
+    label: "Substances",
     icon: <Target className="w-6 h-6" />,
+  },
+  {
+    to: "/visualisations",
+    label: "Visuals",
+    icon: <BarChart3 className="w-6 h-6" />,
   },
 ];
 
