@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { CURRENCIES } from "../lib/currencies";
+import { CURRENCIES, formatMoney } from "../lib/currencies";
 import { fetchSuggestedRate } from "../api/fx";
 import {
   GAME_TYPES,
@@ -137,6 +137,13 @@ export function SessionForm({
     return buyin / bb;
   }, [bigBlind, initialBuyin]);
 
+  // Net for a backfilled session = cash-out − initial buy-in (re-buys are
+  // added later on the detail page). Shown so wins/losses are obvious.
+  const backfillNet = useMemo(() => {
+    if (cashOut === "" || initialBuyin === "") return null;
+    return Number(cashOut) - Number(initialBuyin);
+  }, [cashOut, initialBuyin]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!smallBlind || !bigBlind) {
@@ -163,6 +170,13 @@ export function SessionForm({
               ? new Date().toISOString()
               : localInputToIso(startedAt) ?? new Date().toISOString(),
           ended_at: entryMode === "backfill" ? localInputToIso(endedAt) : null,
+          // Backfilled (already-finished) sessions capture the final cash-out
+          // and hands up front; live sessions fill these in on cash-out.
+          cash_out: entryMode === "backfill" ? numOrNull(cashOut) : null,
+          est_hands:
+            entryMode === "backfill" && estHands !== ""
+              ? Math.round(Number(estHands))
+              : null,
         };
         const id = await onCreate(data, Number(initialBuyin) || 0);
         toast.success(entryMode === "live" ? "Session started" : "Session logged");
@@ -284,10 +298,36 @@ export function SessionForm({
           </div>
 
           {entryMode === "backfill" && (
-            <div className="grid grid-cols-2 gap-3">
-              {field("Started", <Input type="datetime-local" value={startedAt} onChange={(e) => setStartedAt(e.target.value)} />)}
-              {field("Ended", <Input type="datetime-local" value={endedAt} onChange={(e) => setEndedAt(e.target.value)} />)}
-            </div>
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                {field("Started", <Input type="datetime-local" value={startedAt} onChange={(e) => setStartedAt(e.target.value)} />)}
+                {field("Ended", <Input type="datetime-local" value={endedAt} onChange={(e) => setEndedAt(e.target.value)} />)}
+                {field(
+                  `Cash out (${currency})`,
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    step="any"
+                    value={cashOut}
+                    onChange={(e) => setCashOut(e.target.value)}
+                    placeholder="0 if you lost it all"
+                  />
+                )}
+                {field("Est. hands", <Input type="number" inputMode="numeric" value={estHands} onChange={(e) => setEstHands(e.target.value)} />)}
+              </div>
+              {backfillNet !== null && (
+                <p
+                  className={`text-sm font-semibold ${
+                    backfillNet >= 0 ? "text-emerald-600" : "text-red-600"
+                  }`}
+                >
+                  Net: {formatMoney(backfillNet, currency, { signed: true })}
+                  <span className="ml-1 text-xs font-normal text-gray-400">
+                    (cash-out − initial buy-in; re-buys added later)
+                  </span>
+                </p>
+              )}
+            </>
           )}
         </>
       )}
