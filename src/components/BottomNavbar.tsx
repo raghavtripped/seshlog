@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Target, BarChart3 } from "lucide-react";
+import { Target, BarChart3, Spade } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const navItems = [
@@ -8,6 +8,11 @@ const navItems = [
     to: "/",
     label: "Substances",
     icon: <Target className="w-6 h-6" />,
+  },
+  {
+    to: "/poker",
+    label: "Poker",
+    icon: <Spade className="w-6 h-6" />,
   },
   {
     to: "/visualisations",

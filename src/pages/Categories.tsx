@@ -40,6 +40,9 @@ export const Categories = () => {
       case 'liquor':
         navigate('/liquor');
         break;
+      case 'poker':
+        navigate('/poker');
+        break;
       default:
         navigate('/');
     }
@@ -73,6 +76,13 @@ export const Categories = () => {
       emoji: '🥃',
       description: isMobile ? 'Track alcohol consumption' : 'Track your alcohol consumption and preferences',
       gradient: 'from-amber-500 to-orange-600'
+    },
+    {
+      id: 'poker',
+      title: 'Poker',
+      emoji: '♠️',
+      description: isMobile ? 'Track cash-game sessions' : 'Log cash-game poker sessions and review your performance',
+      gradient: 'from-emerald-500 to-teal-600'
     }
   ];
 
