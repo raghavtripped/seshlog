@@ -75,7 +75,7 @@ dependencies.
 | Path | Page | What |
 |---|---|---|
 | `/poker` | `PokerDashboard` | Headline stats, cumulative profit graph, live-session banner, recent sessions, global filter. |
-| `/poker/log` | `PokerLog` | Fast log form with preset picker, live BB equivalent, live-timer vs backfill. |
+| `/poker/log` | `PokerLog` | Fast log form with preset picker, live BB equivalent, and two modes: **live-timer** (start now, cash out later) or **backfill** (a finished session — enter start/end, **cash-out**, and hands up front, with a live signed net shown). |
 | `/poker/sessions` | `PokerSessions` | Full filterable session list. |
 | `/poker/sessions/:id` | `PokerSessionDetail` | View/edit, end & cash-out, buy-ins, key hands, reflection. |
 | `/poker/analytics` | `PokerAnalytics` | Grouped breakdowns, reflection correlation, settings, JSON export. |
@@ -103,7 +103,7 @@ components/
   StatCards.tsx         headline metric cards
   ProfitChart.tsx       recharts cumulative profit (base ↔ BB toggle)
   FilterBar.tsx         date/venue/stake/game/type/currency filter (options derived from data)
-  SessionForm.tsx       create (live/backfill + initial buy-in + live BB) AND edit
+  SessionForm.tsx       create (live OR backfill-with-cash-out + initial buy-in + live BB/net) AND edit
   PresetPicker.tsx      apply/create/delete presets
   BuyInList.tsx         buy-in timeline editor
   KeyHandList.tsx       notable-hands editor
@@ -143,6 +143,8 @@ npm run build        # production build
 1. Sign in → Categories → **Poker**.
 2. **Log** → optionally tap a preset → enter stakes + initial buy-in →
    **Start live timer** → session appears live on the dashboard.
+   *(Or switch to **Backfill** to log a finished session in one step —
+   enter cash-out directly, e.g. `0` for a full loss, and watch the live net.)*
 3. Open the session → **+ Re-buy** → fill **Cash out / End** → verify net,
    BB won, duration, BB/100.
 4. Add a **key hand** and a **reflection**.
