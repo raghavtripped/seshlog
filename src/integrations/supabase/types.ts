@@ -318,6 +318,7 @@ export type Database = {
           category: Database["public"]["Enums"]["session_category"]
           created_at: string
           id: string
+          is_social: boolean
           liquor_serving_size: string | null
           notes: string | null
           participant_count: number
@@ -332,6 +333,7 @@ export type Database = {
           category: Database["public"]["Enums"]["session_category"]
           created_at?: string
           id?: string
+          is_social?: boolean
           liquor_serving_size?: string | null
           notes?: string | null
           participant_count?: number
@@ -346,6 +348,7 @@ export type Database = {
           category?: Database["public"]["Enums"]["session_category"]
           created_at?: string
           id?: string
+          is_social?: boolean
           liquor_serving_size?: string | null
           notes?: string | null
           participant_count?: number

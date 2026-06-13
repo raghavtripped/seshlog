@@ -3,15 +3,16 @@ import { Session, Category } from "@/types/session";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from "@/components/ui/button";
 import { CalendarDays, Calendar, Clock, TrendingUp } from "lucide-react";
-import { 
+import {
   getNormalizedIndividualConsumption,
   getCategoryBaseUnit,
   getSmartCategoryDisplay,
-  hasMultipleUnits
+  hasMultipleUnits,
+  isSocialSession
 } from '@/lib/utils';
 
 export type TimeGranularity = 'day' | 'week' | 'month' | 'year';
-export type ChartViewType = 'sessions' | 'quantity';
+export type ChartViewType = 'sessions' | 'quantity' | 'social';
 import {
   LineChart,
   Line,
@@ -117,7 +118,7 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
     const maxDate = getStartOfPeriod(new Date(Math.max(...dates.map(d => d.getTime()))), granularity);
 
     // Create a complete time series with all periods from min to max
-    const timeSeriesData: { date: string, sessions: number, consumption: number, sortKey: string }[] = [];
+    const timeSeriesData: { date: string, sessions: number, consumption: number, social: number, solo: number, sortKey: string }[] = [];
     let currentDate = minDate;
 
     while (currentDate <= maxDate) {
@@ -145,6 +146,8 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
         date: displayDate,
         sessions: 0,
         consumption: 0,
+        social: 0,
+        solo: 0,
         sortKey: format(currentDate, 'yyyy-MM-dd')
       };
 
@@ -154,6 +157,11 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
         if (isSamePeriod(currentDate, sessionDate, granularity)) {
           dataPoint.sessions += 1;
           dataPoint.consumption += getNormalizedIndividualConsumption(session);
+          if (isSocialSession(session)) {
+            dataPoint.social += 1;
+          } else {
+            dataPoint.solo += 1;
+          }
         }
       });
 
@@ -171,7 +179,8 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
     if (periodSessions.length === 0) {
       return {
         avgPerSession: 'No Data',
-        socialSessionsPercent: 'No Data', 
+        socialSessionsPercent: 'No Data',
+        socialSoloLabel: '',
         favoriteDay: 'No Data',
         peakHour: 'No Data'
       };
@@ -181,9 +190,11 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
     const totalNormalizedConsumption = periodSessions.reduce((sum, session) => sum + getNormalizedIndividualConsumption(session), 0);
     const avgPerSession = (totalNormalizedConsumption / periodSessions.length).toFixed(2);
 
-    // Social sessions percentage
-    const socialSessions = periodSessions.filter(s => s.participant_count > 1).length;
+    // Social vs solo breakdown (social = is_social flag OR participant_count > 1)
+    const socialSessions = periodSessions.filter(isSocialSession).length;
+    const soloSessions = periodSessions.length - socialSessions;
     const socialSessionsPercent = ((socialSessions / periodSessions.length) * 100).toFixed(1) + '%';
+    const socialSoloLabel = `${socialSessions} social · ${soloSessions} solo`;
 
     // Most frequent day of week (favorite day)
     const dayCount: Record<string, number> = {};
@@ -216,6 +227,7 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
     return {
       avgPerSession,
       socialSessionsPercent,
+      socialSoloLabel,
       favoriteDay,
       peakHour
     };
@@ -232,6 +244,7 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
   interface TooltipProps {
     active?: boolean;
     payload?: Array<{
+      name?: string;
       value: number;
       color: string;
     }>;
@@ -242,7 +255,24 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
     if (active && payload && payload.length) {
       const data = payload[0];
       const value = data.value;
-      
+
+      if (chartView === 'social') {
+        const total = payload.reduce((sum, p) => sum + (p.value || 0), 0);
+        return (
+          <div className="bg-white/95 dark:bg-gray-800/95 border border-gray-200 dark:border-gray-700 rounded-lg p-3 shadow-lg">
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{label}</p>
+            {payload.map((p) => (
+              <p key={p.name} className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-semibold" style={{ color: p.color }}>
+                  {p.value} {p.name}
+                </span>
+              </p>
+            ))}
+            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{total} total</p>
+          </div>
+        );
+      }
+
       if (chartView === 'sessions') {
         return (
           <div className="bg-white/95 dark:bg-gray-800/95 border border-gray-200 dark:border-gray-700 rounded-lg p-3 shadow-lg">
@@ -306,9 +336,13 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
       <div className="glass-card p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="heading-md text-gray-800 dark:text-gray-200">
-            {chartView === 'sessions' ? 'Sessions Over Time' : `Quantity Over Time (${displayUnit})`}
+            {chartView === 'sessions'
+              ? 'Sessions Over Time'
+              : chartView === 'social'
+                ? 'Social vs Solo Over Time'
+                : `Quantity Over Time (${displayUnit})`}
           </h3>
-          
+
           {/* Toggle Button */}
           <div className="flex items-center bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg p-1 gap-1">
             <button
@@ -331,42 +365,64 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
             >
               Quantity
             </button>
+            <button
+              onClick={() => setChartView('social')}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                chartView === 'social'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-500 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              Social
+            </button>
           </div>
         </div>
         
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={sessionsOverTimeData}>
-              <defs>
-                <linearGradient id="sessionsGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={categoryColor} stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor={categoryColor} stopOpacity={0.1}/>
-                </linearGradient>
-                <linearGradient id="quantityGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={categoryColor} stopOpacity={0.6}/>
-                  <stop offset="95%" stopColor={categoryColor} stopOpacity={0.2}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-              <XAxis 
-                dataKey="date" 
-                className="text-sm"
-                tick={{ fontSize: 12 }}
-              />
-              <YAxis 
-                className="text-sm"
-                tick={{ fontSize: 12 }}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Area
-                type="monotone"
-                dataKey={chartView === 'sessions' ? 'sessions' : 'consumption'}
-                stroke={categoryColor}
-                fillOpacity={1}
-                fill={chartView === 'sessions' ? "url(#sessionsGradient)" : "url(#quantityGradient)"}
-                strokeWidth={2}
-              />
-            </AreaChart>
+            {chartView === 'social' ? (
+              <BarChart data={sessionsOverTimeData}>
+                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                <XAxis dataKey="date" className="text-sm" tick={{ fontSize: 12 }} />
+                <YAxis className="text-sm" tick={{ fontSize: 12 }} allowDecimals={false} />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend />
+                <Bar dataKey="social" name="Social" stackId="a" fill={categoryColor} radius={[0, 0, 0, 0]} />
+                <Bar dataKey="solo" name="Solo" stackId="a" fill="#9ca3af" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            ) : (
+              <AreaChart data={sessionsOverTimeData}>
+                <defs>
+                  <linearGradient id="sessionsGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={categoryColor} stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor={categoryColor} stopOpacity={0.1}/>
+                  </linearGradient>
+                  <linearGradient id="quantityGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={categoryColor} stopOpacity={0.6}/>
+                    <stop offset="95%" stopColor={categoryColor} stopOpacity={0.2}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                <XAxis
+                  dataKey="date"
+                  className="text-sm"
+                  tick={{ fontSize: 12 }}
+                />
+                <YAxis
+                  className="text-sm"
+                  tick={{ fontSize: 12 }}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Area
+                  type="monotone"
+                  dataKey={chartView === 'sessions' ? 'sessions' : 'consumption'}
+                  stroke={categoryColor}
+                  fillOpacity={1}
+                  fill={chartView === 'sessions' ? "url(#sessionsGradient)" : "url(#quantityGradient)"}
+                  strokeWidth={2}
+                />
+              </AreaChart>
+            )}
           </ResponsiveContainer>
         </div>
       </div>
@@ -440,6 +496,9 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
           </div>
           <h4 className={`${isMobile ? 'text-sm' : 'text-base'} font-semibold text-gray-800 dark:text-gray-200 mb-2`}>Social Sessions</h4>
           <p className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-gray-800 dark:text-gray-200`}>{keyMetrics.socialSessionsPercent}</p>
+          {keyMetrics.socialSoloLabel && (
+            <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-500 dark:text-gray-500 mt-1`}>{keyMetrics.socialSoloLabel}</p>
+          )}
         </div>
 
         {/* Favorite Day */}

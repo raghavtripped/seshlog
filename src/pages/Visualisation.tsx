@@ -161,6 +161,7 @@ export default function Visualisation() {
         session_type: string
         quantity: number
         participant_count: number
+        is_social: boolean
         notes: string | null
         rating: number | null
         session_date: string
@@ -197,6 +198,7 @@ export default function Visualisation() {
           session_type: r.session_type as AllSessionType,
           quantity: r.quantity,
           participant_count: r.participant_count,
+          is_social: r.is_social,
           notes: r.notes,
           rating: r.rating,
           session_date: r.session_date,

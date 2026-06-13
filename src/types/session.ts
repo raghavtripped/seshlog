@@ -38,6 +38,7 @@ export interface Session {
   session_type: SessionType;
   quantity: number;
   participant_count: number;
+  is_social: boolean;
   notes: string | null;
   rating: number | null;
   session_date: string;

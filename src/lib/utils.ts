@@ -8,6 +8,14 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * A session counts as "social" when it's explicitly flagged via the
+ * is_social checkbox OR when more than one participant is recorded.
+ * Otherwise it's a "solo" session.
+ */
+export const isSocialSession = (session: Pick<Session, 'is_social' | 'participant_count'>): boolean =>
+  session.is_social || session.participant_count > 1;
+
 // Unit-aware utility functions for handling mixed units within categories
 export interface UnitInfo {
   unit: string;

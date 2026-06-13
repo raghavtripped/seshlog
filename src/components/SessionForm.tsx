@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Session, SessionType, Category, LiquorServingSize } from "@/types/session";
 import { Plus, Minus, Star, Loader2 } from "lucide-react"; // Import Loader2 for spinner
 import { useSessions } from "@/hooks/useSessions";
@@ -25,6 +26,7 @@ interface FormState {
   sessionType: SessionType;
   quantity: string; // Changed from number to string for better input handling
   participantCount: string; // Changed from number to string for better input handling
+  isSocial: boolean;
   liquorServingSize: LiquorServingSize;
   customServingSize: string; // Changed from number to string
   notes: string;
@@ -171,6 +173,7 @@ const SessionFormComponent = ({
       sessionType: defaultSessionType,
       quantity: defaultQuantity.toString(),
       participantCount: (initialSession?.participant_count || 1).toString(),
+      isSocial: initialSession?.is_social ?? false,
       liquorServingSize: initialSession?.liquor_serving_size || '330ml (Beer Bottle)' as LiquorServingSize,
       customServingSize: '', // Initialize as empty string
       notes: initialSession?.notes || '',
@@ -217,6 +220,7 @@ const SessionFormComponent = ({
       rating: formState.rating,
       session_date: submissionDate, // Now properly typed as string
       participant_count: parseInt(formState.participantCount) || 1,
+      is_social: formState.isSocial,
       ...(category === 'liquor' && { liquor_serving_size: formState.liquorServingSize }),
     };
 
@@ -334,6 +338,25 @@ const SessionFormComponent = ({
               {category === 'liquor' ? 'Total Volume' : 'Consumption per Person'}
             </Label>
             <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{consumptionDisplay}</p>
+        </div>
+
+        <div className="flex items-start gap-3 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+            <Checkbox
+              id="isSocial"
+              checked={formState.isSocial}
+              onCheckedChange={(checked) => handleStateChange('isSocial', checked === true)}
+              className="mt-0.5"
+            />
+            <div className="space-y-0.5">
+              <Label htmlFor="isSocial" className="font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+                Social session
+              </Label>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {category === 'liquor'
+                  ? 'Check if this was with others rather than solo.'
+                  : 'Auto-counted as social when participants is more than 1.'}
+              </p>
+            </div>
         </div>
 
         <div className="space-y-3">

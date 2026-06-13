@@ -5,9 +5,10 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, Edit, Trash2, Calendar, Users, Hash, TrendingUp, Beaker, MessageSquare, Star, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { 
+import {
   getIndividualConsumptionWithUnit,
-  getSessionUnitInfo
+  getSessionUnitInfo,
+  isSocialSession
 } from '@/lib/utils';
 
 // --- Props Interface ---
@@ -174,7 +175,18 @@ const SessionItem = ({ session, category, onEdit, onDelete }: SessionItemProps) 
         <div className="flex items-center gap-3">
           <span className="text-2xl">{sessionEmoji}</span>
           <div>
-            <h4 className="font-semibold text-gray-800 dark:text-gray-200">{session.session_type}</h4>
+            <div className="flex items-center gap-2">
+              <h4 className="font-semibold text-gray-800 dark:text-gray-200">{session.session_type}</h4>
+              {isSocialSession(session) ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300">
+                  👥 Social
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                  🧍 Solo
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 text-sm">
               <Calendar className="w-4 h-4" />
               <span>{format(new Date(session.session_date), 'MMM d, yyyy • HH:mm')}</span>

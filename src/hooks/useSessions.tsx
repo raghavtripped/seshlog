@@ -102,6 +102,7 @@ export const useSessions = (category: Category) => {
       session_type: newSessionData.session_type as SessionType,
       quantity: newSessionData.quantity || 0,
       participant_count: newSessionData.participant_count || 1,
+      is_social: newSessionData.is_social ?? false,
       notes: newSessionData.notes || null,
       rating: newSessionData.rating || null,
       liquor_serving_size: (newSessionData.liquor_serving_size as LiquorServingSize) || undefined,
