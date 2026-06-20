@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
-import { stakeKey } from "../lib/metrics";
+import { stakeKey, normalizeVenue } from "../lib/metrics";
 import type { PokerFilter, SessionWithStats, SessionType } from "../lib/types";
 
 interface FilterBarProps {
@@ -20,18 +20,20 @@ const ALL = "all";
 
 export function FilterBar({ sessions, filter, onChange }: FilterBarProps) {
   const { venues, stakes, games, currencies } = useMemo(() => {
-    const venues = new Set<string>();
+    // Dedup venues case-insensitively, keeping the first display label seen.
+    const venueByKey = new Map<string, string>();
     const stakes = new Set<string>();
     const games = new Set<string>();
     const currencies = new Set<string>();
     for (const s of sessions) {
-      if (s.venue) venues.add(s.venue);
+      const venue = normalizeVenue(s.venue);
+      if (venue && !venueByKey.has(venue.toLowerCase())) venueByKey.set(venue.toLowerCase(), venue);
       stakes.add(stakeKey(s));
       if (s.game_type) games.add(s.game_type);
       if (s.currency) currencies.add(s.currency);
     }
     return {
-      venues: [...venues].sort(),
+      venues: [...venueByKey.values()].sort(),
       stakes: [...stakes].sort(),
       games: [...games].sort(),
       currencies: [...currencies].sort(),

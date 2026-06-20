@@ -18,6 +18,7 @@ import {
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { CURRENCIES, formatMoney } from "../lib/currencies";
+import { normalizeVenue } from "../lib/metrics";
 import { fetchSuggestedRate } from "../api/fx";
 import {
   GAME_TYPES,
@@ -155,7 +156,7 @@ export function SessionForm({
       if (mode === "create") {
         if (!onCreate) throw new Error("onCreate missing");
         const data: Omit<PokerSessionInsert, "user_id"> = {
-          venue: venue || null,
+          venue: normalizeVenue(venue),
           session_type: sessionType,
           game_type: gameType,
           currency,
@@ -184,7 +185,7 @@ export function SessionForm({
       } else {
         if (!onUpdate) throw new Error("onUpdate missing");
         const patch: PokerSessionUpdate = {
-          venue: venue || null,
+          venue: normalizeVenue(venue),
           session_type: sessionType,
           game_type: gameType,
           currency,
