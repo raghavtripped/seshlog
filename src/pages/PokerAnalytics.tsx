@@ -56,15 +56,20 @@ function ReflectionTable({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="h-8 px-2 text-xs">Bucket</TableHead>
-                <TableHead className="h-8 px-2 text-right text-xs">
+                <TableHead className="h-8 px-2 text-xs">
                   <MetricHint
-                    label="Avg net"
-                    hint="Average net per session for sessions in this bucket — a per-session mean, not a total or your best session. Averaging keeps buckets comparable even when they have very different session counts."
+                    label="Bucket"
+                    hint="A band of your self-rating for this factor. Mood and focus are grouped by their 1–5 score, sleep into hour ranges, and tilt into tilted vs. not. Each row averages the sessions that fall in that band."
                   />
                 </TableHead>
                 <TableHead className="h-8 px-2 text-right text-xs">
-                  <MetricHint label="#" hint="Number of sessions in this bucket." />
+                  <MetricHint
+                    label="Avg net"
+                    hint="Average net result per session for sessions in this bucket — a per-session mean, not a running total or your best session. Averaging keeps buckets comparable even when one has far more sessions than another. Higher is better; compare rows to see which states pay off."
+                  />
+                </TableHead>
+                <TableHead className="h-8 px-2 text-right text-xs">
+                  <MetricHint label="#" hint="Number of sessions that fall in this bucket — the sample size behind the average. A bucket with only a handful of sessions isn't statistically reliable yet." />
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -139,7 +144,7 @@ const PokerAnalytics = () => {
           <h2 className="flex items-center pt-2 text-sm font-semibold text-gray-700">
             <MetricHint
               label="Reflection correlation"
-              hint="How your self-rated mood, focus, sleep, and tilt relate to results. Values are average net per session, so a bucket isn't ranked higher just because it has more sessions."
+              hint="How your self-rated state going into a session — mood, focus, sleep, and tilt — lines up with results. Each row shows the average net per session for that state, so a bucket isn't ranked higher just because you played more sessions in it. Use it to spot leaks, like losing more whenever you're tilted or short on sleep."
             />
           </h2>
           <div className="grid gap-4 md:grid-cols-2">
