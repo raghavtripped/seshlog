@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { groupBy } from "../lib/metrics";
 import { formatMoney } from "../lib/currencies";
+import { MetricHint } from "./MetricHint";
 import type { GroupByKey, SessionWithStats } from "../lib/types";
 
 interface BreakdownTableProps {
@@ -37,11 +38,19 @@ export function BreakdownTable({ title, sessions, groupKey, baseCurrency }: Brea
             <TableHeader>
               <TableRow>
                 <TableHead className="text-xs">Group</TableHead>
-                <TableHead className="text-right text-xs">Net</TableHead>
-                <TableHead className="text-right text-xs">BB/100</TableHead>
+                <TableHead className="text-right text-xs">
+                  <MetricHint label="Net" hint="Total profit/loss for the group, converted to your base currency." />
+                </TableHead>
+                <TableHead className="text-right text-xs">
+                  <MetricHint label="BB/100" hint="Big blinds won per 100 hands — a win rate normalized by volume, so it's comparable across different stakes." />
+                </TableHead>
                 <TableHead className="text-right text-xs">Hours</TableHead>
-                <TableHead className="text-right text-xs">/hr</TableHead>
-                <TableHead className="text-right text-xs">#</TableHead>
+                <TableHead className="text-right text-xs">
+                  <MetricHint label="/hr" hint="Net result per hour played, in your base currency." />
+                </TableHead>
+                <TableHead className="text-right text-xs">
+                  <MetricHint label="#" hint="Number of sessions in the group." />
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
