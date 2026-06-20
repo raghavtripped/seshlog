@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { PokerLayout } from "@/features/poker/components/PokerLayout";
 import { FilterBar } from "@/features/poker/components/FilterBar";
 import { BreakdownTable } from "@/features/poker/components/BreakdownTable";
+import { MetricHint } from "@/features/poker/components/MetricHint";
 import { usePokerSessions } from "@/features/poker/api/usePokerSessions";
 import { usePokerProfile } from "@/features/poker/api/usePokerProfile";
 import { applyFilter, bucketByReflection, type ReflectionDimension } from "@/features/poker/lib/metrics";
@@ -56,8 +57,15 @@ function ReflectionTable({
             <TableHeader>
               <TableRow>
                 <TableHead className="text-xs">Bucket</TableHead>
-                <TableHead className="text-right text-xs">Avg net</TableHead>
-                <TableHead className="text-right text-xs">#</TableHead>
+                <TableHead className="text-right text-xs">
+                  <MetricHint
+                    label="Avg net"
+                    hint="Average net per session for sessions in this bucket — a per-session mean, not a total or your best session. Averaging keeps buckets comparable even when they have very different session counts."
+                  />
+                </TableHead>
+                <TableHead className="text-right text-xs">
+                  <MetricHint label="#" hint="Number of sessions in this bucket." />
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -128,7 +136,12 @@ const PokerAnalytics = () => {
             <BreakdownTable title="By currency" sessions={filtered} groupKey="currency" baseCurrency={baseCurrency} />
           </div>
 
-          <h2 className="pt-2 text-sm font-semibold text-gray-700">Reflection correlation</h2>
+          <h2 className="flex items-center pt-2 text-sm font-semibold text-gray-700">
+            <MetricHint
+              label="Reflection correlation"
+              hint="How your self-rated mood, focus, sleep, and tilt relate to results. Values are average net per session, so a bucket isn't ranked higher just because it has more sessions."
+            />
+          </h2>
           <div className="grid gap-4 md:grid-cols-2">
             <ReflectionTable title="By mood" sessions={filtered} dimension="mood" baseCurrency={baseCurrency} />
             <ReflectionTable title="By focus" sessions={filtered} dimension="focus" baseCurrency={baseCurrency} />
