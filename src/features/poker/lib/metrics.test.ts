@@ -10,6 +10,7 @@ import {
   totalBuyIn,
   sessionDurationMinutes,
   stakeKey,
+  normalizeVenue,
   applyFilter,
   isCompleted,
   aggregate,
@@ -104,6 +105,16 @@ describe("per-session primitives", () => {
   it("stakeKey formats SB/BB", () => {
     expect(stakeKey({ small_blind: 1, big_blind: 2 })).toBe("1/2");
   });
+
+  it("normalizeVenue trims, collapses inner whitespace, and nulls out blanks", () => {
+    expect(normalizeVenue("Stake")).toBe("Stake");
+    expect(normalizeVenue("  Stake ")).toBe("Stake");
+    expect(normalizeVenue("Rahul's  place")).toBe("Rahul's place");
+    expect(normalizeVenue("")).toBeNull();
+    expect(normalizeVenue("   ")).toBeNull();
+    expect(normalizeVenue(null)).toBeNull();
+    expect(normalizeVenue(undefined)).toBeNull();
+  });
 });
 
 describe("filtering", () => {
@@ -128,6 +139,16 @@ describe("filtering", () => {
 
   it("'all' sentinels are no-ops", () => {
     expect(applyFilter(sessions, { venue: "all", sessionType: "all" })).toHaveLength(3);
+  });
+
+  it("matches venue regardless of case and surrounding whitespace", () => {
+    const dirty = [
+      s({ id: "a", venue: "Stake" }),
+      s({ id: "b", venue: "stake " }),
+      s({ id: "c", venue: " STAKE" }),
+      s({ id: "d", venue: "Rahul's" }),
+    ];
+    expect(applyFilter(dirty, { venue: "Stake" }).map((x) => x.id)).toEqual(["a", "b", "c"]);
   });
 });
 
@@ -194,6 +215,19 @@ describe("groupBy", () => {
     expect(rows[0].netBase).toBe(250);
     expect(rows[0].sessionCount).toBe(2);
     expect(rows[1].netBase).toBe(-300);
+  });
+
+  it("collapses venue case/whitespace variants into one row", () => {
+    const sessions = [
+      s({ venue: "Stake", net_base: 100, duration_minutes: 60, est_hands: 100, bb_won: 50 }),
+      s({ venue: "stake ", net_base: 200, duration_minutes: 60, est_hands: 100, bb_won: 50 }),
+      s({ venue: " STAKE", net_base: -50, duration_minutes: 60, est_hands: 100, bb_won: -25 }),
+    ];
+    const rows = groupBy(sessions, "venue");
+    expect(rows).toHaveLength(1);
+    expect(rows[0].key).toBe("Stake"); // first-seen display label
+    expect(rows[0].sessionCount).toBe(3);
+    expect(rows[0].netBase).toBe(250);
   });
 });
 

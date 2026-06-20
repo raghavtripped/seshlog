@@ -84,6 +84,21 @@ export function stakeKey(s: Pick<SessionWithStats, "small_blind" | "big_blind">)
   return `${sb ?? "?"}/${bb ?? "?"}`;
 }
 
+// Canonical display form for a free-text venue: trims and collapses inner
+// whitespace so "Stake", " Stake " and "Stake  " don't become distinct groups.
+// Case is preserved (for display); use venueMatchKey for case-insensitive matching.
+export function normalizeVenue(venue: string | null | undefined): string | null {
+  if (!venue) return null;
+  const cleaned = venue.trim().replace(/\s+/g, " ");
+  return cleaned === "" ? null : cleaned;
+}
+
+// Key for grouping/filtering venues so case variants collapse too
+// (e.g. "Stake" and "stake" are the same place).
+function venueMatchKey(venue: string | null | undefined): string | null {
+  return normalizeVenue(venue)?.toLowerCase() ?? null;
+}
+
 export function applyFilter(
   sessions: SessionWithStats[],
   filter: PokerFilter
@@ -99,7 +114,7 @@ export function applyFilter(
       to.setHours(23, 59, 59, 999);
       if (s.started_at && new Date(s.started_at) > to) return false;
     }
-    if (filter.venue && filter.venue !== "all" && s.venue !== filter.venue) return false;
+    if (filter.venue && filter.venue !== "all" && venueMatchKey(s.venue) !== venueMatchKey(filter.venue)) return false;
     if (
       filter.sessionType &&
       filter.sessionType !== "all" &&
@@ -184,7 +199,7 @@ export function aggregate(sessions: SessionWithStats[]): DashboardStats {
 function groupKeyFor(s: SessionWithStats, key: GroupByKey): string {
   switch (key) {
     case "venue":
-      return s.venue ?? "Unknown";
+      return normalizeVenue(s.venue) ?? "Unknown";
     case "stake":
       return stakeKey(s);
     case "game_type":
@@ -207,18 +222,21 @@ export function groupBy(
   sessions: SessionWithStats[],
   key: GroupByKey
 ): BreakdownRow[] {
-  const groups = new Map<string, SessionWithStats[]>();
+  // Map keyed by a (possibly case-folded) match key, while keeping the first
+  // display label we see so venues like "Stake"/"stake " collapse to one row.
+  const groups = new Map<string, { display: string; items: SessionWithStats[] }>();
   for (const s of sessions) {
-    const k = groupKeyFor(s, key);
-    const arr = groups.get(k) ?? [];
-    arr.push(s);
-    groups.set(k, arr);
+    const display = groupKeyFor(s, key);
+    const matchKey = key === "venue" ? display.toLowerCase() : display;
+    const entry = groups.get(matchKey);
+    if (entry) entry.items.push(s);
+    else groups.set(matchKey, { display, items: [s] });
   }
   const rows: BreakdownRow[] = [];
-  for (const [k, group] of groups) {
-    const core = computeCore(group);
+  for (const { display, items } of groups.values()) {
+    const core = computeCore(items);
     rows.push({
-      key: k,
+      key: display,
       netBase: core.netBase,
       bbPer100: core.bbPer100,
       hours: core.hours,
