@@ -8,6 +8,7 @@ import { PresetPicker } from "@/features/poker/components/PresetPicker";
 import { SessionForm, type SessionFormInitial } from "@/features/poker/components/SessionForm";
 import { usePokerSessions } from "@/features/poker/api/usePokerSessions";
 import { usePokerProfile } from "@/features/poker/api/usePokerProfile";
+import { normalizeVenue } from "@/features/poker/lib/metrics";
 import type { Preset } from "@/features/poker/lib/types";
 
 const PokerLog = () => {
@@ -21,7 +22,9 @@ const PokerLog = () => {
 
   const applyPreset = (p: Preset) => {
     setInitial({
-      venue: p.venue ?? undefined,
+      // Fall back to the preset's label as the venue when no explicit venue is
+      // set, so naming a preset after the venue ("Stake") carries through.
+      venue: normalizeVenue(p.venue) ?? p.label,
       session_type: (p.session_type as SessionFormInitial["session_type"]) ?? undefined,
       game_type: (p.game_type as SessionFormInitial["game_type"]) ?? undefined,
       currency: p.currency ?? undefined,
