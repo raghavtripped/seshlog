@@ -46,24 +46,24 @@ function ReflectionTable({
   const rows = bucketByReflection(sessions, dimension);
   return (
     <Card className="border-none bg-white/80 shadow-sm">
-      <CardHeader className="pb-2">
+      <CardHeader className="px-3 pb-1 pt-3">
         <CardTitle className="text-sm font-semibold">{title}</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-3 pb-3 pt-0">
         {rows.length === 0 ? (
           <p className="text-sm text-gray-400">No data.</p>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-xs">Bucket</TableHead>
-                <TableHead className="text-right text-xs">
+                <TableHead className="h-8 px-2 text-xs">Bucket</TableHead>
+                <TableHead className="h-8 px-2 text-right text-xs">
                   <MetricHint
                     label="Avg net"
                     hint="Average net per session for sessions in this bucket — a per-session mean, not a total or your best session. Averaging keeps buckets comparable even when they have very different session counts."
                   />
                 </TableHead>
-                <TableHead className="text-right text-xs">
+                <TableHead className="h-8 px-2 text-right text-xs">
                   <MetricHint label="#" hint="Number of sessions in this bucket." />
                 </TableHead>
               </TableRow>
@@ -71,11 +71,11 @@ function ReflectionTable({
             <TableBody>
               {rows.map((r) => (
                 <TableRow key={r.bucket}>
-                  <TableCell>{r.bucket}</TableCell>
-                  <TableCell className={`text-right font-semibold ${(r.avgNetBase ?? 0) >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                  <TableCell className="whitespace-nowrap px-2 py-1.5 text-xs">{r.bucket}</TableCell>
+                  <TableCell className={`whitespace-nowrap px-2 py-1.5 text-right text-xs font-semibold ${(r.avgNetBase ?? 0) >= 0 ? "text-emerald-600" : "text-red-600"}`}>
                     {r.avgNetBase === null ? "—" : formatMoney(r.avgNetBase, baseCurrency, { signed: true })}
                   </TableCell>
-                  <TableCell className="text-right">{r.sessionCount}</TableCell>
+                  <TableCell className="whitespace-nowrap px-2 py-1.5 text-right text-xs">{r.sessionCount}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
