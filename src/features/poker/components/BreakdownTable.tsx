@@ -41,19 +41,23 @@ export function BreakdownTable({ title, sessions, groupKey, baseCurrency }: Brea
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className={headCls}>Group</TableHead>
-                <TableHead className={cn(headCls, "text-right")}>
-                  <MetricHint label="Net" hint="Total profit/loss for the group, converted to your base currency." />
+                <TableHead className={headCls}>
+                  <MetricHint label="Group" hint="The category this row aggregates — depending on the table, that's a venue, stake level, game type, weekday or currency. Every figure to the right is summed across just that group's sessions." />
                 </TableHead>
                 <TableHead className={cn(headCls, "text-right")}>
-                  <MetricHint label="BB/100" hint="Big blinds won per 100 hands — a win rate normalized by volume, so it's comparable across different stakes." />
-                </TableHead>
-                <TableHead className={cn(headCls, "text-right")}>Hours</TableHead>
-                <TableHead className={cn(headCls, "text-right")}>
-                  <MetricHint label="/hr" hint="Net result per hour played, in your base currency." />
+                  <MetricHint label="Net" hint="Total profit or loss for this group, summed across all its sessions. Sessions in other currencies are converted to your base currency at each session's exchange rate, so the totals stay comparable." />
                 </TableHead>
                 <TableHead className={cn(headCls, "text-right")}>
-                  <MetricHint label="#" hint="Number of sessions in the group." />
+                  <MetricHint label="BB/100" hint="Big blinds won per 100 hands — poker's standard win rate. It divides winnings by the big blind and scales to 100 hands, so results compare fairly across stakes and session lengths. Positive means winning; for online cash, roughly 5+ bb/100 is a solid rate." />
+                </TableHead>
+                <TableHead className={cn(headCls, "text-right")}>
+                  <MetricHint label="Hours" hint="Total time spent playing in this group, summed from each session's start and end times. It's the denominator behind the hourly rate." />
+                </TableHead>
+                <TableHead className={cn(headCls, "text-right")}>
+                  <MetricHint label="/hr" hint="Your hourly rate — net result divided by hours played, in your base currency. Shows how much you win or lose per hour at the table. It swings wildly over a small number of hours, so treat short samples with caution." />
+                </TableHead>
+                <TableHead className={cn(headCls, "text-right")}>
+                  <MetricHint label="#" hint="Number of sessions in this group — your sample size. The smaller it is, the noisier the win rate and hourly figures are." />
                 </TableHead>
               </TableRow>
             </TableHeader>
