@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Session, Category, SessionType, LiquorServingSize } from '@/types/session';
 import { useAuth } from '@/hooks/useAuth';
 import type { Database } from '@/integrations/supabase/types';
+import { buildSessionUpdatePayload } from './sessionUpdatePayload';
 
 // Use auto-generated types for database interactions
 type SessionRow = Database['public']['Tables']['sessions']['Row'];
@@ -88,7 +89,8 @@ export const useSessions = (category: Category) => {
     fetchSessions();
   }, [fetchSessions]);
   
-  const addSession = async (newSessionData: SessionInsert) => {
+  // user_id is owned by the hook (it comes from the authed session), not the caller.
+  const addSession = async (newSessionData: Omit<SessionInsert, 'user_id'>) => {
     if (!user) throw new Error("User not authenticated.");
 
     setIsSubmitting(true);
@@ -151,16 +153,13 @@ export const useSessions = (category: Category) => {
       throw new Error("Session to update not found.");
     }
     
+    const submissionData = buildSessionUpdatePayload(updatedData);
+
     setSessions(prev =>
-      prev.map(s => (s.id === sessionId ? { ...s, ...updatedData } as Session : s))
+      prev.map(s => (s.id === sessionId ? { ...s, ...submissionData } as Session : s))
     );
 
     try {
-      const submissionData = { ...updatedData };
-      if (updatedData.session_date) {
-        submissionData.session_date = new Date(updatedData.session_date).toISOString();
-      }
-      
       const { data, error: dbError } = await supabase
         .from('sessions')
         .update(submissionData)
