@@ -99,8 +99,8 @@ const getLiquorServingSizes = (): Array<{ value: LiquorServingSize; label: strin
 const getSessionTypesForCategory = (category: Category) => {
   switch (category) {
     case 'weed': return [{ value: 'Joint', label: '🌿 Joint'}, { value: 'Bong', label: '💨 Bong'}, { value: 'Vape', label: '💨 Vape'}, { value: 'Edible', label: '🍪 Edible'}, { value: 'Other', label: '🔄 Other'}];
-    case 'cigs': return [{ value: 'Regular', label: '🚬 Regular'}, { value: 'Light', label: '🚬 Light'}, { value: 'Menthol', label: '🌿 Menthol'}, { value: 'Other', label: '🔄 Other'}];
-    case 'vapes': return [{ value: 'Disposable', label: '💨 Disposable'}, { value: 'Pod', label: '🔋 Pod'}, { value: 'Mod', label: '🔧 Mod'}, { value: 'Other', label: '🔄 Other'}];
+    case 'cigs': return [{ value: 'Regular', label: '🚬 Regular'}, { value: 'Light', label: '🚬 Light'}, { value: 'Menthol', label: '🌿 Menthol'}, { value: 'E-Cigarette', label: '💨 E-Cigarette'}, { value: 'Other', label: '🔄 Other'}];
+    case 'vapes': return [{ value: 'Disposable', label: '💨 Disposable'}, { value: 'Pod', label: '🔋 Pod'}, { value: 'Mod', label: '🔧 Mod'}, { value: 'Pen', label: '🖊️ Pen'}, { value: 'Other', label: '🔄 Other'}];
     case 'liquor': return [{ value: 'Beer', label: '🍺 Beer'}, { value: 'Wine', label: '🍷 Wine'}, { value: 'Spirits', label: '�� Spirits'}, { value: 'Cocktail', label: '🍸 Cocktail'}, { value: 'Other', label: '🔄 Other'}];
     default: return [{ value: 'Other', label: '🔄 Other'}];
   }
@@ -213,7 +213,6 @@ const SessionFormComponent = ({
     // FIX 3: Create properly typed object for addSession matching SessionInsert type
     const sessionData = {
       category: category, // Required by SessionInsert
-      user_id: '', // Required by SessionInsert (will be overridden by useSessions hook)
       session_type: formState.sessionType,
       quantity: parseFloat(formState.quantity) || 0,
       notes: formState.notes.trim() || null,
