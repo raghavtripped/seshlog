@@ -18,6 +18,7 @@ const VapesHistory = lazy(() => import('@/pages/VapesHistory'));
 const LiquorHistory = lazy(() => import('@/pages/LiquorHistory'));
 const Visualisation = lazy(() => import('@/pages/Visualisation'));
 const CategoryStats = lazy(() => import('@/pages/CategoryStats'));
+const NicotineLoad = lazy(() => import('@/pages/NicotineLoad'));
 const PokerDashboard = lazy(() => import('@/pages/PokerDashboard'));
 const PokerLog = lazy(() => import('@/pages/PokerLog'));
 const PokerSessions = lazy(() => import('@/pages/PokerSessions'));
@@ -63,6 +64,7 @@ const router = createBrowserRouter([
       { path: 'liquor/stats', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><CategoryStats category="liquor" /></ProtectedRoute></Suspense> },
       { path: 'visualisations', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><Visualisation /></ProtectedRoute></Suspense> },
       { path: 'visualisation', element: <Navigate to="/visualisations" replace /> },
+      { path: 'nicotine', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><NicotineLoad /></ProtectedRoute></Suspense> },
       { path: 'poker', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><PokerDashboard /></ProtectedRoute></Suspense> },
       { path: 'poker/log', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><PokerLog /></ProtectedRoute></Suspense> },
       { path: 'poker/sessions', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><PokerSessions /></ProtectedRoute></Suspense> },

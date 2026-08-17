@@ -28,6 +28,17 @@
   Every statistic is computed over two populations: **per session** (typical dose size) and
   **per day** (daily load, counting days with no sessions as zero). Statistics below a minimum
   sample size render as `—` rather than as misleading noise.
+- **Nicotine Load** (`/nicotine`): combines cigarettes and vaping into a single figure, because
+  the two are measured in different units (cigarettes vs puffs) and consumption often moves
+  between them. When that happens each series alone looks flat or noisy while the *total* moves,
+  so only the combined figure shows the real trend.
+  - The puffs-per-cigarette exchange rate is **estimated from your own data** — the rate that
+    makes weekly combined load most stable — and is adjustable with a slider, with the fitted
+    value always shown for comparison.
+  - Reports weekly load split by source, a 4-week average, the trend, and the correlation
+    between the two categories (negative ⇒ they substitute for each other).
+  - The page states the coefficient of variation for the combined series against each series
+    alone, so you can judge how well the single-scale model actually fits.
 
 ### 📝 Session Details
 - Add notes, ratings, and participant count to each session.
