@@ -143,7 +143,7 @@ const VapesPage = () => {
         <Insights periodSessions={filteredAndSortedSessions} category="vapes" />
         
         {/* History Button */}
-        <div className="flex justify-center">
+        <div className="flex flex-wrap justify-center gap-4">
           <Button
             onClick={() => navigate('/vapes/history')}
             variant="outline"
@@ -151,6 +151,14 @@ const VapesPage = () => {
             className="text-lg font-semibold py-6 px-8 rounded-xl shadow-lg border-2 border-cyan-500 text-cyan-600 hover:bg-cyan-50 dark:border-cyan-400 dark:text-cyan-400 dark:hover:bg-cyan-900/20 transition-all duration-200"
           >
             📋 View Complete History
+          </Button>
+          <Button
+            onClick={() => navigate('/vapes/stats')}
+            variant="outline"
+            size="lg"
+            className="text-lg font-semibold py-6 px-8 rounded-xl shadow-lg border-2 border-cyan-500 text-cyan-600 hover:bg-cyan-50 dark:border-cyan-400 dark:text-cyan-400 dark:hover:bg-cyan-900/20 transition-all duration-200"
+          >
+            📊 Deep Statistics
           </Button>
         </div>
       </div>

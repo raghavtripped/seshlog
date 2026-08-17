@@ -143,7 +143,7 @@ const LiquorPage = () => {
         <Insights periodSessions={filteredAndSortedSessions} category="liquor" />
         
         {/* History Button */}
-        <div className="flex justify-center">
+        <div className="flex flex-wrap justify-center gap-4">
           <Button
             onClick={() => navigate('/liquor/history')}
             variant="outline"
@@ -151,6 +151,14 @@ const LiquorPage = () => {
             className="text-lg font-semibold py-6 px-8 rounded-xl shadow-lg border-2 border-amber-500 text-amber-600 hover:bg-amber-50 dark:border-amber-400 dark:text-amber-400 dark:hover:bg-amber-900/20 transition-all duration-200"
           >
             📋 View Complete History
+          </Button>
+          <Button
+            onClick={() => navigate('/liquor/stats')}
+            variant="outline"
+            size="lg"
+            className="text-lg font-semibold py-6 px-8 rounded-xl shadow-lg border-2 border-amber-500 text-amber-600 hover:bg-amber-50 dark:border-amber-400 dark:text-amber-400 dark:hover:bg-amber-900/20 transition-all duration-200"
+          >
+            📊 Deep Statistics
           </Button>
         </div>
       </div>

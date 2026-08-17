@@ -14,6 +14,20 @@
 
 ### 📊 Analytics & Insights
 - Quick stats and insights for the features above.
+- **Deep Statistics** (`/weed/stats`, `/cigs/stats`, `/vapes/stats`, `/liquor/stats`): a per-category
+  statistics page with its own range picker (30d / 90d / 1y / all time / custom), covering:
+  - **Trends** — period-over-period comparison, an OLS trend line on daily totals (slope per week
+    with R²), a 7-day rolling average, and use/clean streaks.
+  - **Consistency** — standard deviation, coefficient of variation with a plain-English band,
+    quartiles, and heavy sessions flagged as Tukey outliers against your own baseline.
+  - **Timing & context** — day-of-week and hour-of-day distributions, gaps between sessions,
+    weekend vs weekday, and social vs solo dose comparison.
+  - **All statistics** — the full descriptive table (mean, median, mode, std dev, variance, CV,
+    quartiles, IQR, percentiles, skew) reported both per session and per day.
+
+  Every statistic is computed over two populations: **per session** (typical dose size) and
+  **per day** (daily load, counting days with no sessions as zero). Statistics below a minimum
+  sample size render as `—` rather than as misleading noise.
 
 ### 📝 Session Details
 - Add notes, ratings, and participant count to each session.

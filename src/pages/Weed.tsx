@@ -145,8 +145,8 @@ const WeedPage = () => {
         
         <Insights periodSessions={filteredAndSortedSessions} category="weed" />
         
-        {/* History Button */}
-        <div className="flex justify-center">
+        {/* History & Statistics Buttons */}
+        <div className="flex flex-wrap justify-center gap-4">
           <Button
             onClick={() => navigate('/weed/history')}
             variant="outline"
@@ -154,6 +154,14 @@ const WeedPage = () => {
             className="text-lg font-semibold py-6 px-8 rounded-xl shadow-lg border-2 border-green-500 text-green-600 hover:bg-green-50 dark:border-green-400 dark:text-green-400 dark:hover:bg-green-900/20 transition-all duration-200"
           >
             📋 View Complete History
+          </Button>
+          <Button
+            onClick={() => navigate('/weed/stats')}
+            variant="outline"
+            size="lg"
+            className="text-lg font-semibold py-6 px-8 rounded-xl shadow-lg border-2 border-green-500 text-green-600 hover:bg-green-50 dark:border-green-400 dark:text-green-400 dark:hover:bg-green-900/20 transition-all duration-200"
+          >
+            📊 Deep Statistics
           </Button>
         </div>
       </div>

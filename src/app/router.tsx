@@ -17,6 +17,7 @@ const CigsHistory = lazy(() => import('@/pages/CigsHistory'));
 const VapesHistory = lazy(() => import('@/pages/VapesHistory'));
 const LiquorHistory = lazy(() => import('@/pages/LiquorHistory'));
 const Visualisation = lazy(() => import('@/pages/Visualisation'));
+const CategoryStats = lazy(() => import('@/pages/CategoryStats'));
 const PokerDashboard = lazy(() => import('@/pages/PokerDashboard'));
 const PokerLog = lazy(() => import('@/pages/PokerLog'));
 const PokerSessions = lazy(() => import('@/pages/PokerSessions'));
@@ -56,6 +57,10 @@ const router = createBrowserRouter([
       { path: 'liquor/history', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><LiquorHistory /></ProtectedRoute></Suspense> },
       { path: 'weed', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><Weed /></ProtectedRoute></Suspense> },
       { path: 'weed/history', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><WeedHistory /></ProtectedRoute></Suspense> },
+      { path: 'weed/stats', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><CategoryStats category="weed" /></ProtectedRoute></Suspense> },
+      { path: 'cigs/stats', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><CategoryStats category="cigs" /></ProtectedRoute></Suspense> },
+      { path: 'vapes/stats', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><CategoryStats category="vapes" /></ProtectedRoute></Suspense> },
+      { path: 'liquor/stats', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><CategoryStats category="liquor" /></ProtectedRoute></Suspense> },
       { path: 'visualisations', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><Visualisation /></ProtectedRoute></Suspense> },
       { path: 'visualisation', element: <Navigate to="/visualisations" replace /> },
       { path: 'poker', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><PokerDashboard /></ProtectedRoute></Suspense> },
