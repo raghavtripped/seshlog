@@ -16,12 +16,6 @@ export const formatWithUnit = (
 ): string =>
   value === null || value === undefined ? EM_DASH : `${value.toFixed(decimals)} ${unit}`;
 
-export const formatPercent = (
-  value: number | null | undefined,
-  decimals = 1
-): string =>
-  value === null || value === undefined ? EM_DASH : `${value.toFixed(decimals)}%`;
-
 export const formatSignedPercent = (value: number | null | undefined): string => {
   if (value === null || value === undefined) return EM_DASH;
   const sign = value > 0 ? '+' : '';

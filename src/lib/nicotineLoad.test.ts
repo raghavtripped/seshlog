@@ -90,6 +90,43 @@ describe("bucketByWeek", () => {
     expect(weeks[0].cigs).toBe(1);
   });
 
+  it("counts the whole of the first week, including days before window.from", () => {
+    // Window starts Wed 2026-03-04, so its week bucket begins Sun 2026-03-01.
+    // Both sessions belong to that bucket and both must be counted; dropping the
+    // earlier one would understate the first week and inflate any upward trend.
+    const weeks = bucketByWeek(
+      [
+        session("2026-03-02T12:00:00", "cigs", 5),
+        session("2026-03-05T12:00:00", "cigs", 5),
+      ],
+      windowOf("2026-03-04", "2026-03-18")
+    );
+
+    expect(weeks[0].key).toBe("2026-03-01");
+    expect(weeks[0].cigs).toBe(10);
+  });
+
+  it("excludes sessions past the end of the final week", () => {
+    // Window ends Wed 2026-03-18; the last bucket is the week of Sun 2026-03-15,
+    // which ends Sat 2026-03-21. A session the following Monday is out of range.
+    const weeks = bucketByWeek(
+      [session("2026-03-23T12:00:00", "cigs", 7)],
+      windowOf("2026-03-01", "2026-03-18")
+    );
+
+    expect(weeks[weeks.length - 1].cigs).toBe(0);
+  });
+
+  it("includes a session after window.to that still falls in the final week", () => {
+    const weeks = bucketByWeek(
+      [session("2026-03-20T12:00:00", "cigs", 7)],
+      windowOf("2026-03-01", "2026-03-18")
+    );
+
+    expect(weeks[weeks.length - 1].key).toBe("2026-03-15");
+    expect(weeks[weeks.length - 1].cigs).toBe(7);
+  });
+
   it("ignores categories that are not cigs or vapes", () => {
     const weeks = bucketByWeek(
       [

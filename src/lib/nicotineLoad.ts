@@ -12,7 +12,7 @@
 // one under which their total stops jumping around. This is an estimate with
 // real uncertainty, so the UI exposes it and lets it be overridden.
 
-import { startOfWeek, addWeeks, format, parseISO } from 'date-fns';
+import { startOfWeek, endOfWeek, addWeeks, format, parseISO } from 'date-fns';
 import { Session } from '@/types/session';
 import { getNormalizedIndividualConsumption } from '@/lib/utils';
 import { coefficientOfVariation, linearRegression, mean, pearson } from '@/lib/stats';
@@ -47,14 +47,22 @@ export interface WeekBucket {
 /**
  * Buckets both categories into weeks across the window, zero-filling weeks with
  * no sessions. Zero weeks matter here: a week off is a real data point about load.
+ *
+ * The window is snapped outwards to whole weeks first. Every bucket then covers a
+ * complete week and counts every session in it. Filtering on the raw window
+ * instead would truncate the first bucket (its week starts before `from`) while
+ * leaving the last one over-inclusive — and since both distortions push the same
+ * way, they would exaggerate any upward trend.
  */
 export const bucketByWeek = (sessions: Session[], window: DateWindow): WeekBucket[] => {
   const totals = new Map<string, { cigs: number; puffs: number }>();
+  const firstWeek = startOfWeek(window.from);
+  const lastMoment = endOfWeek(window.to);
 
   for (const session of sessions) {
     if (session.category !== 'cigs' && session.category !== 'vapes') continue;
     const date = parseISO(session.session_date);
-    if (date < window.from || date > addWeeks(window.to, 1)) continue;
+    if (date < firstWeek || date > lastMoment) continue;
 
     const key = format(startOfWeek(date), 'yyyy-MM-dd');
     const bucket = totals.get(key) ?? { cigs: 0, puffs: 0 };
