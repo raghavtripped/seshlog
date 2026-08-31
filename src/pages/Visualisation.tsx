@@ -35,7 +35,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 type TimeGranularity = 'day' | 'week' | 'month' | 'year'
 
-const CATEGORY_ORDER: Category[] = ['weed', 'cigs', 'vapes', 'liquor']
+const CATEGORY_ORDER: Category[] = ['weed', 'cigs', 'vapes', 'liquor', 'gum']
 
 const getCategoryColor = (category: Category) => {
   switch (category) {
@@ -47,6 +47,8 @@ const getCategoryColor = (category: Category) => {
       return '#06b6d4'
     case 'liquor':
       return '#f59e0b'
+    case 'gum':
+      return '#db2777'
     default:
       return '#3b82f6'
   }
@@ -112,6 +114,7 @@ export default function Visualisation() {
     cigs: true,
     vapes: true,
     liquor: true,
+    gum: true,
   })
 
   // Global Filter & Sort state (applies across categories)
@@ -136,9 +139,14 @@ export default function Visualisation() {
   const cigsData = useSessions('cigs')
   const vapesData = useSessions('vapes')
   const liquorData = useSessions('liquor')
+  const gumData = useSessions('gum')
 
   const isLoading =
-    weedData.isLoading || cigsData.isLoading || vapesData.isLoading || liquorData.isLoading
+    weedData.isLoading ||
+    cigsData.isLoading ||
+    vapesData.isLoading ||
+    liquorData.isLoading ||
+    gumData.isLoading
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -188,7 +196,7 @@ export default function Visualisation() {
         from += pageSize
       }
 
-      const byCat: Record<Category, Session[]> = { weed: [], cigs: [], vapes: [], liquor: [] }
+      const byCat: Record<Category, Session[]> = { weed: [], cigs: [], vapes: [], liquor: [], gum: [] }
       acc.forEach((r: RawRow) => {
         const cat = r.category as Category
         const mapped: Session = {
@@ -220,8 +228,16 @@ export default function Visualisation() {
         cigs: cigsData.sessions || [],
         vapes: vapesData.sessions || [],
         liquor: liquorData.sessions || [],
+        gum: gumData.sessions || [],
       },
-    [overrideSessionsByCategory, weedData.sessions, cigsData.sessions, vapesData.sessions, liquorData.sessions]
+    [
+      overrideSessionsByCategory,
+      weedData.sessions,
+      cigsData.sessions,
+      vapesData.sessions,
+      liquorData.sessions,
+      gumData.sessions,
+    ]
   )
 
   const activeCategories = CATEGORY_ORDER.filter((c) => selectedCategories[c])

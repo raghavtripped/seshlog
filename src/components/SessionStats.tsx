@@ -24,6 +24,7 @@ export const SessionStats = ({ sessions = [], category }: SessionStatsProps) => 
       case 'cigs': return '🚬';
       case 'vapes': return '💨';
       case 'liquor': return '🥃';
+      case 'gum': return '🍬';
       default: return '📊';
     }
   };
@@ -34,6 +35,7 @@ export const SessionStats = ({ sessions = [], category }: SessionStatsProps) => 
       case 'cigs': return 'from-gray-500 to-slate-600';
       case 'vapes': return 'from-cyan-500 to-blue-600';
       case 'liquor': return 'from-amber-500 to-orange-600';
+      case 'gum': return 'from-pink-500 to-rose-600';
       default: return 'from-blue-500 to-purple-600';
     }
   };
@@ -44,6 +46,7 @@ export const SessionStats = ({ sessions = [], category }: SessionStatsProps) => 
       case 'cigs': return 'Cigarettes';
       case 'vapes': return 'Vapes';
       case 'liquor': return 'Liquor';
+      case 'gum': return 'Nicotine Gum';
       default: return 'Sessions';
     }
   };
@@ -72,6 +75,13 @@ export const SessionStats = ({ sessions = [], category }: SessionStatsProps) => 
           case 'Pod': return '🔋';
           case 'Mod': return '🔧';
           case 'Pen': return '✏️';
+          default: return '🔄';
+        }
+      case 'gum':
+        switch (sessionType) {
+          case '2mg': return '🍬';
+          case '4mg': return '🍬';
+          case '6mg': return '🍬';
           default: return '🔄';
         }
       case 'liquor':

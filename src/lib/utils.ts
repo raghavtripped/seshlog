@@ -43,6 +43,8 @@ export const getSessionUnitInfo = (category: Category, sessionType: SessionType)
       return { unit: 'puffs', conversionToBase: 1, displayDecimals: 0 };
     case 'liquor':
       return { unit: 'ml', conversionToBase: 1, displayDecimals: 0 };
+    case 'gum':
+      return { unit: 'pieces', conversionToBase: 1, displayDecimals: 0 };
     default:
       return { unit: 'units', conversionToBase: 1, displayDecimals: 0 };
   }
@@ -54,6 +56,7 @@ export const getCategoryBaseUnit = (category: Category): string => {
     case 'cigs': return 'cigs';
     case 'vapes': return 'puffs';
     case 'liquor': return 'ml';
+    case 'gum': return 'pieces';
     default: return 'units';
   }
 };
@@ -64,6 +67,7 @@ export const getCategoryGradient = (category: Category): string => {
     case 'cigs': return 'from-gray-500 to-slate-600';
     case 'vapes': return 'from-cyan-500 to-blue-600';
     case 'liquor': return 'from-amber-500 to-orange-600';
+    case 'gum': return 'from-pink-500 to-rose-600';
     default: return 'from-blue-500 to-purple-600';
   }
 };
@@ -96,6 +100,20 @@ export const getIndividualConsumptionWithUnit = (session: Session): { value: num
       unit: unitInfo.unit 
     };
   }
+};
+
+/**
+ * Nicotine content of one gum piece, read off the session type.
+ *
+ * Unlabelled pieces ('Other') are treated as 2mg — the most common strength,
+ * and the conservative choice: over-counting an unknown piece would flatter a
+ * taper by making the earlier weeks look heavier than they were.
+ */
+export const GUM_MG_FALLBACK = 2;
+
+export const gumMgPerPiece = (sessionType: SessionType): number => {
+  const match = /^(\d+(?:\.\d+)?)mg$/.exec(sessionType);
+  return match ? parseFloat(match[1]) : GUM_MG_FALLBACK;
 };
 
 // Helper function to get ml from serving size for liquor

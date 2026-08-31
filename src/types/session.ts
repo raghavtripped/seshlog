@@ -1,7 +1,7 @@
 // /src/types/session.ts
 
 // Category types
-export type Category = 'weed' | 'cigs' | 'vapes' | 'liquor';
+export type Category = 'weed' | 'cigs' | 'vapes' | 'liquor' | 'gum';
 
 // Weed session types
 export type WeedSessionType = 'Joint' | 'Bong' | 'Vape' | 'Edible' | 'Other';
@@ -11,6 +11,10 @@ export type CigSessionType = 'Regular' | 'Light' | 'Menthol' | 'E-Cigarette' | '
 
 // Vape session types
 export type VapeSessionType = 'Disposable' | 'Pod' | 'Mod' | 'Pen' | 'Other';
+
+// Nicotine gum session types. The type IS the piece strength, so milligrams
+// are derivable from (quantity x strength) without a separate column.
+export type GumSessionType = '2mg' | '4mg' | '6mg' | 'Other';
 
 // Liquor session types
 export type LiquorSessionType = 'Beer' | 'Wine' | 'Spirits' | 'Cocktail' | 'Other';
@@ -28,7 +32,7 @@ export type LiquorServingSize =
   | 'Custom';
 
 // Combined session type for backward compatibility
-export type SessionType = WeedSessionType | CigSessionType | VapeSessionType | LiquorSessionType;
+export type SessionType = WeedSessionType | CigSessionType | VapeSessionType | LiquorSessionType | GumSessionType;
 
 // **FIXED: This type now EXACTLY matches your Supabase database schema**
 export interface Session {
@@ -66,4 +70,9 @@ export interface VapeSession extends Omit<Session, 'session_type' | 'category'> 
 export interface LiquorSession extends Omit<Session, 'session_type' | 'category'> {
   category: 'liquor';
   session_type: LiquorSessionType;
+}
+
+export interface GumSession extends Omit<Session, 'session_type' | 'category'> {
+  category: 'gum';
+  session_type: GumSessionType;
 }

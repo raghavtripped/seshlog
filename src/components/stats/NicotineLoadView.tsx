@@ -14,16 +14,26 @@ import {
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { rollingMean } from '@/lib/stats';
-import { RATE_SEARCH, type NicotineLoadAnalysis } from '@/lib/nicotineLoad';
+import {
+  MG_RATE_SEARCH,
+  RATE_SEARCH,
+  type ExchangeRates,
+  type NicotineLoadAnalysis,
+  type RateKey,
+  type SubstitutionResult,
+} from '@/lib/nicotineLoad';
 import { StatsSection, StatTile } from './StatTile';
 import { EM_DASH, formatNumber } from './statsFormat';
 
 // Validated against both light and dark surfaces: chroma, colour-vision
-// separation and contrast all pass, so the two sources stay distinguishable in
+// separation and contrast all pass, so the sources stay distinguishable in
 // either theme. The app's usual grey for cigs fails the chroma floor — it reads
-// as "no series" rather than as an identity — so this page uses red instead.
+// as "no series" rather than as an identity — so this page uses red instead, and
+// gum takes amber rather than its usual pink, which sits too close to that red
+// to survive being stacked directly against it.
 const CIG_COLOR = '#dc2626';
 const VAPE_COLOR = '#0891b2';
+const GUM_COLOR = '#d97706';
 const TREND_COLOR = '#7c3aed';
 const GRADIENT = 'from-cyan-500 to-blue-600';
 const ROLLING_WINDOW = 4;
@@ -32,9 +42,16 @@ interface ChartRow {
   label: string;
   fromCigs: number;
   fromVapes: number;
+  fromGum: number;
   total: number;
   rolling: number | null;
 }
+
+const SOURCE_ROWS: { key: keyof ChartRow; label: string; color: string }[] = [
+  { key: 'fromCigs', label: 'From cigarettes', color: CIG_COLOR },
+  { key: 'fromVapes', label: 'From vaping', color: VAPE_COLOR },
+  { key: 'fromGum', label: 'From gum', color: GUM_COLOR },
+];
 
 const LoadTooltip = ({
   active,
@@ -50,27 +67,37 @@ const LoadTooltip = ({
   return (
     <div className="rounded-lg border border-gray-200 bg-white/95 p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800/95">
       <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Week of {label}</p>
-      <p className="text-sm text-gray-600 dark:text-gray-400">
-        <span
-          className="mr-2 inline-block h-2 w-2 rounded-full align-middle"
-          style={{ backgroundColor: CIG_COLOR }}
-          aria-hidden="true"
-        />
-        From cigarettes:{' '}
-        <span className="font-semibold tabular-nums">{row.fromCigs.toFixed(1)}</span>
-      </p>
-      <p className="text-sm text-gray-600 dark:text-gray-400">
-        <span
-          className="mr-2 inline-block h-2 w-2 rounded-full align-middle"
-          style={{ backgroundColor: VAPE_COLOR }}
-          aria-hidden="true"
-        />
-        From vaping: <span className="font-semibold tabular-nums">{row.fromVapes.toFixed(1)}</span>
-      </p>
+      {SOURCE_ROWS.map((source) => (
+        <p key={source.key} className="text-sm text-gray-600 dark:text-gray-400">
+          <span
+            className="mr-2 inline-block h-2 w-2 rounded-full align-middle"
+            style={{ backgroundColor: source.color }}
+            aria-hidden="true"
+          />
+          {source.label}:{' '}
+          <span className="font-semibold tabular-nums">
+            {(row[source.key] as number).toFixed(1)}
+          </span>
+        </p>
+      ))}
       <p className="mt-1 border-t border-gray-200 pt-1 text-sm font-semibold text-gray-900 dark:border-gray-700 dark:text-gray-100">
         Total {row.total.toFixed(1)} cig-equivalents
       </p>
     </div>
+  );
+};
+
+const substitutionNote = (
+  label: string,
+  result: SubstitutionResult | null
+): JSX.Element | null => {
+  if (!result?.isSubstituting) return null;
+  return (
+    <p key={label} className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+      {label} trade off against each other here (correlation{' '}
+      <span className="font-semibold tabular-nums">{formatNumber(result.r, 2)}</span>), so neither
+      category on its own shows this. Only the combined figure does.
+    </p>
   );
 };
 
@@ -120,14 +147,81 @@ const TrendBanner = ({ analysis }: { analysis: NicotineLoadAnalysis }) => {
             )}
             .
           </p>
-          {substitution?.isSubstituting && (
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              Cigarettes and vaping trade off against each other here (correlation{' '}
-              <span className="font-semibold tabular-nums">{formatNumber(substitution.r, 2)}</span>
-              ), so neither category on its own shows this. Only the combined figure does.
-            </p>
-          )}
+          {substitutionNote('Cigarettes and gum', substitution.cigsGum)}
+          {substitutionNote('Cigarettes and vaping', substitution.cigsVapes)}
         </div>
+      </div>
+    </div>
+  );
+};
+
+interface RateSliderProps {
+  analysis: NicotineLoadAnalysis;
+  rateKey: RateKey;
+  title: string;
+  unitLabel: string;
+  fittedLabel: string;
+  range: { min: number; max: number; step: number };
+  decimals: number;
+  isOverridden: boolean;
+  onChange: (value: number | undefined) => void;
+}
+
+const RateSlider = ({
+  analysis,
+  rateKey,
+  title,
+  unitLabel,
+  fittedLabel,
+  range,
+  decimals,
+  isOverridden,
+  onChange,
+}: RateSliderProps) => {
+  const value = analysis.rates[rateKey];
+  const source = analysis.rateSource[rateKey];
+  const fittedValue = analysis.fit?.fitted[rateKey] ? analysis.fit.rates[rateKey] : null;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="text-2xl font-bold tabular-nums text-gray-800 dark:text-gray-100">
+          {value.toFixed(decimals)} <span className="text-base font-medium">{unitLabel}</span>
+        </p>
+        <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+          {source === 'fitted'
+            ? 'fitted to your data'
+            : source === 'override'
+              ? 'your override'
+              : 'default — not enough data to fit'}
+        </span>
+      </div>
+
+      <Slider
+        value={[value]}
+        min={range.min}
+        max={range.max}
+        step={range.step}
+        onValueChange={([next]) => onChange(next)}
+        aria-label={title}
+      />
+
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => onChange(undefined)}
+          disabled={!isOverridden}
+          className="bg-white/50 dark:bg-gray-800/50"
+        >
+          <RotateCcw className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
+          {fittedValue === null ? 'Back to default' : 'Back to fitted rate'}
+        </Button>
+        {fittedValue !== null && (
+          <p className="text-xs text-gray-500 dark:text-gray-500">
+            Best fit {fittedValue.toFixed(decimals)} {fittedLabel}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -135,25 +229,87 @@ const TrendBanner = ({ analysis }: { analysis: NicotineLoadAnalysis }) => {
 
 interface NicotineLoadViewProps {
   analysis: NicotineLoadAnalysis;
-  rateOverride: number | undefined;
-  setRateOverride: (rate: number | undefined) => void;
+  overrides: Partial<ExchangeRates>;
+  setRate: (key: RateKey, value: number | undefined) => void;
 }
 
-export const NicotineLoadView = ({
-  analysis,
-  rateOverride,
-  setRateOverride,
-}: NicotineLoadViewProps) => {
+export const NicotineLoadView = ({ analysis, overrides, setRate }: NicotineLoadViewProps) => {
   const chartData = useMemo<ChartRow[]>(() => {
     const rolling = rollingMean(analysis.load, ROLLING_WINDOW);
     return analysis.weeks.map((week, i) => ({
       label: week.label,
       fromCigs: week.cigs,
-      fromVapes: week.puffs / analysis.rate,
+      fromVapes: week.puffs / analysis.rates.puffsPerCig,
+      fromGum: week.gumMg / analysis.rates.mgPerCig,
       total: analysis.load[i],
       rolling: rolling[i],
     }));
   }, [analysis]);
+
+  // The gum pairing is the one that matters during a quit, so it leads when there
+  // is gum to talk about; otherwise the page looks exactly as it did before.
+  const tiles = [
+    <StatTile
+      key="avg"
+      label="Avg per week"
+      value={formatNumber(analysis.meanLoad, 1)}
+      hint="cig-equivalents"
+    />,
+    <StatTile
+      key="total"
+      label="Total in range"
+      value={formatNumber(analysis.totalLoad, 0)}
+      hint={`over ${analysis.weeks.length} weeks`}
+    />,
+    <StatTile
+      key="trend"
+      label="Weekly trend"
+      value={
+        analysis.trend
+          ? `${analysis.trend.slopePerWeek > 0 ? '+' : ''}${analysis.trend.slopePerWeek.toFixed(2)}`
+          : EM_DASH
+      }
+      hint={
+        analysis.trend ? `per week · R² ${formatNumber(analysis.trend.r2, 2)}` : 'needs more weeks'
+      }
+    />,
+    ...(analysis.hasGum
+      ? [
+          <StatTile
+            key="cigs-gum"
+            label="Cigs ↔ gum"
+            value={
+              analysis.substitution.cigsGum
+                ? formatNumber(analysis.substitution.cigsGum.r, 2)
+                : EM_DASH
+            }
+            hint={
+              !analysis.substitution.cigsGum
+                ? 'needs more weeks'
+                : analysis.substitution.cigsGum.isSubstituting
+                  ? 'gum is displacing cigarettes'
+                  : 'they move together'
+            }
+          />,
+        ]
+      : []),
+    <StatTile
+      key="cigs-vapes"
+      label="Cigs ↔ vapes"
+      value={
+        analysis.substitution.cigsVapes
+          ? formatNumber(analysis.substitution.cigsVapes.r, 2)
+          : EM_DASH
+      }
+      hint={
+        !analysis.substitution.cigsVapes
+          ? 'needs more weeks'
+          : analysis.substitution.cigsVapes.isSubstituting
+            ? 'they substitute for each other'
+            : 'they move together'
+      }
+    />,
+  ];
 
   return (
     <div className="space-y-8">
@@ -161,45 +317,16 @@ export const NicotineLoadView = ({
 
       <StatsSection
         title="Combined load"
-        description="Cigarettes and vaping on one scale, so switching between them can't hide the total"
+        description="Cigarettes, vaping and gum on one scale, so switching between them can't hide the total"
         emoji="🧮"
         gradient={GRADIENT}
       >
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          <StatTile
-            label="Avg per week"
-            value={formatNumber(analysis.meanLoad, 1)}
-            hint="cig-equivalents"
-          />
-          <StatTile
-            label="Total in range"
-            value={formatNumber(analysis.totalLoad, 0)}
-            hint={`over ${analysis.weeks.length} weeks`}
-          />
-          <StatTile
-            label="Weekly trend"
-            value={
-              analysis.trend
-                ? `${analysis.trend.slopePerWeek > 0 ? '+' : ''}${analysis.trend.slopePerWeek.toFixed(2)}`
-                : EM_DASH
-            }
-            hint={
-              analysis.trend
-                ? `per week · R² ${formatNumber(analysis.trend.r2, 2)}`
-                : 'needs more weeks'
-            }
-          />
-          <StatTile
-            label="Cigs ↔ vapes"
-            value={analysis.substitution ? formatNumber(analysis.substitution.r, 2) : EM_DASH}
-            hint={
-              !analysis.substitution
-                ? 'needs more weeks'
-                : analysis.substitution.isSubstituting
-                  ? 'they substitute for each other'
-                  : 'they move together'
-            }
-          />
+        <div
+          className={`grid grid-cols-2 gap-3 sm:gap-4 ${
+            tiles.length > 4 ? 'lg:grid-cols-5' : 'lg:grid-cols-4'
+          }`}
+        >
+          {tiles}
         </div>
 
         <div className="glass-card p-4 sm:p-6">
@@ -226,6 +353,13 @@ export const NicotineLoadView = ({
                   the marks stuck near zero height. A static chart is also easier to
                   read across ~50 weeks of bars.
                 */}
+                <Bar
+                  dataKey="fromGum"
+                  name="From gum"
+                  stackId="load"
+                  fill={GUM_COLOR}
+                  isAnimationActive={false}
+                />
                 <Bar
                   dataKey="fromVapes"
                   name="From vaping"
@@ -258,72 +392,64 @@ export const NicotineLoadView = ({
       </StatsSection>
 
       <StatsSection
-        title="Exchange rate"
-        description="How many puffs count as one cigarette — the assumption everything above rests on"
+        title="Exchange rates"
+        description="How much vaping and gum count as one cigarette — the assumptions everything above rests on"
         emoji="⚖️"
         gradient={GRADIENT}
       >
-        <div className="glass-card space-y-4 p-4 sm:p-6">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <p className="text-2xl font-bold tabular-nums text-gray-800 dark:text-gray-100">
-              {analysis.rate} <span className="text-base font-medium">puffs = 1 cigarette</span>
-            </p>
-            <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-              {analysis.rateSource === 'fitted'
-                ? 'fitted to your data'
-                : analysis.rateSource === 'override'
-                  ? 'your override'
-                  : 'default — not enough data to fit'}
-            </span>
-          </div>
-
-          <Slider
-            value={[analysis.rate]}
-            min={RATE_SEARCH.min}
-            max={RATE_SEARCH.max}
-            step={RATE_SEARCH.step}
-            onValueChange={([value]) => setRateOverride(value)}
-            aria-label="Puffs per cigarette"
+        <div className="glass-card space-y-6 p-4 sm:p-6">
+          <RateSlider
+            analysis={analysis}
+            rateKey="puffsPerCig"
+            title="Puffs per cigarette"
+            unitLabel="puffs = 1 cigarette"
+            fittedLabel="puffs/cig"
+            range={RATE_SEARCH}
+            decimals={1}
+            isOverridden={overrides.puffsPerCig !== undefined}
+            onChange={(value) => setRate('puffsPerCig', value)}
           />
 
-          <div className="flex flex-wrap items-center gap-3">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setRateOverride(undefined)}
-              disabled={rateOverride === undefined}
-              className="bg-white/50 dark:bg-gray-800/50"
-            >
-              <RotateCcw className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
-              Back to fitted rate
-            </Button>
-            {analysis.fit && (
-              <p className="text-xs text-gray-500 dark:text-gray-500">
-                Best fit {analysis.fit.rate} puffs/cig
-              </p>
-            )}
-          </div>
+          {analysis.hasGum && (
+            <div className="border-t border-gray-200 pt-6 dark:border-gray-700">
+              <RateSlider
+                analysis={analysis}
+                rateKey="mgPerCig"
+                title="Milligrams of gum per cigarette"
+                unitLabel="mg of gum = 1 cigarette"
+                fittedLabel="mg/cig"
+                range={MG_RATE_SEARCH}
+                decimals={1}
+                isOverridden={overrides.mgPerCig !== undefined}
+                onChange={(value) => setRate('mgPerCig', value)}
+              />
+            </div>
+          )}
 
           {analysis.fit && (
             <div className="rounded-lg bg-gray-100/60 p-3 text-sm text-gray-600 dark:bg-gray-800/40 dark:text-gray-400">
               <p>
-                This rate is the one that makes your weekly combined load most stable. At it,
+                These rates are the ones that make your weekly combined load most stable. At them,
                 combined load varies by{' '}
                 <span className="font-semibold tabular-nums">{formatNumber(analysis.fit.cv, 2)}</span>{' '}
                 (coefficient of variation), against{' '}
                 <span className="font-semibold tabular-nums">
                   {formatNumber(analysis.fit.cvCigsAlone, 2)}
                 </span>{' '}
-                for cigarettes alone and{' '}
+                for cigarettes alone,{' '}
                 <span className="font-semibold tabular-nums">
                   {formatNumber(analysis.fit.cvPuffsAlone, 2)}
                 </span>{' '}
-                for puffs alone. The combined figure being the steadiest is what says these two are
-                substituting rather than varying independently.
+                for puffs alone and{' '}
+                <span className="font-semibold tabular-nums">
+                  {formatNumber(analysis.fit.cvGumAlone, 2)}
+                </span>{' '}
+                for gum alone. The combined figure being the steadiest is what says these sources
+                are substituting rather than varying independently.
               </p>
               <p className="mt-2">
-                It is an estimate fitted to your own logs, not a clinical measure. Drag the slider
-                to see how much your conclusions depend on it.
+                They are estimates fitted to your own logs, not clinical measures. Drag the sliders
+                to see how much your conclusions depend on them.
               </p>
             </div>
           )}

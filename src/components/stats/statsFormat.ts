@@ -38,6 +38,7 @@ export const decimalsForUnit = (unit: string): number => {
   if (unit.startsWith('mg')) return 1;
   if (unit.startsWith('g')) return 2;
   if (unit.startsWith('ml')) return 0;
+  if (unit.startsWith('pieces')) return 1;
   return unit.startsWith('cigs') || unit.startsWith('puffs') ? 1 : 2;
 };
 
@@ -54,6 +55,8 @@ export const getCategoryChartColor = (category: string): string => {
       return '#06b6d4';
     case 'liquor':
       return '#f59e0b';
+    case 'gum':
+      return '#db2777';
     default:
       return '#3b82f6';
   }

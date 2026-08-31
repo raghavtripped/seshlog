@@ -44,6 +44,7 @@ export function AppDashboard({
       case 'cigs': return 'from-gray-50 via-slate-50 to-zinc-50 dark:from-gray-900 dark:via-slate-900/20 dark:to-zinc-900/20';
       case 'vapes': return 'from-cyan-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-cyan-900/20 dark:to-blue-900/20';
       case 'liquor': return 'from-amber-50 via-orange-50 to-red-50 dark:from-gray-900 dark:via-amber-900/20 dark:to-orange-900/20';
+      case 'gum': return 'from-pink-50 via-rose-50 to-fuchsia-50 dark:from-gray-900 dark:via-pink-900/20 dark:to-rose-900/20';
       default: return 'from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20';
     }
   };

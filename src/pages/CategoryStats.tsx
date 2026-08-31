@@ -27,6 +27,7 @@ const CATEGORY_META: Record<Category, { title: string; emoji: string }> = {
   cigs: { title: 'Cigarettes', emoji: '🚬' },
   vapes: { title: 'Vapes', emoji: '💨' },
   liquor: { title: 'Liquor', emoji: '🥃' },
+  gum: { title: 'Nicotine Gum', emoji: '🍬' },
 };
 
 interface CategoryStatsProps {

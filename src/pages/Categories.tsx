@@ -40,6 +40,9 @@ export const Categories = () => {
       case 'liquor':
         navigate('/liquor');
         break;
+      case 'gum':
+        navigate('/gum');
+        break;
       case 'poker':
         navigate('/poker');
         break;
@@ -76,6 +79,13 @@ export const Categories = () => {
       emoji: '🥃',
       description: isMobile ? 'Track alcohol consumption' : 'Track your alcohol consumption and preferences',
       gradient: 'from-amber-500 to-orange-600'
+    },
+    {
+      id: 'gum',
+      title: 'Nicotine Gum',
+      emoji: '🍬',
+      description: isMobile ? 'Track gum as you quit' : 'Track nicotine gum pieces as you taper off cigarettes',
+      gradient: 'from-pink-500 to-rose-600'
     },
     {
       id: 'poker',

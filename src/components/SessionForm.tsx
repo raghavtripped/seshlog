@@ -102,6 +102,7 @@ const getSessionTypesForCategory = (category: Category) => {
     case 'cigs': return [{ value: 'Regular', label: '🚬 Regular'}, { value: 'Light', label: '🚬 Light'}, { value: 'Menthol', label: '🌿 Menthol'}, { value: 'E-Cigarette', label: '💨 E-Cigarette'}, { value: 'Other', label: '🔄 Other'}];
     case 'vapes': return [{ value: 'Disposable', label: '💨 Disposable'}, { value: 'Pod', label: '🔋 Pod'}, { value: 'Mod', label: '🔧 Mod'}, { value: 'Pen', label: '🖊️ Pen'}, { value: 'Other', label: '🔄 Other'}];
     case 'liquor': return [{ value: 'Beer', label: '🍺 Beer'}, { value: 'Wine', label: '🍷 Wine'}, { value: 'Spirits', label: '�� Spirits'}, { value: 'Cocktail', label: '🍸 Cocktail'}, { value: 'Other', label: '🔄 Other'}];
+    case 'gum': return [{ value: '2mg', label: '🍬 2mg piece'}, { value: '4mg', label: '🍬 4mg piece'}, { value: '6mg', label: '🍬 6mg piece'}, { value: 'Other', label: '🔄 Other'}];
     default: return [{ value: 'Other', label: '🔄 Other'}];
   }
 };
@@ -109,6 +110,7 @@ const getSessionTypesForCategory = (category: Category) => {
 const getQuantityLabel = (category: Category, sessionType?: SessionType) => {
   if (category === 'liquor') return 'Number of Servings';
   if (category === 'cigs') return 'Number of Cigarettes';
+  if (category === 'gum') return 'Number of Pieces';
   if (category === 'weed' && sessionType) {
     const config = getWeedTypeConfig(sessionType);
     return `Quantity (${config.unit})`;
@@ -122,6 +124,7 @@ const getCategoryVisuals = (category: Category) => {
     case 'cigs': return { emoji: '🚬', gradient: 'from-gray-500 to-slate-600' };
     case 'vapes': return { emoji: '💨', gradient: 'from-cyan-500 to-blue-600' };
     case 'liquor': return { emoji: '🥃', gradient: 'from-amber-500 to-orange-600' };
+    case 'gum': return { emoji: '🍬', gradient: 'from-pink-500 to-rose-600' };
     default: return { emoji: '📝', gradient: 'from-blue-500 to-purple-600' };
   }
 };

@@ -61,6 +61,7 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
       case 'cigs': return 'from-gray-500 to-slate-600';
       case 'vapes': return 'from-cyan-500 to-blue-600';
       case 'liquor': return 'from-amber-500 to-orange-600';
+      case 'gum': return 'from-pink-500 to-rose-600';
       default: return 'from-blue-500 to-purple-600';
     }
   };
@@ -71,6 +72,7 @@ export const Insights = ({ periodSessions = [], category }: InsightsProps) => {
       case 'cigs': return '#6b7280'; // gray-500
       case 'vapes': return '#06b6d4'; // cyan-500
       case 'liquor': return '#f59e0b'; // amber-500
+      case 'gum': return '#db2777'; // pink-600
       default: return '#3b82f6'; // blue-500
     }
   };

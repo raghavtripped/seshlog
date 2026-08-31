@@ -73,6 +73,14 @@ export const FilterControls = ({
           { value: 'Cocktail', label: '🍸 Cocktail' },
           { value: 'Other', label: '🔄 Other' }
         ];
+      case 'gum':
+        return [
+          { value: 'All', label: '🌟 All Types' },
+          { value: '2mg', label: '🍬 2mg piece' },
+          { value: '4mg', label: '🍬 4mg piece' },
+          { value: '6mg', label: '🍬 6mg piece' },
+          { value: 'Other', label: '🔄 Other' }
+        ];
       default:
         return [{ value: 'All', label: '🌟 All Types' }];
     }
@@ -84,6 +92,7 @@ export const FilterControls = ({
       case 'cigs': return 'from-gray-500 to-slate-600';
       case 'vapes': return 'from-cyan-500 to-blue-600';
       case 'liquor': return 'from-amber-500 to-orange-600';
+      case 'gum': return 'from-pink-500 to-rose-600';
       default: return 'from-blue-500 to-purple-600';
     }
   };

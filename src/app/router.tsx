@@ -12,7 +12,9 @@ const Cigs = lazy(() => import('@/pages/Cigs'));
 const Vapes = lazy(() => import('@/pages/Vapes'));
 const Liquor = lazy(() => import('@/pages/Liquor'));
 const Weed = lazy(() => import('@/pages/Weed'));
+const Gum = lazy(() => import('@/pages/Gum'));
 const WeedHistory = lazy(() => import('@/pages/WeedHistory'));
+const GumHistory = lazy(() => import('@/pages/GumHistory'));
 const CigsHistory = lazy(() => import('@/pages/CigsHistory'));
 const VapesHistory = lazy(() => import('@/pages/VapesHistory'));
 const LiquorHistory = lazy(() => import('@/pages/LiquorHistory'));
@@ -56,11 +58,14 @@ const router = createBrowserRouter([
       { path: 'vapes/history', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><VapesHistory /></ProtectedRoute></Suspense> },
       { path: 'liquor', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><Liquor /></ProtectedRoute></Suspense> },
       { path: 'liquor/history', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><LiquorHistory /></ProtectedRoute></Suspense> },
+      { path: 'gum', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><Gum /></ProtectedRoute></Suspense> },
+      { path: 'gum/history', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><GumHistory /></ProtectedRoute></Suspense> },
       { path: 'weed', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><Weed /></ProtectedRoute></Suspense> },
       { path: 'weed/history', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><WeedHistory /></ProtectedRoute></Suspense> },
       { path: 'weed/stats', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><CategoryStats category="weed" /></ProtectedRoute></Suspense> },
       { path: 'cigs/stats', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><CategoryStats category="cigs" /></ProtectedRoute></Suspense> },
       { path: 'vapes/stats', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><CategoryStats category="vapes" /></ProtectedRoute></Suspense> },
+      { path: 'gum/stats', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><CategoryStats category="gum" /></ProtectedRoute></Suspense> },
       { path: 'liquor/stats', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><CategoryStats category="liquor" /></ProtectedRoute></Suspense> },
       { path: 'visualisations', element: <Suspense fallback={<div className="p-6">Loading...</div>}><ProtectedRoute><Visualisation /></ProtectedRoute></Suspense> },
       { path: 'visualisation', element: <Navigate to="/visualisations" replace /> },

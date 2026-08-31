@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
@@ -11,6 +11,7 @@ import { useNicotineLoad } from '@/hooks/useNicotineLoad';
 import { StatsRangePreset } from '@/lib/sessionSeries';
 import { StatsRangePicker } from '@/components/stats/StatsRangePicker';
 import { NicotineLoadView } from '@/components/stats/NicotineLoadView';
+import type { ExchangeRates, RateKey } from '@/lib/nicotineLoad';
 
 const GRADIENT = 'from-cyan-500 to-blue-600';
 
@@ -19,22 +20,34 @@ export const NicotineLoad = () => {
   const { user, loading: authLoading } = useAuth();
   const { sessions: cigSessions, isLoading: cigsLoading } = useSessions('cigs');
   const { sessions: vapeSessions, isLoading: vapesLoading } = useSessions('vapes');
+  const { sessions: gumSessions, isLoading: gumLoading } = useSessions('gum');
 
   const [preset, setPreset] = useState<StatsRangePreset>('1y');
   const [customRange, setCustomRange] = useState<DateRange | undefined>(undefined);
-  const [rateOverride, setRateOverride] = useState<number | undefined>(undefined);
+  const [overrides, setOverrides] = useState<Partial<ExchangeRates>>({});
+
+  // Clearing an override deletes the key rather than setting it undefined, so
+  // that `key in overrides` and the reset buttons agree on what is overridden.
+  const setRate = useCallback((key: RateKey, value: number | undefined) => {
+    setOverrides((current) => {
+      const next = { ...current };
+      if (value === undefined) delete next[key];
+      else next[key] = value;
+      return next;
+    });
+  }, []);
 
   const sessions = useMemo(
-    () => [...cigSessions, ...vapeSessions],
-    [cigSessions, vapeSessions]
+    () => [...cigSessions, ...vapeSessions, ...gumSessions],
+    [cigSessions, vapeSessions, gumSessions]
   );
-  const analysis = useNicotineLoad(sessions, preset, customRange, rateOverride);
+  const analysis = useNicotineLoad(sessions, preset, customRange, overrides);
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/login');
   }, [authLoading, user, navigate]);
 
-  if (authLoading || cigsLoading || vapesLoading) {
+  if (authLoading || cigsLoading || vapesLoading || gumLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-12 w-12 animate-spin text-gray-500" />
@@ -81,19 +94,15 @@ export const NicotineLoad = () => {
               🚬
             </div>
             <h3 className="mb-1 text-lg font-semibold text-gray-800 dark:text-gray-200">
-              No cigarette or vape sessions in this range
+              No nicotine sessions in this range
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              This page combines both into a single load figure. Log some sessions, or widen the
-              range.
+              This page combines cigarettes, vaping and gum into a single load figure. Log some
+              sessions, or widen the range.
             </p>
           </div>
         ) : (
-          <NicotineLoadView
-            analysis={analysis}
-            rateOverride={rateOverride}
-            setRateOverride={setRateOverride}
-          />
+          <NicotineLoadView analysis={analysis} overrides={overrides} setRate={setRate} />
         )}
       </div>
     </AppDashboard>
