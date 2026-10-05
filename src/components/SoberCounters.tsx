@@ -1,11 +1,11 @@
 import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
 import { useSoberCounters, type SoberCounter, type SoberCounterKey } from '@/hooks/useSoberCounters';
-import { formatSoberDuration } from '@/lib/soberCounter';
+import { formatSoberDuration, SOBER_WINDOW_DAYS } from '@/lib/soberCounter';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const META: Record<SoberCounterKey, { label: string; emoji: string; gradient: string }> = {
-  smoke: { label: 'Smoke-free', emoji: '🌬️', gradient: 'from-emerald-500 to-teal-600' },
+  smoke: { label: 'Smoke-free', emoji: '🫁', gradient: 'from-emerald-500 to-teal-600' },
   cigs: { label: 'Cigarettes', emoji: '🚬', gradient: 'from-gray-500 to-slate-600' },
   vapes: { label: 'Vapes', emoji: '💨', gradient: 'from-cyan-500 to-blue-600' },
   weed: { label: 'Weed', emoji: '🌿', gradient: 'from-green-500 to-emerald-600' },
@@ -17,15 +17,23 @@ const META: Record<SoberCounterKey, { label: string; emoji: string; gradient: st
 // reminder is worth surfacing.
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const FreeDays = ({ counter }: { counter: SoberCounter }) => {
-  const { freeDays, windowDays } = counter.status;
+// Emoji on a gradient disc, matching the category tiles. Several of these emoji
+// (🚬, 💨) are near-white on Apple devices and vanish on a light card without it.
+const EmojiBadge = ({ counterKey, size }: { counterKey: SoberCounterKey; size: 'sm' | 'md' }) => {
+  const meta = META[counterKey];
+  const dims = size === 'sm' ? 'h-6 w-6 text-sm' : 'h-8 w-8 text-base';
   return (
-    <span>
-      {freeDays}/{windowDays} days free
-      {windowDays < 30 ? ` (since you started logging)` : ' in last 30'}
+    <span
+      aria-hidden
+      className={`inline-flex shrink-0 items-center justify-center rounded-full bg-gradient-to-r ${meta.gradient} ${dims} shadow`}
+    >
+      {meta.emoji}
     </span>
   );
 };
+
+const freeDaysLabel = ({ freeDays, windowDays }: SoberCounter['status']) =>
+  `${freeDays}/${windowDays} days free`;
 
 const HeadlineCounter = ({ counter }: { counter: SoberCounter }) => {
   const { status } = counter;
@@ -35,25 +43,30 @@ const HeadlineCounter = ({ counter }: { counter: SoberCounter }) => {
   if (status.currentMs === null) return null;
 
   const showBest = status.longestMs !== null && status.longestMs > status.currentMs && status.longestMs >= DAY_MS;
+  const windowNote =
+    status.windowDays < SOBER_WINDOW_DAYS ? ' since you started logging' : ` in last ${SOBER_WINDOW_DAYS}`;
 
   return (
-    <div className={`glass-card ${isMobile ? 'p-5' : 'p-8'} text-center`}>
-      <div className="flex items-center justify-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400">
-        <span>{meta.emoji}</span>
+    <div className={`glass-card ${isMobile ? 'p-4' : 'p-8'} text-center`}>
+      <div className="flex items-center justify-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+        <EmojiBadge counterKey={counter.key} size="sm" />
         <span>{meta.label}</span>
-        <span className="text-xs text-gray-500">· no cigs or vapes</span>
+        <span className="text-xs font-normal text-gray-500">· no cigs or vapes</span>
       </div>
       <div
         className={`mt-2 bg-gradient-to-r ${meta.gradient} bg-clip-text font-bold tabular-nums text-transparent ${isMobile ? 'text-4xl' : 'text-6xl'}`}
       >
         {formatSoberDuration(status.currentMs)}
       </div>
-      <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm text-gray-600 dark:text-gray-400">
+      <div className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm text-gray-600 dark:text-gray-400">
         <span>Longest: {formatSoberDuration(status.longestMs ?? 0)}</span>
-        <FreeDays counter={counter} />
+        <span>
+          {freeDaysLabel(status)}
+          {windowNote}
+        </span>
       </div>
       {showBest && (
-        <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
           A slip isn't a reset — you've already gone {formatSoberDuration(status.longestMs!)} before.
         </p>
       )}
@@ -61,28 +74,44 @@ const HeadlineCounter = ({ counter }: { counter: SoberCounter }) => {
   );
 };
 
-const CategoryCounter = ({ counter }: { counter: SoberCounter }) => {
+// Mobile: one row of chips with just the current time, so the counters don't
+// push the category tiles (where logging happens) below the fold.
+const CounterChip = ({ counter }: { counter: SoberCounter }) => {
+  const { status } = counter;
+  const meta = META[counter.key];
+  return (
+    <div
+      className="glass-card flex flex-col items-center gap-1 px-1 py-2"
+      aria-label={`${meta.label}: ${status.currentMs === null ? 'nothing logged' : formatSoberDuration(status.currentMs)}`}
+    >
+      <EmojiBadge counterKey={counter.key} size="md" />
+      <span className="whitespace-nowrap text-[13px] font-semibold tabular-nums tracking-tight text-gray-800 dark:text-gray-200">
+        {status.currentMs === null ? '—' : formatSoberDuration(status.currentMs)}
+      </span>
+    </div>
+  );
+};
+
+const CounterCard = ({ counter }: { counter: SoberCounter }) => {
   const { status } = counter;
   const meta = META[counter.key];
 
   return (
     <div className="glass-card p-4">
-      <div className="flex items-center gap-2 text-xs font-medium text-gray-600 dark:text-gray-400">
-        <span>{meta.emoji}</span>
+      <div className="flex items-center gap-2 text-xs font-medium text-gray-700 dark:text-gray-300">
+        <EmojiBadge counterKey={counter.key} size="sm" />
         <span>{meta.label}</span>
       </div>
       {status.currentMs === null ? (
         <div className="mt-2 text-sm text-gray-500 dark:text-gray-500">Nothing logged</div>
       ) : (
         <>
-          <div className="mt-1 text-2xl font-semibold tabular-nums text-gray-800 dark:text-gray-200">
+          <div className="mt-2 text-2xl font-semibold tabular-nums text-gray-800 dark:text-gray-200">
             {formatSoberDuration(status.currentMs)}
           </div>
           <div className="mt-1 space-y-0.5 text-xs text-gray-500 dark:text-gray-400">
             <div>Longest: {formatSoberDuration(status.longestMs ?? 0)}</div>
-            <div>
-              <FreeDays counter={counter} />
-            </div>
+            <div>{freeDaysLabel(status)}</div>
             {status.lastAt && <div>Last: {format(status.lastAt, 'd MMM, HH:mm')}</div>}
           </div>
         </>
@@ -110,12 +139,16 @@ export const SoberCounters = () => {
   const rest = counters.filter((c) => c.key !== 'smoke');
 
   return (
-    <section className={`mx-auto ${isMobile ? 'mb-6 max-w-sm space-y-3' : 'mb-12 max-w-6xl space-y-4'}`}>
+    <section className={`mx-auto ${isMobile ? 'mb-6 max-w-sm space-y-2' : 'mb-12 max-w-6xl space-y-4'}`}>
       <HeadlineCounter counter={headline} />
-      <div className={`grid ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-5 gap-4'}`}>
-        {rest.map((counter) => (
-          <CategoryCounter key={counter.key} counter={counter} />
-        ))}
+      <div className={`grid grid-cols-5 ${isMobile ? 'gap-1.5' : 'gap-4'}`}>
+        {rest.map((counter) =>
+          isMobile ? (
+            <CounterChip key={counter.key} counter={counter} />
+          ) : (
+            <CounterCard key={counter.key} counter={counter} />
+          )
+        )}
       </div>
     </section>
   );
