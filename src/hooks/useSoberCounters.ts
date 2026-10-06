@@ -9,18 +9,14 @@ import { computeSoberStatus, type SoberStatus } from '@/lib/soberCounter';
 const PAGE_SIZE = 1000;
 const TICK_MS = 60 * 1000;
 
-export type SoberCounterKey = 'smoke' | Category;
+export type SoberCounterKey = Category;
 
 export interface SoberCounter {
   key: SoberCounterKey;
   status: SoberStatus;
 }
 
-// "smoke" pools cigarettes and vapes: switching from one to the other isn't
-// progress, so the headline counter only runs while you've had neither. Gum is
-// a quitting aid and deliberately doesn't reset it.
 const COUNTER_CATEGORIES: Record<SoberCounterKey, Category[]> = {
-  smoke: ['cigs', 'vapes'],
   cigs: ['cigs'],
   vapes: ['vapes'],
   weed: ['weed'],

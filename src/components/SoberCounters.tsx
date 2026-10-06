@@ -5,7 +5,6 @@ import { formatSoberDuration, SOBER_WINDOW_DAYS } from '@/lib/soberCounter';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const META: Record<SoberCounterKey, { label: string; emoji: string; gradient: string }> = {
-  smoke: { label: 'Smoke-free', emoji: '🫁', gradient: 'from-emerald-500 to-teal-600' },
   cigs: { label: 'Cigarettes', emoji: '🚬', gradient: 'from-gray-500 to-slate-600' },
   vapes: { label: 'Vapes', emoji: '💨', gradient: 'from-cyan-500 to-blue-600' },
   weed: { label: 'Weed', emoji: '🌿', gradient: 'from-green-500 to-emerald-600' },
@@ -51,7 +50,6 @@ const HeadlineCounter = ({ counter }: { counter: SoberCounter }) => {
       <div className="flex items-center justify-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
         <EmojiBadge counterKey={counter.key} size="sm" />
         <span>{meta.label}</span>
-        <span className="text-xs font-normal text-gray-500">· no cigs or vapes</span>
       </div>
       <div
         className={`mt-2 bg-gradient-to-r ${meta.gradient} bg-clip-text font-bold tabular-nums text-transparent ${isMobile ? 'text-4xl' : 'text-6xl'}`}
@@ -135,14 +133,13 @@ export const SoberCounters = () => {
     return <p className="text-center text-sm text-rose-600 dark:text-rose-400">Couldn't load counters: {error}</p>;
   }
 
-  const headline = counters.find((c) => c.key === 'smoke')!;
-  const rest = counters.filter((c) => c.key !== 'smoke');
+  const headline = counters.find((c) => c.key === 'cigs')!;
 
   return (
     <section className={`mx-auto ${isMobile ? 'mb-6 max-w-sm space-y-2' : 'mb-12 max-w-6xl space-y-4'}`}>
       <HeadlineCounter counter={headline} />
       <div className={`grid grid-cols-5 ${isMobile ? 'gap-1.5' : 'gap-4'}`}>
-        {rest.map((counter) =>
+        {counters.map((counter) =>
           isMobile ? (
             <CounterChip key={counter.key} counter={counter} />
           ) : (
